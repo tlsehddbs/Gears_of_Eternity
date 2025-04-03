@@ -39,6 +39,7 @@ Thumbs.db
 *.mdb
 *.opendb
 *.VC.db
+*.editorconfig
 
 # Unity 메타파일 제외하면 안 됨(메타파일 반드시 포함!)
 !*.meta
