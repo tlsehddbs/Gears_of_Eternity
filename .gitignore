@@ -22,15 +22,18 @@ Thumbs.db
 # IDE 설정 파일 제외 (Rider, Visual Studio)
 .idea/
 .cache/
+.vs/
 *.iml
 *.ipr
 *.iws
 *.dotSettings
 *.sln
+*.sln.docstates
 *.csproj
 *.unityproj
 *.suo
 *.user
+*.userosscache
 *.userprefs
 *.pidb
 *.booproj
