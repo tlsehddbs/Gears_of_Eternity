@@ -350,8 +350,12 @@ MonoBehaviour:
   canSpawnLayer:
     serializedVersion: 2
     m_Bits: 64
+  unitLayer:
+    serializedVersion: 2
+    m_Bits: 128
   minUnitSpacing: 1
   maxCost: 10
+  unitPreviewPrefab: {fileID: 8824449087605250112, guid: 8c89178ed10c403448f7d2caf129ac75, type: 3}
 --- !u!114 &1652933463
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -408,9 +412,8 @@ GameObject:
   - component: {fileID: 1717600209}
   - component: {fileID: 1717600208}
   - component: {fileID: 1717600207}
-  - component: {fileID: 1717600211}
   m_Layer: 6
-  m_Name: UnitSpawner
+  m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -506,19 +509,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1717600211
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1717600205}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 15cc6c9d22a6e15408ca24e05218448c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  isOccupied: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
