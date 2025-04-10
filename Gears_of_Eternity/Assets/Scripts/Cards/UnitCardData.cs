@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "NewUnitCard", menuName = "Cards/UnitCard")]
+[CreateAssetMenu(fileName = "NewUnitCard", menuName = "Card/UnitCard")]
 public class UnitCardData : BaseCardData
 {
     public GameObject unitPrefab;
