@@ -6,7 +6,7 @@ using ItemEffectTypes.Enums;
 
 public class ItemCardGenerator : EditorWindow
 {
-    [MenuItem("Tools/Card Generator/Generate Item Cards")]
+    [MenuItem("Tools/Automatic Card Generator/Item Cards")]
     public static void ShowWindow()
     {
         GetWindow<ItemCardGenerator>("Item Card Generator");
@@ -14,8 +14,7 @@ public class ItemCardGenerator : EditorWindow
 
     private void OnGUI()
     {
-        GUILayout.Label("Item Card CSV 생성기", EditorStyles.boldLabel);
-        if (GUILayout.Button("💾 아이템 카드 자동 생성 (CSV → SO)"))
+        if (GUILayout.Button("아이템 카드 자동 생성 (CSV → ScriptableObject)"))
         {
             GenerateItemCards();
         }

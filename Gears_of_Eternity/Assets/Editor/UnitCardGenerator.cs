@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public class UnitCardGenerator : EditorWindow
 {
-    [MenuItem("Tools/Card Generator/Generate Unit Cards")]
+    [MenuItem("Tools/Automatic Card Generator/Unit Cards")]
     public static void ShowWindow()
     {
         GetWindow<UnitCardGenerator>("Unit Card Generator");
@@ -12,8 +12,7 @@ public class UnitCardGenerator : EditorWindow
 
     private void OnGUI()
     {
-        GUILayout.Label("Unit Card CSV 생성기", EditorStyles.boldLabel);
-        if (GUILayout.Button("💾 유닛 카드 자동 생성 (CSV → SO)"))
+        if (GUILayout.Button("유닛 카드 자동 생성 (CSV → ScriptableObject)"))
         {
             GenerateUnitCards();
         }
