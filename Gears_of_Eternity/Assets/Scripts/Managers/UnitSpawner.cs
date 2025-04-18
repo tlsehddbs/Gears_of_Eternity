@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using DG.Tweening;
+using UnityEditor.PackageManager;
 
 
 public class UnitSpawner : MonoBehaviour
@@ -46,32 +47,37 @@ public class UnitSpawner : MonoBehaviour
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit; 
         
-
-        if(Input.GetMouseButtonDown(0) && selectedUnit != null)
+        if(Input.GetMouseButtonDown(0))
         {
             if(Physics.Raycast(ray, out hit, 100f, unitLayer))
             {
-                if(hit.collider.gameObject == selectedUnit)
-                {
-                    isDragging = true;
-                    // 클릭 위치와 유닛 위치 간 거리 저장(보정)
-                    dragOffset = selectedUnit.transform.position - hit.point;
-                    dragBaseY = selectedUnit.transform.position.y; //기준 높이 저장
-                    dragStartPos = selectedUnit.transform.position;
+                GameObject clicked = hit.collider.gameObject;
 
-                    Rigidbody rb = selectedUnit.GetComponent<Rigidbody>();
-                    if(rb != null)
+                if(clicked != null)
+                {
+                    if(clicked != selectedUnit)
                     {
-                        rb.isKinematic = true;
+                        SelectUnit(clicked);
                     }
 
-                    Collider col = selectedUnit.GetComponent<Collider>();
-                    if(col != null)
+                    if(selectedUnit != null && clicked == selectedUnit)
                     {
-                        col.isTrigger = true; // 충돌 무시
+                        isDragging = true;
+                        
+                        Vector3 hitPointXZ = new Vector3(hit.point.x, 0, hit.point.z);
+                        Vector3 unitPosXZ = new Vector3(selectedUnit.transform.position.x, 0, selectedUnit.transform.position.z);
+                        dragOffset = unitPosXZ - hitPointXZ;
+
+                        dragBaseY = selectedUnit.transform.position.y;
+                        dragStartPos = selectedUnit.transform.position;
+
+                        Rigidbody rb = selectedUnit.GetComponent<Rigidbody>();
+                        if(rb != null) rb.isKinematic = true;
+
+                        Collider col = selectedUnit.GetComponent<Collider>();
+                        if(col != null) col.isTrigger = true; // 충돌 무시
                     }
                 }
-
             }
         }
 
@@ -80,16 +86,18 @@ public class UnitSpawner : MonoBehaviour
         {
             if(Physics.Raycast(ray, out hit, 100f ,canSpawnLayer)) // 바닥 기준 이동
             {
-                Vector3 newPos = hit.point + dragOffset;
-                newPos.y = dragBaseY + dragLiftHeight;   
+                Vector3 newPos = new Vector3(hit.point.x + dragOffset.x, dragBaseY + dragLiftHeight, hit.point.z + dragOffset.z);
                 selectedUnit.transform.position = newPos;
             } 
         }
 
         // 드래그 종료: 마우스 버튼 떼면 이동 완료
-        if(Input.GetMouseButtonUp(0) && isDragging)
+        if(Input.GetMouseButtonUp(0) && isDragging && selectedUnit != null)
         {
             isDragging = false;
+            //중복 트윈 방지(선택)
+            if(DOTween.IsTweening(selectedUnit.transform)) return;
+
             Vector3 dropPos = selectedUnit.transform.position;
 
             Rigidbody rb = selectedUnit.GetComponent<Rigidbody>();
@@ -99,51 +107,28 @@ public class UnitSpawner : MonoBehaviour
             Vector3? validPos = needsCorrection ? FindNearestValidPosition(dropPos, 3f) : null;
 
             //이동 후 겹칠 시 자동 위치 보정
+            Vector3 target;
             if(needsCorrection && validPos.HasValue)
             {
-                Vector3 targetPos = new Vector3(validPos.Value.x, dragBaseY, validPos.Value.z);
-                if(validPos.HasValue)
-                {
-                    if(rb != null)
-                    {
-                        rb.isKinematic = true;
-                    }
-
-                    if(col != null)
-                    {
-                        col.isTrigger = true; // 충돌 무시
-                    }
-                    
-                    selectedUnit.transform.DOMove(targetPos, 0.3f).SetEase(Ease.OutCubic).OnComplete(() =>
-                    {
-                        if(col != null)
-                        {
-                            col.isTrigger = false;
-                        }
-
-                        if(rb != null)
-                        {
-                            rb.isKinematic = false;
-                        }
-                    });
-                }
-                else if(needsCorrection)
-                {
-                    selectedUnit.transform.position = dragStartPos;
-                }
-                else
-                {
-                    if(col != null)
-                    {
-                        col.isTrigger = false;
-                    }
-
-                    if(rb != null)
-                    {
-                        rb.isKinematic = false;
-                    }
-                }
+                target = new Vector3(validPos.Value.x, dragBaseY, validPos.Value.z);    
             }
+            else if(needsCorrection)
+            {
+                target = dragStartPos;
+            }
+            else
+            {
+                target = dropPos;
+            }
+
+            if(col != null) col.isTrigger = true;
+            if(rb != null) rb.isKinematic = true;  
+
+            selectedUnit.transform.DOMove(target, 0.2f).SetEase(Ease.OutCubic).OnComplete(() => {
+            if(col != null) col.isTrigger = false;
+            if(rb != null) rb.isKinematic = false;          
+            });
+            
         }
 
         // 유닛 선택
@@ -218,7 +203,7 @@ public class UnitSpawner : MonoBehaviour
             }
         }
 
-        //유닛 소환 모드 종료료
+        //유닛 소환 모드 종료
         if(isSpawnMode && Input.anyKeyDown)
         {
             if(!Input.GetKeyDown(KeyCode.Alpha1))
