@@ -1,6 +1,11 @@
+using System;
 using UnityEditor;
 using UnityEngine;
 using System.Collections.Generic;
+
+using FactionTypes.Enums;
+using RarityTypes.Enums;
+using BattleTypes.Enums;
 
 public class UnitCardGenerator : EditorWindow
 {
@@ -12,7 +17,7 @@ public class UnitCardGenerator : EditorWindow
 
     private void OnGUI()
     {
-        if (GUILayout.Button("유닛 카드 자동 생성 (CSV → ScriptableObject)"))
+        if (GUILayout.Button("유닛 카드 생성 (CSV → ScriptableObject)"))
         {
             GenerateUnitCards();
         }
@@ -21,12 +26,14 @@ public class UnitCardGenerator : EditorWindow
     // ReSharper disable Unity.PerformanceAnalysis
     private void GenerateUnitCards()
     {
-        string csvPath = "CSV/UnitCardData"; // Resources/CSV/aa.csv
-        List<string[]> data = CSVLoader.LoadCSV(csvPath);
+        Dictionary<string, UnitCardData> unitMap = new();  // unitName → UnitCardData
+        
+        List<string[]> unitData = CSVLoader.LoadCSV("CSV/UnitCardData");
+        List<string[]> upgradeData = CSVLoader.LoadCSV("CSV/UnitCardUpgradeData");
 
-        if (data == null || data.Count == 0)
+        if (unitData == null || unitData.Count == 0)
         {
-            Debug.LogWarning("CSV 데이터가 없습니다.");
+            Debug.LogWarning("CSV 데이터 없음");
             return;
         }
 
@@ -37,35 +44,71 @@ public class UnitCardGenerator : EditorWindow
             AssetDatabase.CreateFolder("Assets/Resources", "UnitCardAssets");
         }
 
-        foreach (var row in data)
+        // Generate Unit Assets
+        foreach (var row in unitData)
         {
-            // 유효성 검사
-            if (row.Length < 6)
-            {
-                Debug.LogWarning("유효하지 않은 데이터 행 (필드 부족)");
-                continue;
-            }
-
             UnitCardData card = ScriptableObject.CreateInstance<UnitCardData>();
-            card.unitName = row[0];
-            card.description = row[1];
             
-            card.health = float.Parse(row[2]);
-            card.attack = float.Parse(row[3]);
-            card.attackRange = float.Parse(row[4]);
-            card.attackSpeed = float.Parse(row[5]);
-            card.defense = float.Parse(row[6]);
-            card.mana = float.Parse(row[7]);
-            card.speed = float.Parse(row[8]);
+            card.faction = (FactionType)Enum.Parse(typeof(FactionType), row[0]);
+            card.unitName = row[1].Trim();
+            // card.description = row[1];
+            // card.unitPrefab = row[1];
+            card.rarity = (Rarity)Enum.Parse(typeof(Rarity), row[2]);
+            card.battleType = (BattleType)Enum.Parse(typeof(BattleType), row[3]);
+            
+            card.health = float.Parse(row[4]);
+            card.defense = float.Parse(row[5]);
+            
+            card.moveSpeed = float.Parse(row[6]);
 
+            card.attack = float.Parse(row[8]);
+            card.attackSpeed = float.Parse(row[9]);
+            card.attackRange = float.Parse(row[10]);        // 피해를 받는 범위
+            card.attackDistance = float.Parse(row[11]);     // 공격 가능 범위
+            
+            card.cost = int.Parse(row[12]);
+
+            card.level = int.Parse(row[13]);
+            
+            // skill 관련 parse 내용 작성
+            
             string assetPath = $"{outputFolder}/{card.unitName}.asset";
+            
+            unitMap[card.unitName] = card;
 
             AssetDatabase.CreateAsset(card, assetPath);
             Debug.Log($"생성됨: {assetPath}");
         }
+        Debug.Log("✅유닛 카드 생성 완료");
+        
+        // Generate Unit Upgrade Info(List)
+        foreach (var row in upgradeData)
+        {
+            string baseUnit = row[1].Trim();
+            string upgradeUnit = row[2].Trim();
 
+            if (!unitMap.TryGetValue(baseUnit, out var baseCard))
+            {
+                Debug.LogWarning($"❗업그레이드 기준 유닛 '{baseUnit}' 없음");
+                continue;
+            }
+
+            if (!unitMap.TryGetValue(upgradeUnit, out var upgradeCard))
+            {
+                Debug.LogWarning($"❗업그레이드 대상 유닛 '{upgradeUnit}' 없음");
+                continue;
+            }
+
+            if (baseCard.nextUpgrades == null)
+            {
+                baseCard.nextUpgrades = new List<UnitCardData>();
+            }
+
+            baseCard.nextUpgrades.Add(upgradeCard);
+            
+            EditorUtility.SetDirty(baseCard);
+        }
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-        Debug.Log("✅ 유닛 카드 생성 완료!");
     }
 }

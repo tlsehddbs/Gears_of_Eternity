@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c269cbc48e3814f9c9c5466a9638f67c, type: 3}
+  m_Name: "\uC555\uCD95 \uC800\uACA9\uBCD1"
+  m_EditorClassIdentifier: 
+  id: 
+  icon: {fileID: 0}
+  cardType: 0
+  faction: 0
+  rarity: 0
+  cost: 2
+  level: 1
+  unitName: "\uC555\uCD95 \uC800\uACA9\uBCD1"
+  battleType: 1
+  unitPrefab: {fileID: 0}
+  health: 85
+  defense: 20
+  moveSpeed: 2.8
+  attack: 65
+  attackSpeed: 1.5
+  attackRange: 2
+  attackDistance: 4
+  skillName: 
+  skillCoolDown: 0
+  skillDescription: 
+  nextUpgrades:
+  - {fileID: 11400000, guid: cd8474b7b48cc4b4caa1a45b58f1c8b5, type: 2}
+  - {fileID: 11400000, guid: a56b63f89baa79a49bc1e8f9f3c53094, type: 2}
+  - {fileID: 11400000, guid: a6242e01753be89449648f91ce1022d9, type: 2}

@@ -2,15 +2,16 @@ using UnityEngine;
 
 public class DeckManager : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
+    public DeckData playerDeck = new DeckData();
 
-    // Update is called once per frame
-    void Update()
+    public bool AddCard(UnitCardData card)
     {
+        if (playerDeck.cards.Count >= playerDeck.maxCardCount)
+        {
+            return false;
+        }
+        playerDeck.cards.Add(card);
         
+        return true;
     }
 }

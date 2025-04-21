@@ -2,6 +2,7 @@ using System;
 using UnityEditor;
 using UnityEngine;
 using System.Collections.Generic;
+
 using ItemEffectTypes.Enums;
 
 public class ItemCardGenerator : EditorWindow
@@ -28,7 +29,7 @@ public class ItemCardGenerator : EditorWindow
 
         if (data == null || data.Count == 0)
         {
-            Debug.LogWarning("CSV 데이터가 없습니다.");
+            Debug.LogWarning("CSV 데이터 없음");
             return;
         }
 
@@ -44,10 +45,11 @@ public class ItemCardGenerator : EditorWindow
             // 유효성 검사
             if (row.Length < 6)
             {
-                Debug.LogWarning("유효하지 않은 데이터 행 (필드 부족)");
+                Debug.LogWarning("유효하지 않은 데이터(필드 부족)");
                 continue;
             }
 
+            
             ItemCardData card = ScriptableObject.CreateInstance<ItemCardData>();
             card.itemName = row[0];
             card.itemDescription = row[1];
@@ -63,6 +65,6 @@ public class ItemCardGenerator : EditorWindow
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-        Debug.Log("✅ 유닛 카드 생성 완료!");
+        Debug.Log("✅유닛 카드 생성 완료");
     }
 }
