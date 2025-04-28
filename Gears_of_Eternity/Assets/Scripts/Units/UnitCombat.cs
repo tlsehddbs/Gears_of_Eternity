@@ -51,7 +51,7 @@ public class UnitCombat : MonoBehaviour
                 if(agent != null)
                 {
                     agent.SetDestination(targetEnemy.transform.position);
-                    Debug.Log($"[이동 중] Target = {targetEnemy.name}, Distance = {distance}");
+                    //Debug.Log($"[이동 중] Target = {targetEnemy.name}, Distance = {distance}");
                 }
             }
             else
@@ -111,9 +111,19 @@ public class UnitCombat : MonoBehaviour
         float shortestDistance = Mathf.Infinity;
         UnitCombat nearestEnemy = null;
 
-        foreach(var unit in FindObjectsOfType<UnitCombat>())
+        UnitCombat[] units = FindObjectsOfType<UnitCombat>();
+        if(units == null || units.Length == 0)
+        {
+            targetEnemy = null;
+            return;
+        }
+
+        foreach(var unit in units)
         {
             if(unit == this || !unit.IsAlive()) continue;
+
+            if(unit.unitData.faction == this.unitData.faction) continue;
+
 
             float dist = Vector3.Distance(transform.position, unit.transform.position);
             if(dist < shortestDistance)
