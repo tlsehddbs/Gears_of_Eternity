@@ -2,7 +2,7 @@ using System;
 using UnityEditor;
 using UnityEngine;
 using System.Collections.Generic;
-
+using FactionTypes.Enums;
 using ItemEffectTypes.Enums;
 
 public class ItemCardGenerator : EditorWindow
@@ -24,7 +24,7 @@ public class ItemCardGenerator : EditorWindow
     // ReSharper disable Unity.PerformanceAnalysis
     private void GenerateItemCards()
     {
-        string csvPath = "CSV/ItemCardData"; // Resources/CSV/aa.csv
+        string csvPath = "CSV/ItemCardData";
         List<string[]> data = CSVLoader.LoadCSV(csvPath);
 
         if (data == null || data.Count == 0)
@@ -48,14 +48,19 @@ public class ItemCardGenerator : EditorWindow
                 Debug.LogWarning("유효하지 않은 데이터(필드 부족)");
                 continue;
             }
-
             
             ItemCardData card = ScriptableObject.CreateInstance<ItemCardData>();
-            card.itemName = row[0];
-            card.itemDescription = row[1];
-            card.effectType = (ItemEffectType)Enum.Parse(typeof(ItemEffectType), row[2]);
-            card.effectValue = float.Parse(row[3]);
-            card.effectDuration = float.Parse(row[4]);
+            
+            card.faction = (FactionType)Enum.Parse(typeof(FactionType), row[0]);
+            card.itemName = row[1].Trim();
+            //card.itemDescription = row[1];
+            card.itemGroup = (ItemGroupType)Enum.Parse(typeof(ItemGroupType), row[2]);
+            card.effectType = (ItemEffectType)Enum.Parse(typeof(ItemEffectType), row[6]);
+            card.effectValue = float.Parse(row[7]);
+            card.effectDuration = float.Parse(row[8]);
+            
+            card.itemTriggerCondition = (ItemTriggerConditionType)Enum.Parse(typeof(ItemTriggerConditionType), row[9]);
+            card.itemTargetType = (ItemTargetType)Enum.Parse(typeof(ItemTargetType), row[10]);
             
             string assetPath = $"{outputFolder}/{card.itemName}.asset";
 
