@@ -1,18 +1,18 @@
-using System;
-using Unity.Android.Gradle.Manifest;
 using UnityEngine;
-using System.Collections;
 using UnityEngine.AI;
+using BattleTypes.Enums;
+
 
 public class UnitCombat : MonoBehaviour
 {
     public UnitCardData unitData; // ScriptableObject 연결 
-    private float currentHP;
-    private float attackTimer;
-
     private UnitCombat targetEnemy; // 현재 공격중인 적 
     private NavMeshAgent agent;
+    private float currentHP;
+    private float attackTimer;
     private float lookAttackDistance;
+    private float criticalChance;
+    public float criticalMultiplier = 1.5f; //치명타 배수 
    
    
     private void Awake()
@@ -32,6 +32,20 @@ public class UnitCombat : MonoBehaviour
             agent.speed = unitData.moveSpeed;
             agent.stoppingDistance = unitData.attackDistance * 5;
         }
+
+        switch(unitData.battleType)
+        {
+            case BattleType.Melee:
+                criticalChance =0.1f;
+                break;
+            case BattleType.Ranged:
+                criticalChance = 0.3f;
+                break;
+            case BattleType.Support:
+                criticalChance = 0.1f;
+                break;
+        }
+
     }
 
     // Update is called once per frame
@@ -90,8 +104,19 @@ public class UnitCombat : MonoBehaviour
     {
         if(targetEnemy != null)
         {
-            targetEnemy.TakeDamage(unitData.attack);
-            Debug.Log($"[공격] {targetEnemy.name}에게 {unitData.attack - targetEnemy.unitData.defense} 데미지를 입혔습니다.");
+            float baseDamage = unitData.attack;
+
+            //치명타 여부 결정 
+            bool isCritical = UnityEngine.Random.value < criticalChance;
+            if(isCritical)
+            {
+                baseDamage *= criticalMultiplier;
+                Debug.Log("[Critical]");
+                
+            }
+
+            targetEnemy.TakeDamage(baseDamage);
+            Debug.Log($"[공격] {targetEnemy.name}에게 {baseDamage} 데미지 / 입힌 데미지{(baseDamage * (100f / (100f + targetEnemy.unitData.defense))):F1}.");
         }
     }
 
