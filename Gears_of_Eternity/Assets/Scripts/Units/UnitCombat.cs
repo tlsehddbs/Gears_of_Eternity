@@ -12,22 +12,26 @@ public class UnitCombat : MonoBehaviour
 
     private UnitCombat targetEnemy; // 현재 공격중인 적 
     private NavMeshAgent agent;
-
-    
+    private float lookAttackDistance;
+   
+   
+    private void Awake()
+    {
+        CreateRangeIndicator(); //런타임 사거리
+    }
 
     void Start()
     {
+        lookAttackDistance = unitData.attackDistance * 5;
+
         currentHP = unitData.health;
         agent = GetComponent<NavMeshAgent>();
 
         if(agent != null)
         {
             agent.speed = unitData.moveSpeed;
-            agent.stoppingDistance = unitData.attackRange;
+            agent.stoppingDistance = unitData.attackDistance * 5;
         }
-        
-        CreateRangeIndicator(); //런타임 사거리리
-
     }
 
     // Update is called once per frame
@@ -81,6 +85,7 @@ public class UnitCombat : MonoBehaviour
         return currentHP > 0;
     }
 
+    //공격
     void Attack()
     {
         if(targetEnemy != null)
@@ -90,11 +95,13 @@ public class UnitCombat : MonoBehaviour
         }
     }
 
+    //데미지 입는 방식
     public void TakeDamage(float damage)
     {
-        float effectiveDamage = Mathf.Max(damage - unitData.defense, 1f);
+        float effectiveDamage = damage * (100f / (100f + unitData.defense));
         currentHP -= effectiveDamage;
 
+        Debug.Log($"[피격] {gameObject.name} - 받은 데미지: {effectiveDamage:F1} / 남은 HP: {currentHP:F1}");
         if(currentHP <= 0)
         {
             Die();
@@ -106,6 +113,7 @@ public class UnitCombat : MonoBehaviour
         Destroy(gameObject);
     }
 
+    //타겟 찾는 로직 
     void FindNewTarget()
     {
         float shortestDistance = Mathf.Infinity;
@@ -141,7 +149,7 @@ public class UnitCombat : MonoBehaviour
         if (unitData == null) return;
 
         Gizmos.color = Color.red; 
-        Gizmos.DrawWireSphere(transform.position, unitData.attackRange);
+        Gizmos.DrawWireSphere(transform.position, lookAttackDistance);
     }
 
 
@@ -170,7 +178,7 @@ public class UnitCombat : MonoBehaviour
     {
         if(rangeIndicator == null || unitData == null) return;
 
-        float radius = unitData.attackRange;
+        float radius = lookAttackDistance;
         Vector3 center = transform.position;
 
         for(int i = 0; i < 51; i++)

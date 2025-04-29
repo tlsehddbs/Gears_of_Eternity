@@ -26,8 +26,8 @@ MonoBehaviour:
   moveSpeed: 2.2
   attack: 48
   attackSpeed: 1.1
-  attackRange: 5
-  attackDistance: 5
+  attackRange: 1
+  attackDistance: 1
   skillName: 
   skillCoolDown: 0
   skillDescription: 
