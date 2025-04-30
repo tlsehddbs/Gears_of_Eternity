@@ -5,12 +5,12 @@ using System.Collections.Generic;
 using FactionTypes.Enums;
 using ItemEffectTypes.Enums;
 
-public class ItemCardGenerator : EditorWindow
+public class ItemCardScriptableObjectGenerator : EditorWindow
 {
     [MenuItem("Tools/Automatic Card Generator/Item Cards")]
     public static void ShowWindow()
     {
-        GetWindow<ItemCardGenerator>("Item Card Generator");
+        GetWindow<ItemCardScriptableObjectGenerator>("Item Card Generator");
     }
 
     private void OnGUI()
@@ -37,7 +37,7 @@ public class ItemCardGenerator : EditorWindow
 
         if (!AssetDatabase.IsValidFolder(outputFolder))
         {
-            AssetDatabase.CreateFolder("Assets/Resources", "UnitCardAssets");
+            AssetDatabase.CreateFolder("Assets/Resources", "ItemCardAssets");
         }
 
         foreach (var row in data)

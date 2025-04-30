@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05abb4b0d0062134887d7bc067d992e7, type: 3}
+  m_Name: "Skill_\uAE30\uB85D \uD574\uC11D\uC790"
+  m_EditorClassIdentifier: 
+  faction: 2
+  unitName: "\uAE30\uB85D \uD574\uC11D\uC790"
+  skillName: 
+  skillDescription: "\uC801 \uC57D\uC810 \uB178\uCD9C (\uBC1B\uB294 \uD53C\uD574
+    +10%)"
+  skillType: 0
+  skillValue: 0
+  skillDuration: 0
+  skillCoolDown: 0

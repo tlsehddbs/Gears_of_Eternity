@@ -7,12 +7,12 @@ using FactionTypes.Enums;
 using RarityTypes.Enums;
 using BattleTypes.Enums;
 
-public class UnitCardGenerator : EditorWindow
+public class UnitCardScriptableGenerator : EditorWindow
 {
     [MenuItem("Tools/Automatic Card Generator/Unit Cards")]
     public static void ShowWindow()
     {
-        GetWindow<UnitCardGenerator>("Unit Card Generator");
+        GetWindow<UnitCardScriptableGenerator>("Unit Card Generator");
     }
 
     private void OnGUI()
@@ -69,8 +69,6 @@ public class UnitCardGenerator : EditorWindow
             card.cost = int.Parse(row[12]);
 
             card.level = int.Parse(row[13]);
-            
-            // skill 관련 parse 내용 작성
             
             string assetPath = $"{outputFolder}/{card.unitName}.asset";
             

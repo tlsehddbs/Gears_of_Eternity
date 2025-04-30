@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 
 using BattleTypes.Enums;
+using UnitSkillTypes.Enums;
 
 [CreateAssetMenu(fileName = "NewUnitCard", menuName = "Card/UnitCard")]
 public class UnitCardData : BaseCardData
@@ -23,11 +24,15 @@ public class UnitCardData : BaseCardData
     public float attackRange;
     public float attackDistance;
 
-    [Space(10)]
-    [Header("Unit Skill Info")]
-    public string skillName;
-    public float skillCoolDown;
-    public string skillDescription;
+    //[Space(10)]
+    //[Header("Unit Skill Info")]
+    //public string skillName;
+    //public string skillDescription;
+    
+    //public UnitSkillType skillType;
+    //public float skillValue;
+    //public float skillDuration;
+    //public float skillCoolDown;
     
     [Space(10)]
     public int level;
