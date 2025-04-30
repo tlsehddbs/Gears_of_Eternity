@@ -13,6 +13,9 @@ public class UnitCombatFSM : MonoBehaviour
     private float currentHP;
     private float criticalChance;
     public float criticalMultiplier = 1.5f;
+    public float skillTimer; // 스킬 쿨다운 누적 
+    public UnitCombatFSM targetAlly; //힐 버프 대상 
+    public bool CanUseSkill() => skillTimer >= unitData.skillCoolDown;
 
     private UnitState currentState;
 
