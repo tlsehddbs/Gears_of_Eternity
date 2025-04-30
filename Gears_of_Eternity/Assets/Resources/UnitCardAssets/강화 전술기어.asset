@@ -18,6 +18,7 @@ MonoBehaviour:
   faction: 0
   rarity: 1
   cost: 4
+  level: 3
   unitName: "\uAC15\uD654 \uC804\uC220\uAE30\uC5B4"
   battleType: 0
   unitPrefab: {fileID: 0}
@@ -31,5 +32,4 @@ MonoBehaviour:
   skillName: 
   skillCoolDown: 0
   skillDescription: 
-  level: 3
   nextUpgrades: []
