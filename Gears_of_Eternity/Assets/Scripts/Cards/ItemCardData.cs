@@ -17,3 +17,4 @@ public class ItemCardData : BaseCardData
     public ItemTriggerConditionType itemTriggerCondition;
     public ItemTargetType itemTargetType;
 }
+

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using BattleTypes.Enums;
 using UnitSkillTypes.Enums;
 
+
 [CreateAssetMenu(fileName = "NewUnitCard", menuName = "Card/UnitCard")]
 public class UnitCardData : BaseCardData
 {
