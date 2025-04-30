@@ -8,6 +8,7 @@ public class UnitCombatFSM : MonoBehaviour
     public RuntimeUnitStats  stats; // 복사된 인스턴스 스텟 
     public NavMeshAgent agent;
     public UnitCombatFSM targetEnemy; //현재 타겟 Enemy 
+    public SkillData skillData;
 
     [HideInInspector] public float attackTimer;
     private float currentHP;
@@ -15,7 +16,7 @@ public class UnitCombatFSM : MonoBehaviour
     public float criticalMultiplier = 1.5f;
     public float skillTimer; // 스킬 쿨다운 누적 
     public UnitCombatFSM targetAlly; //힐 버프 대상 
-    public bool CanUseSkill() => skillTimer >= unitData.skillCoolDown;
+    public bool CanUseSkill() => skillTimer >= skillData.skillCoolDown;
 
     private UnitState currentState;
 
