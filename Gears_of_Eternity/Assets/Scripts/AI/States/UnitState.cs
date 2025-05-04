@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnitSkillTypes.Enums;
+
 
 public abstract class UnitState
 {

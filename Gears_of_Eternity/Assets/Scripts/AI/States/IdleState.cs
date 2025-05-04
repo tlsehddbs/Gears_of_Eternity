@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnitSkillTypes.Enums;
 
 public class IdleState : UnitState
 {
@@ -11,9 +12,10 @@ public class IdleState : UnitState
 
     public override void Update()
     {
+        
         if(unit.targetEnemy != null && unit.targetEnemy.IsAlive())
         {
-            unit.ChangeState(new MoveState(unit));
+            unit.ChangeState(new MoveState(unit, false)); // 공격 타겟팅 
         }
         else
         {

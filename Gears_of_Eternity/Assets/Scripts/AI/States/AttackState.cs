@@ -1,11 +1,13 @@
 using UnityEngine;
-
+using UnitSkillTypes.Enums;
 public class AttackState : UnitState
 {
     public AttackState(UnitCombatFSM unit) : base(unit){}
 
     public override void Update()
     {
+        unit.attackTimer += Time.deltaTime;
+
         if(unit.targetEnemy == null || !unit.targetEnemy.IsAlive())
         {
             unit.ChangeState(new IdleState(unit));
@@ -15,11 +17,10 @@ public class AttackState : UnitState
         float dist = Vector3.Distance(unit.transform.position, unit.targetEnemy.transform.position);
         if(dist > unit.agent.stoppingDistance + 0.05f)
         {
-            unit.ChangeState(new MoveState(unit));
+            unit.ChangeState(new MoveState(unit, false));
             return;
         }
 
-        unit.attackTimer += Time.deltaTime;
         if(unit.attackTimer >= unit.stats.attackSpeed)
         {
             unit.Attack();

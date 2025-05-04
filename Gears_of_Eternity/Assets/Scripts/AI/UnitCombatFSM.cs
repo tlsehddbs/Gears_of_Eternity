@@ -1,23 +1,37 @@
 using UnityEngine;
 using UnityEngine.AI;
 using BattleTypes.Enums;
+using UnitSkillTypes.Enums;
+using System.Collections;
 
-public class UnitCombatFSM : MonoBehaviour
+public enum BuffStat 
+{
+    Attack,
+    Defense,
+    MoveSpeed,
+    AttackSpeed
+}
+
+public partial class UnitCombatFSM : MonoBehaviour
 {
     public UnitCardData unitData; // 원본 ScriptableObjcet
-    public RuntimeUnitStats  stats; // 복사된 인스턴스 스텟 
     public NavMeshAgent agent;
     public UnitCombatFSM targetEnemy; //현재 타겟 Enemy 
-
     [HideInInspector] public float attackTimer;
-    private float currentHP;
+    public float currentHP;
     private float criticalChance;
     public float criticalMultiplier = 1.5f;
-    public float skillTimer; // 스킬 쿨다운 누적 
+    public float skillTimer = 0f; // 스킬 쿨다운 누적 
+    public SkillData skillData;
     public UnitCombatFSM targetAlly; //힐 버프 대상 
-    public bool CanUseSkill() => skillTimer >= unitData.skillCoolDown;
+    
+    
 
     private UnitState currentState;
+    public RuntimeUnitStats  stats; // 복사된 인스턴스 스텟 
+
+    public bool isProcessingSkill = false; // 중복 상태 전환 방지용 
+
 
     void Awake()
     {
@@ -29,7 +43,6 @@ public class UnitCombatFSM : MonoBehaviour
 
         CloneStats(); // 스탯 복사 
         currentHP = stats.health;
-
         agent.speed = stats.moveSpeed;
         agent.stoppingDistance = stats.attackDistance * 5;
 
@@ -39,6 +52,16 @@ public class UnitCombatFSM : MonoBehaviour
 
     void Update()
     {
+        skillTimer += Time.deltaTime; // 스킬 쿨타이머 
+        
+        if (!isProcessingSkill && ShouldUseSkill())
+    {
+        isProcessingSkill = true;
+        agent.ResetPath();
+        ChangeState(new MoveState(this, true)); // 서포트 이동 우선
+        return;
+    }
+
         currentState?.Update();
 
         if (!IsAlive() && !(currentState is DeadState))
@@ -50,6 +73,8 @@ public class UnitCombatFSM : MonoBehaviour
         {
             UpdateRangeIndicator();
         }
+
+        
     }
 
     public void ChangeState(UnitState newState)
@@ -58,7 +83,6 @@ public class UnitCombatFSM : MonoBehaviour
         currentState = newState;
         currentState.Enter();
     }
-
     public bool IsAlive()
     {
         return currentHP > 0;
@@ -67,7 +91,6 @@ public class UnitCombatFSM : MonoBehaviour
     public void Attack()
     {
         if (targetEnemy == null) return;
-
         float baseDamage = stats.attack;
         bool isCritical = UnityEngine.Random.value < criticalChance;
 
@@ -85,13 +108,15 @@ public class UnitCombatFSM : MonoBehaviour
     {
         float effectiveDamage = damage * (100f / (100f + stats.defense));
         currentHP -= effectiveDamage;
-        Debug.Log($"[피격] {name} - 받은 데미지: {effectiveDamage:F1} / 남은 HP: {currentHP:F1}");
+        //Debug.Log($"[피격] {name} - 받은 데미지: {effectiveDamage:F1} / 남은 HP: {currentHP:F1}");
 
         if (currentHP <= 0)
         {
             ChangeState(new DeadState(this));
         }
     }
+
+ 
 
     public void FindNewTarget()
     {
@@ -114,6 +139,7 @@ public class UnitCombatFSM : MonoBehaviour
 
         targetEnemy = nearestEnemy;
     }
+
 
     private void CloneStats()
     {
@@ -148,7 +174,158 @@ public class UnitCombatFSM : MonoBehaviour
         }
     }
 
+    // 서포터 로직
+    public bool CanUseSkill()
+    {
+        return skillData != null && skillTimer >= skillData.skillCoolDown;
+    }
 
+    public UnitCombatFSM FindNearestEnemy()
+    {
+        float min = float.MaxValue;
+        UnitCombatFSM result = null;
+
+        foreach (var unit in FindObjectsOfType<UnitCombatFSM>())
+        {
+            if(unit == this || !unit.IsAlive()) continue;
+            if(unit.unitData.faction == this.unitData.faction) continue; // 같은 진영 제외 
+
+            float d = Vector3.Distance(transform.position, unit.transform.position);
+            if(d < min)
+            {
+                min = d;
+                result = unit;
+            }
+        }
+
+        return result;
+    }
+
+    public UnitCombatFSM FindNearestAlly()
+    {
+        float min = float.MaxValue;
+        UnitCombatFSM result = null;
+
+        foreach (var unit in FindObjectsOfType<UnitCombatFSM>())
+        {
+            if (unit == this || !unit.IsAlive()) continue;
+            if (unit.unitData.faction != this.unitData.faction) continue;
+
+            float d = Vector3.Distance(transform.position, unit.transform.position);
+            if (d < min)
+            {
+                min = d;
+                result = unit;
+            }
+        }
+
+        return result;
+    }
+
+    public UnitCombatFSM FindLowestHpAlly()
+    {
+        float minRatio = float.MaxValue;
+        UnitCombatFSM result = null;
+
+        foreach (var unit in FindObjectsOfType<UnitCombatFSM>())
+        {
+            if (unit == this || !unit.IsAlive()) continue;
+            if (unit.unitData.faction != this.unitData.faction) continue;
+
+            float ratio = unit.currentHP / unit.stats.health; // 현재 HP 비율
+            if (ratio < minRatio)
+            {
+                minRatio = ratio;
+                result = unit;
+            }
+        }
+
+        return result;
+    }
+
+    public void ReceiveHealing(float amount)
+    {
+        currentHP += amount;
+
+        if(currentHP > stats.health) currentHP = stats.health;
+        Debug.Log($"[회복] {gameObject.name} → {amount} 회복 / 현재 HP: {currentHP:F1}");
+    }
+
+    public void ApplyBuff(BuffStat stat, float amount, float duration)
+    {
+        StartCoroutine(BuffRoutine(stat, amount, duration));
+    }
+
+    public void ApplyDebuff(BuffStat stat, float amount, float duration)
+    {
+        StartCoroutine(DebuffRoutine(stat, amount, duration));
+    }
+
+    private IEnumerator BuffRoutine(BuffStat stat, float amount, float duration)
+    {
+        ModifyStat(stat, amount); // 스탯 증가 
+        yield return new WaitForSeconds(duration);
+        ModifyStat(stat, -amount); //스탯 복구 
+    }
+
+    private IEnumerator DebuffRoutine(BuffStat stat, float amount, float duration)
+    {
+        ModifyStat(stat, -amount); // 스탯 감소
+        yield return new WaitForSeconds(duration);
+        ModifyStat(stat, amount); // 스탯 복구
+    }
+
+    private void ModifyStat(BuffStat stat, float value)
+    {
+        switch(stat)
+        {
+            case BuffStat.Attack:
+                stats.attack += value;
+                break;
+            case BuffStat.Defense:
+                stats.defense += value;
+                break;
+            case BuffStat.MoveSpeed:
+                stats.moveSpeed += value;
+                agent.speed = stats.moveSpeed; //NavMeshAgent에도 적용 
+                break;
+            case BuffStat.AttackSpeed:
+                stats.attackSpeed += value;
+                break;
+        }
+    }
+
+
+    //스킬 
+    public bool ShouldUseSkill()
+    {
+        if (!CanUseSkill() || skillData == null)
+        {
+            //Debug.Log($"[Skill] CanUseSkill: {CanUseSkill()}, skillData: {skillData != null}");
+            return false;
+        } 
+
+        switch (skillData.skillType)
+        {
+            case UnitSkillType.InstantHeal:
+                targetAlly = FindLowestHpAlly();
+                return targetAlly != null && targetAlly.currentHP < targetAlly.stats.health;
+                
+
+            case UnitSkillType.IncreaseAttack:
+                targetAlly = FindNearestAlly();
+                return targetAlly != null;
+
+            case UnitSkillType.AttackDown:
+                targetEnemy = FindNearestEnemy();
+                return targetEnemy != null;
+
+            default:
+                return false;
+        }
+    }
+
+    //런타임 사거리 
     private LineRenderer rangeIndicator;
 
     void CreateRangeIndicator()
