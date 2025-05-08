@@ -8,7 +8,7 @@ public class CardCollection : MonoBehaviour
 {
     public List<UnitCardData> allAvailableCards;
 
-    private void Start()
+    private void Awake()
     {
         LoadCardsFromResources();
     }
