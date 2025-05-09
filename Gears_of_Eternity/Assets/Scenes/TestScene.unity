@@ -273,8 +273,11 @@ MonoBehaviour:
     attackDistance: 0
   agent: {fileID: 0}
   targetEnemy: {fileID: 0}
+  skillData: {fileID: 0}
   attackTimer: 0
   criticalMultiplier: 1.5
+  skillTimer: 0
+  targetAlly: {fileID: 0}
 --- !u!1 &174635830
 GameObject:
   m_ObjectHideFlags: 0
@@ -574,9 +577,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6479423ceec4d4cfe9ba437f28b5897d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerDeck:
-    cards: []
-    maxCardCount: 50
+  cardCollection: {fileID: 324578785}
+  filterFaction: 0
+  cards: []
+  deck: []
+  hand: []
+  usedCards: []
+  drawCount: 4
 --- !u!4 &675763167
 Transform:
   m_ObjectHideFlags: 0
@@ -1285,8 +1292,11 @@ MonoBehaviour:
     attackDistance: 0
   agent: {fileID: 0}
   targetEnemy: {fileID: 0}
+  skillData: {fileID: 0}
   attackTimer: 0
   criticalMultiplier: 1.5
+  skillTimer: 0
+  targetAlly: {fileID: 0}
 --- !u!1 &2109365092
 GameObject:
   m_ObjectHideFlags: 0

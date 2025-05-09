@@ -75,6 +75,7 @@ public class UnitCardScriptableGenerator : EditorWindow
             unitMap[card.unitName] = card;
 
             AssetDatabase.CreateAsset(card, assetPath);
+            //AssetDatabase.SaveAssets();
             Debug.Log($"생성됨: {assetPath}");
         }
         Debug.Log("✅유닛 카드 생성 완료");
@@ -105,7 +106,9 @@ public class UnitCardScriptableGenerator : EditorWindow
             baseCard.nextUpgrades.Add(upgradeCard);
             
             EditorUtility.SetDirty(baseCard);
+            //AssetDatabase.SaveAssets();
         }
+        
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
     }

@@ -40,7 +40,7 @@ public class drawtest : MonoBehaviour
             return;
         }
         
-        UnitCardData randomCard = filtered[Random.Range(0, filtered.Count)];
+        //UnitCardData randomCard = filtered[Random.Range(0, filtered.Count)];
         //bool success = deckManager.AddCard(randomCard);
 
         //if (success)

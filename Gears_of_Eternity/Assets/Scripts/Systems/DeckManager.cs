@@ -11,7 +11,8 @@ public class DeckManager : MonoBehaviour
     [Header("세력 필터링")] 
     public FactionType filterFaction = FactionType.IronGearFederation;
     
-    public List<UnitCardData> cards;
+    //public List<UnitCardData> cards;
+    public List<RuntimeUnitCard> runtimeCards;
     public List<RuntimeUnitCard> deck = new List<RuntimeUnitCard>();
     public List<RuntimeUnitCard> hand = new List<RuntimeUnitCard>();
     public List<RuntimeUnitCard> usedCards = new List<RuntimeUnitCard>();
@@ -34,17 +35,15 @@ public class DeckManager : MonoBehaviour
             return;
         }
         
-        // cardCollection의 list말고 플레이어가 플레이 중 값을 조작할 가능성이 있는 유닛 데이터는 별도로 복사하여 list로 사용할 것
-        cards = new List<UnitCardData>(cardCollection.allAvailableCards);
-
+        runtimeCards = cardCollection.allAvailableCards.Select(unitCard => new RuntimeUnitCard(unitCard)).ToList();
         
         // 덱 드로우를 위한 전체 유닛 카드 리스트화 및 세력별 필터링
-        if (cards == null || cards.Count == 0)
+        if (runtimeCards == null || runtimeCards.Count == 0)
         {
             Debug.LogWarning("❗카드 목록이 비어 있음");
         }
         
-        var filtered = cards
+        var filtered = runtimeCards
             .Where(card => card.faction == filterFaction)
             .Where(card => card.level == 1)
             .ToList();
@@ -58,8 +57,8 @@ public class DeckManager : MonoBehaviour
         // 테스트용 초기 덱 세팅 (12장)
         for (int i = 0; i < 12; i++)
         {
-            UnitCardData randomCard = filtered[Random.Range(0, filtered.Count)];
-            deck.Add(new RuntimeUnitCard(randomCard));
+            RuntimeUnitCard randomCard = filtered[Random.Range(0, filtered.Count)];
+            deck.Add(randomCard);
             
             Debug.Log($"덱에 카드 추가됨: {randomCard.unitName} / 세력 : {randomCard.faction} / 레벨 : {randomCard.level}");
         }
@@ -103,7 +102,7 @@ public class DeckManager : MonoBehaviour
         }
     }
 
-    // TODO : 협의한 내용에 따라서 소환 cost 보충 시기 등을 고려하여 덱 로테이션을 어떻게 할 것인지 고민하고 구현할 것
+    // TODO : 협의한 내용에 따라서 소환 cost 보충 시기 등 고려할 것 
     public void EndTurn()
     {
         // 남은 핸드는 다시 덱으로 보냄
