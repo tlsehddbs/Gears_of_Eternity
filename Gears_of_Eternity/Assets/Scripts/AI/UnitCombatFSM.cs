@@ -261,6 +261,7 @@ public partial class UnitCombatFSM : MonoBehaviour
         StartCoroutine(DebuffRoutine(stat, amount, duration));
     }
 
+    //버프 
     private IEnumerator BuffRoutine(BuffStat stat, float amount, float duration)
     {
         ModifyStat(stat, amount); // 스탯 증가 
@@ -268,6 +269,7 @@ public partial class UnitCombatFSM : MonoBehaviour
         ModifyStat(stat, -amount); //스탯 복구 
     }
 
+    //디버프 
     private IEnumerator DebuffRoutine(BuffStat stat, float amount, float duration)
     {
         ModifyStat(stat, -amount); // 스탯 감소

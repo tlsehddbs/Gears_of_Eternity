@@ -1,9 +1,9 @@
 using UnityEngine;
 using UnitSkillTypes.Enums;
 
-public class SupportState : UnitState
+public class SupportSkillState : UnitState
 {
-    public SupportState(UnitCombatFSM unit) : base(unit){}
+    public SupportSkillState(UnitCombatFSM unit) : base(unit){}
 
     public override void Enter()
     {

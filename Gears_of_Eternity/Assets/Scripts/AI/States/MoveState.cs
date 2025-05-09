@@ -32,7 +32,7 @@ public class MoveState : UnitState
 
             if (isSupportTarget)
             {
-                unit.ChangeState(new SupportState(unit));
+                unit.ChangeState(new SupportSkillState(unit));
             }
             else
             {
