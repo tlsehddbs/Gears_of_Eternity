@@ -25,7 +25,8 @@ namespace ItemEffectTypes.Enums
         EnemyDebuff,        // 적 디버프
         EnergyRegen,        // 에너지 회복
         Shield,             // 방어막
-        SkillEnhancement    // 스킬 강화
+        SkillEnhancement,   // 스킬 강화
+        CardMaximumChange   // 카드 한도 증가
     }
     
     public enum ItemTriggerConditionType
@@ -59,5 +60,14 @@ namespace ItemEffectTypes.Enums
         RandomEnemy,        // 무작위 적
         RandomAlly,         // 무작위 아군
         SummonedUnit        // 소환된 아군 유닛
+    }
+    
+    public enum EffectValueType
+    {
+        Percent,
+        Increment,
+        Decrement,
+        Duration,
+        Flat
     }
 }

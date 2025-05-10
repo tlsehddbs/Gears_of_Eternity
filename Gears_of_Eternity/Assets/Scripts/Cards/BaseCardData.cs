@@ -12,7 +12,8 @@ public class BaseCardData : ScriptableObject
     public Rarity rarity;
     
     [Space(10)]
-    public int cost;
+    public int cost;        // 유닛 소환에 사용하는 비용
+    public int price;       // 아이템 등 재화로 구매할 카드의 비용
 }
 
 public enum CardType

@@ -49,6 +49,8 @@ public class UnitCardScriptableGenerator : EditorWindow
         {
             UnitCardData card = ScriptableObject.CreateInstance<UnitCardData>();
             
+            card.cardType = CardType.Unit;
+            
             card.faction = (FactionType)Enum.Parse(typeof(FactionType), row[0]);
             card.unitName = row[1].Trim();
             // card.description = row[1];

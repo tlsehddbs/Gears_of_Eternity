@@ -51,6 +51,8 @@ public class ItemCardScriptableObjectGenerator : EditorWindow
             
             ItemCardData card = ScriptableObject.CreateInstance<ItemCardData>();
             
+            card.cardType = CardType.Item;
+            
             card.faction = (FactionType)Enum.Parse(typeof(FactionType), row[0]);
             card.itemName = row[1].Trim();
             //card.itemDescription = row[1];
