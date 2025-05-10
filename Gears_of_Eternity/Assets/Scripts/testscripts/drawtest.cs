@@ -40,16 +40,16 @@ public class drawtest : MonoBehaviour
             return;
         }
         
-        UnitCardData randomCard = filtered[Random.Range(0, filtered.Count)];
-        bool success = deckManager.AddCard(randomCard);
+        //UnitCardData randomCard = filtered[Random.Range(0, filtered.Count)];
+        //bool success = deckManager.AddCard(randomCard);
 
-        if (success)
-        {
-            Debug.Log($"덱에 카드 추가됨: {randomCard.unitName} / 세력 : {randomCard.faction}");
-        }
-        else
-        {
-            Debug.LogWarning($"⚠️카드 추가 실패: 덱이 가득 참");
-        }
+        //if (success)
+        //{
+        //    Debug.Log($"덱에 카드 추가됨: {randomCard.unitName} / 세력 : {randomCard.faction}");
+        //}
+        //else
+        //{
+        //    Debug.LogWarning($"⚠️카드 추가 실패: 덱이 가득 참");
+        //}
     }
 }
