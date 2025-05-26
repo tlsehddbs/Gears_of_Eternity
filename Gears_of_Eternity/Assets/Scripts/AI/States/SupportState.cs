@@ -1,0 +1,36 @@
+using UnityEngine;
+using UnitSkillTypes.Enums;
+
+public class SupportSkillState : UnitState
+{
+    public SupportSkillState(UnitCombatFSM unit) : base(unit){}
+
+    public override void Enter()
+    {
+        var skill = unit.skillData;
+
+        switch(skill.skillType)
+        {
+            case UnitSkillType.InstantHeal:
+                unit.targetAlly?.ReceiveHealing(skill.skillValue);
+                Debug.Log("heal");
+                break;
+
+            case UnitSkillType.IncreaseAttack:
+                unit.targetAlly?.ApplyBuff(BuffStat.Attack, skill.skillValue, skill.skillDuration);
+                break;
+
+            case UnitSkillType.AttackDown:
+                unit.targetEnemy?.ApplyDebuff(BuffStat.Attack, skill.skillValue, skill.skillDuration);
+                break;
+
+            default:
+                Debug.LogWarning($"[지원 스킬 미정의] {skill.skillType}");
+                break;
+        }
+
+        unit.skillTimer = 0f;
+        unit.ChangeState(new IdleState(unit));
+        unit.isProcessingSkill = false; // 상태 완료 → 다시 스킬 사용 허용
+    }
+}

@@ -26,7 +26,7 @@ public partial class UnitCombatFSM : MonoBehaviour
     public UnitCombatFSM targetAlly; //힐 버프 대상 
     
     
-
+    private SkillExecutor skillExecutor = new SkillExecutor();
     private UnitState currentState;
     public RuntimeUnitStats  stats; // 복사된 인스턴스 스텟 
 
@@ -54,13 +54,14 @@ public partial class UnitCombatFSM : MonoBehaviour
     {
         skillTimer += Time.deltaTime; // 스킬 쿨타이머 
         
+        // 스킬 사용 우선 FSM 통합 체크
         if (!isProcessingSkill && ShouldUseSkill())
-    {
-        isProcessingSkill = true;
-        agent.ResetPath();
-        ChangeState(new MoveState(this, true)); // 서포트 이동 우선
-        return;
-    }
+        {
+            isProcessingSkill = true;
+            agent.ResetPath();
+            ChangeState(new MoveState(this, true)); // 서포트 이동 우선
+            return;
+        }
 
         currentState?.Update();
 
@@ -174,11 +175,6 @@ public partial class UnitCombatFSM : MonoBehaviour
         }
     }
 
-    // 서포터 로직
-    public bool CanUseSkill()
-    {
-        return skillData != null && skillTimer >= skillData.skillCoolDown;
-    }
 
     public UnitCombatFSM FindNearestEnemy()
     {
@@ -299,20 +295,41 @@ public partial class UnitCombatFSM : MonoBehaviour
 
 
     //스킬 
+
+    public void TryUseSkill()
+    {
+        if (!CanUseSkill()) return;
+        UnitCombatFSM skillTarget = null;
+        switch (skillData.skillType)
+        {
+            case UnitSkillType.InstantHeal:
+                skillTarget = FindLowestHpAlly(); break;
+            case UnitSkillType.IncreaseAttack:
+                skillTarget = FindNearestAlly(); break;
+            case UnitSkillType.AttackDown:
+                skillTarget = FindNearestEnemy(); break;
+        }
+        skillExecutor.ExecuteSkill(skillData, this, skillTarget);
+        skillTimer = 0f;
+    }
+    public bool CanUseSkill()
+    {
+        return skillData != null && skillTimer >= skillData.skillCoolDown;
+    }
+
     public bool ShouldUseSkill()
     {
         if (!CanUseSkill() || skillData == null)
         {
-            //Debug.Log($"[Skill] CanUseSkill: {CanUseSkill()}, skillData: {skillData != null}");
             return false;
-        } 
+        }
 
         switch (skillData.skillType)
         {
             case UnitSkillType.InstantHeal:
                 targetAlly = FindLowestHpAlly();
                 return targetAlly != null && targetAlly.currentHP < targetAlly.stats.health;
-                
+
 
             case UnitSkillType.IncreaseAttack:
                 targetAlly = FindNearestAlly();
@@ -326,6 +343,12 @@ public partial class UnitCombatFSM : MonoBehaviour
                 return false;
         }
     }
+
+
+
+
+
+
 
     //런타임 사거리 
     private LineRenderer rangeIndicator;
