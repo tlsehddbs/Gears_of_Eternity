@@ -2,13 +2,18 @@ using UnityEngine;
 
 public class PlayerResourceManager : MonoBehaviour
 {
-    void Start()
-    {
-        
-    }
+    public static PlayerResourceManager Instance { get; private set; }
 
-    void Update()
+    void Awake()
     {
-        
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 }

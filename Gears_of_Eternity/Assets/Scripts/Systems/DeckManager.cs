@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class DeckManager : MonoBehaviour
 {
+    public static DeckManager Instance { get; private set; }
+    
     [SerializeField]
     public CardCollection cardCollection;
 
@@ -19,11 +21,28 @@ public class DeckManager : MonoBehaviour
 
     public int drawCount = 4;
     
-
+    // 중요 ! : DeckManager 가 게임 실행시 최초 씬에서 생성되게 하여야 함. 추후 Scene이 확장되고 난 이후 테스트를 진행해 볼 것.
+    // TODO : 게임 최초 실행이 아닌 이어하는 경우를 대비하여 게임 실행시 DeckManager Instance를 생성할 때 저장된 값에서 불러와 적용할 수 있도록 할 것.
+    void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+    
     void Start()
     {
-        InitializeDeck();
-        DrawCards();
+        if (deck.Count == 0)
+        {
+            InitializeDeck();
+            DrawCards();
+        }
     }
 
     void InitializeDeck()
