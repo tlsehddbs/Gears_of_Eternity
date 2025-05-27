@@ -16,7 +16,8 @@ MonoBehaviour:
   unitName: "\uC815\uBE44 \uBD84\uC11D\uAD00"
   skillName: 
   skillDescription: 
-  skillType: 13
-  skillValue: 30
-  skillDuration: 0
   skillCoolDown: 10
+  effects:
+  - skillType: 13
+    skillValue: 30
+    skillDuration: 0

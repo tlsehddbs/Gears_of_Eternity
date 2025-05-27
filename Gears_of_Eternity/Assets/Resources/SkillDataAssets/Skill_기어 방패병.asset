@@ -17,7 +17,11 @@ MonoBehaviour:
   skillName: 
   skillDescription: "\uAE30\uC5B4 \uC2E4\uB4DC: \uBC1B\uB294 \uD53C\uD574 12% \uAC10\uC18C/
     \uADFC\uC811 \uC544\uAD70 \uBC29\uC5B4\uB825 +5%"
-  skillType: 0
-  skillValue: 0
-  skillDuration: 0
   skillCoolDown: 0
+  effects:
+  - skillType: 9
+    skillValue: 0.12
+    skillDuration: 0
+  - skillType: 10
+    skillValue: 0.05
+    skillDuration: 0

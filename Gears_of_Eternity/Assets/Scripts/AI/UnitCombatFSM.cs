@@ -3,8 +3,17 @@ using UnityEngine.AI;
 using BattleTypes.Enums;
 using UnitSkillTypes.Enums;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
-public enum BuffStat 
+public class AppliedPassiveEffect
+{
+    public UnitSkillType skillType;
+    public float value;
+    public UnitCombatFSM source;
+    
+}
+public enum BuffStat
 {
     Attack,
     Defense,
@@ -24,13 +33,18 @@ public partial class UnitCombatFSM : MonoBehaviour
     public float skillTimer = 0f; // 스킬 쿨다운 누적 
     public SkillData skillData;
     public UnitCombatFSM targetAlly; //힐 버프 대상 
-    
-    
+
+
     private SkillExecutor skillExecutor = new SkillExecutor();
     private UnitState currentState;
-    public RuntimeUnitStats  stats; // 복사된 인스턴스 스텟 
+    public RuntimeUnitStats stats; // 복사된 인스턴스 스텟 
 
     public bool isProcessingSkill = false; // 중복 상태 전환 방지용 
+
+
+    public List<AppliedPassiveEffect> activePassiveEffects = new List<AppliedPassiveEffect>();
+    public float damageReductionBonus = 0f;
+
 
 
     void Awake()
@@ -48,12 +62,21 @@ public partial class UnitCombatFSM : MonoBehaviour
 
         AssignCriticalChance();
         ChangeState(new IdleState(this));
+
+        // 패시브
+        StartCoroutine(ApplyPassiveEffectsDelayed());
+
+    }
+
+    public void OnDeath()
+    {
+        RemovePassiveEffects(); // 패시브 해제
     }
 
     void Update()
     {
         skillTimer += Time.deltaTime; // 스킬 쿨타이머 
-        
+
         // 스킬 사용 우선 FSM 통합 체크
         if (!isProcessingSkill && ShouldUseSkill())
         {
@@ -75,7 +98,7 @@ public partial class UnitCombatFSM : MonoBehaviour
             UpdateRangeIndicator();
         }
 
-        
+
     }
 
     public void ChangeState(UnitState newState)
@@ -102,14 +125,16 @@ public partial class UnitCombatFSM : MonoBehaviour
         }
 
         targetEnemy.TakeDamage(baseDamage);
-        Debug.Log($"[공격] {targetEnemy.name}에게 {baseDamage} 데미지 / 입힌 데미지{(baseDamage * (100f / (100f + targetEnemy.unitData.defense))):F1}.");
+        
     }
 
     public void TakeDamage(float damage)
     {
+        float reductionFactor = 1.0f - damageReductionBonus;
         float effectiveDamage = damage * (100f / (100f + stats.defense));
+        effectiveDamage *= reductionFactor;
         currentHP -= effectiveDamage;
-        //Debug.Log($"[피격] {name} - 받은 데미지: {effectiveDamage:F1} / 남은 HP: {currentHP:F1}");
+        Debug.Log($"[피격] {name} - 받은 데미지: {effectiveDamage:F1} / 남은 HP: {currentHP:F1}");
 
         if (currentHP <= 0)
         {
@@ -117,7 +142,7 @@ public partial class UnitCombatFSM : MonoBehaviour
         }
     }
 
- 
+
 
     public void FindNewTarget()
     {
@@ -144,7 +169,7 @@ public partial class UnitCombatFSM : MonoBehaviour
 
     private void CloneStats()
     {
-        stats = new RuntimeUnitStats 
+        stats = new RuntimeUnitStats
         {
             health = unitData.health,
             moveSpeed = unitData.moveSpeed,
@@ -153,7 +178,7 @@ public partial class UnitCombatFSM : MonoBehaviour
             attackSpeed = unitData.attackSpeed,
             attackDistance = unitData.attackDistance
         };
-        
+
     }
 
     private void AssignCriticalChance()
@@ -183,11 +208,11 @@ public partial class UnitCombatFSM : MonoBehaviour
 
         foreach (var unit in FindObjectsOfType<UnitCombatFSM>())
         {
-            if(unit == this || !unit.IsAlive()) continue;
-            if(unit.unitData.faction == this.unitData.faction) continue; // 같은 진영 제외 
+            if (unit == this || !unit.IsAlive()) continue;
+            if (unit.unitData.faction == this.unitData.faction) continue; // 같은 진영 제외 
 
             float d = Vector3.Distance(transform.position, unit.transform.position);
-            if(d < min)
+            if (d < min)
             {
                 min = d;
                 result = unit;
@@ -243,7 +268,7 @@ public partial class UnitCombatFSM : MonoBehaviour
     {
         currentHP += amount;
 
-        if(currentHP > stats.health) currentHP = stats.health;
+        if (currentHP > stats.health) currentHP = stats.health;
         Debug.Log($"[회복] {gameObject.name} → {amount} 회복 / 현재 HP: {currentHP:F1}");
     }
 
@@ -275,7 +300,7 @@ public partial class UnitCombatFSM : MonoBehaviour
 
     private void ModifyStat(BuffStat stat, float value)
     {
-        switch(stat)
+        switch (stat)
         {
             case BuffStat.Attack:
                 stats.attack += value;
@@ -295,21 +320,28 @@ public partial class UnitCombatFSM : MonoBehaviour
 
 
     //스킬 
-
     public void TryUseSkill()
     {
-        if (!CanUseSkill()) return;
-        UnitCombatFSM skillTarget = null;
-        switch (skillData.skillType)
+        if (!CanUseSkill() || skillData == null || skillData.effects == null) return;
+
+        foreach (var effect in skillData.effects)
         {
-            case UnitSkillType.InstantHeal:
-                skillTarget = FindLowestHpAlly(); break;
-            case UnitSkillType.IncreaseAttack:
-                skillTarget = FindNearestAlly(); break;
-            case UnitSkillType.AttackDown:
-                skillTarget = FindNearestEnemy(); break;
+            UnitCombatFSM skillTarget = null;
+            switch (effect.skillType)
+            {
+                case UnitSkillType.InstantHeal:
+                    skillTarget = FindLowestHpAlly();
+                    break;
+                case UnitSkillType.IncreaseAttack:
+                    skillTarget = FindNearestAlly();
+                    break;
+                case UnitSkillType.AttackDown:
+                    skillTarget = FindNearestEnemy();
+                    break;
+                    // 기타 스킬타입 분기 추가
+            }
+            skillExecutor.ExecuteSkill(skillData, this, skillTarget);
         }
-        skillExecutor.ExecuteSkill(skillData, this, skillTarget);
         skillTimer = 0f;
     }
     public bool CanUseSkill()
@@ -319,30 +351,118 @@ public partial class UnitCombatFSM : MonoBehaviour
 
     public bool ShouldUseSkill()
     {
-        if (!CanUseSkill() || skillData == null)
-        {
+        if (!CanUseSkill() || skillData == null || skillData.effects == null || skillData.effects.Count == 0)
             return false;
-        }
 
-        switch (skillData.skillType)
+        // 단일 효과만 있다고 가정
+        var effect = skillData.effects[0];
+
+        switch (effect.skillType)
         {
             case UnitSkillType.InstantHeal:
                 targetAlly = FindLowestHpAlly();
                 return targetAlly != null && targetAlly.currentHP < targetAlly.stats.health;
-
-
             case UnitSkillType.IncreaseAttack:
                 targetAlly = FindNearestAlly();
                 return targetAlly != null;
-
             case UnitSkillType.AttackDown:
                 targetEnemy = FindNearestEnemy();
                 return targetEnemy != null;
-
             default:
                 return false;
         }
     }
+
+
+    // ----- [패시브: 효과 적용/해제 함수맵] -----
+ 
+    private static readonly Dictionary<UnitSkillType, System.Action<UnitCombatFSM, SkillEffect>> applyEffectMap =
+        new Dictionary<UnitSkillType, System.Action<UnitCombatFSM, SkillEffect>>()
+    {
+        // 자신이 받는 피해 감소 /기어 방패병
+        { UnitSkillType.DamageReduction, (unit, effect) => {
+            unit.damageReductionBonus += effect.skillValue;
+            unit.activePassiveEffects.Add(new AppliedPassiveEffect { skillType = effect.skillType, value = effect.skillValue, source = unit });
+        }},
+
+         // 근접형 아군 전체 방어력 5% 증가 (자기 자신 포함, 모든 근접 아군)/ 기어 방패병
+        { UnitSkillType.IncreaseDefense, (unit, effect) => {
+            foreach (var ally in GameObject.FindObjectsOfType<UnitCombatFSM>())
+            {
+                if (!ally.IsAlive()) continue;
+                if (ally.unitData.faction != unit.unitData.faction) continue;
+                if (ally.unitData.battleType != BattleType.Melee) continue;
+                float baseDefense = ally.unitData.defense; // 또는 별도 baseDefense 필드 활용
+                float addValue = baseDefense * effect.skillValue; // 원본 기준
+                ally.stats.defense += addValue;
+                ally.activePassiveEffects.Add(new AppliedPassiveEffect { skillType = effect.skillType, value = addValue, source = unit });
+            }
+        }},
+        // 신규 효과는 여기만 추가
+    };
+
+    private static readonly Dictionary<UnitSkillType, System.Action<UnitCombatFSM, SkillEffect>> removeEffectMap =
+        new Dictionary<UnitSkillType, System.Action<UnitCombatFSM, SkillEffect>>()
+    {
+        // 자신이 받는 피해 감소 해제 /기어 방패병
+        { UnitSkillType.DamageReduction, (unit, effect) => {
+            var targetEffect = unit.activePassiveEffects.FirstOrDefault(e => e.skillType == effect.skillType && e.source == unit);
+            if (targetEffect != null)
+            {
+                unit.damageReductionBonus -= targetEffect.value;
+                unit.activePassiveEffects.Remove(targetEffect);
+            }
+        }},
+        // 근접형 아군 전체 방어력 5% 증가 해제 (자기 자신 포함, 모든 근접 아군)/ 기어 방패병
+        { UnitSkillType.IncreaseDefense, (unit, effect) => {
+            foreach (var ally in GameObject.FindObjectsOfType<UnitCombatFSM>())
+            {
+                if (!ally.IsAlive()) continue;
+                if (ally.unitData.faction != unit.unitData.faction) continue;
+                if (ally.unitData.battleType != BattleType.Melee) continue;
+                var targetEffect = ally.activePassiveEffects.FirstOrDefault(e => e.skillType == effect.skillType && e.source == unit);
+                if (targetEffect != null)
+                {
+                    ally.stats.defense -= targetEffect.value;
+                    ally.activePassiveEffects.Remove(targetEffect);
+                }
+            }
+        }},
+        // 신규 효과는 여기만 추가
+    };
+
+    // ----- [적용/해제 실행부] -----
+    public void ApplyPassiveEffects()
+    {
+        if (skillData == null || skillData.effects == null) return;
+        foreach (var effect in skillData.effects)
+        {
+            if (applyEffectMap.TryGetValue(effect.skillType, out var apply))
+                apply(this, effect);
+        }
+    }
+
+    IEnumerator ApplyPassiveEffectsDelayed()
+    {
+        yield return null; // 한 프레임 대기 (필요시 yield return new WaitForSeconds(0.05f); 도 가능) / 유닛 생성 순서/Start 타이밍 이슈를 해결하기 위해
+        ApplyPassiveEffects();
+    }
+
+
+    public void RemovePassiveEffects()
+    {
+        if (skillData == null || skillData.effects == null) return;
+        foreach (var effect in skillData.effects)
+        {
+            if (removeEffectMap.TryGetValue(effect.skillType, out var remove))
+                remove(this, effect);
+        }
+    }
+
+
+
+
+
 
 
 
@@ -372,12 +492,12 @@ public partial class UnitCombatFSM : MonoBehaviour
 
     void UpdateRangeIndicator()
     {
-        if(rangeIndicator == null || unitData == null) return;
+        if (rangeIndicator == null || unitData == null) return;
 
         float radius = agent.stoppingDistance;
         Vector3 center = transform.position;
 
-        for(int i = 0; i < 51; i++)
+        for (int i = 0; i < 51; i++)
         {
             float angle = i * (360f / 50f) * Mathf.Deg2Rad;
             Vector3 pos = new Vector3(Mathf.Cos(angle) * radius, 0.05f, Mathf.Sin(angle) * radius);
@@ -385,3 +505,6 @@ public partial class UnitCombatFSM : MonoBehaviour
         }
     }
 }
+
+
+
