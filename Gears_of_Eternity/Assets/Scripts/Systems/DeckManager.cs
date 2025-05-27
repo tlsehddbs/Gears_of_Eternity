@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using FactionTypes.Enums;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class DeckManager : MonoBehaviour
@@ -41,7 +42,7 @@ public class DeckManager : MonoBehaviour
         if (deck.Count == 0)
         {
             InitializeDeck();
-            DrawCards();
+            DrawCards(0);
         }
     }
 
@@ -85,40 +86,75 @@ public class DeckManager : MonoBehaviour
         Shuffle(deck);
     }
 
-    public void DrawCards()
+    public void DrawCards(int count)
     {
         // 덱이 부족하면 사용된 카드를 덱에 합친 후 셔플
-        if (deck.Count < drawCount)
+        // if (deck.Count < drawCount)
+        // {
+        //     Debug.Log("덱 부족 → 사용한 카드 합쳐서 다시 덱 구성");
+        //     deck.AddRange(usedCards);
+        //     usedCards.Clear();
+        //     Shuffle(deck);
+        // }
+
+        //hand.Clear();
+
+        // for (int i = 0; i < count; i++)
+        // {
+        //     if (deck.Count == 0) break;
+        //
+        //     var card = deck[0];
+        //     deck.RemoveAt(0);
+        //     hand.Add(card);
+        // }
+
+        if (deck.Count == 0)
         {
-            Debug.Log("덱 부족 → 사용한 카드 합쳐서 다시 덱 구성");
+            if (usedCards.Count == 0)
+            {
+                Debug.LogWarning("재활용할 카드 없음");
+                return;
+            }
+            Debug.Log("덱 부족 -> used 카드 재활용 셔플");
             deck.AddRange(usedCards);
             usedCards.Clear();
             Shuffle(deck);
         }
 
-        hand.Clear();
-
-        for (int i = 0; i < drawCount; i++)
+        if (count != 0)
         {
-            if (deck.Count == 0) break;
-
             var card = deck[0];
             deck.RemoveAt(0);
             hand.Add(card);
         }
-
         Debug.Log("드로우 완료. 현재 핸드: " + hand.Count);
     }
 
-    public void UseCard(RuntimeUnitCard card)
+    public void UseCard(/*RuntimeUnitCard card*/int index)
     {
-        if (hand.Contains(card))
+        //if (hand.Contains(card))
+        //{
+        //    hand.Remove(card);
+        //    usedCards.Add(card);
+        //
+        //    Debug.Log(card.unitName + " 사용됨");
+        //}
+        
+        if (index < 0 || index >= hand.Count)
         {
-            hand.Remove(card);
-            usedCards.Add(card);
-
-            Debug.Log(card.unitName + " 사용됨");
+            Debug.LogWarning($"[DeckManager] 유효하지 않은 인덱스 접근: {index}");
+            return;
         }
+
+        RuntimeUnitCard selectedCard = hand[index];
+
+        // 실제 카드 사용 로직 추가 가능: ex. selectedCard.ActivateSkill() 등
+
+        // 카드 이동
+        usedCards.Add(selectedCard);
+        hand.RemoveAt(index);
+
+        Debug.Log($"[DeckManager] 카드 사용됨: {selectedCard.unitName}, used로 이동");
     }
 
     // TODO : 협의한 내용에 따라서 소환 cost 보충 시기 등 고려할 것 
