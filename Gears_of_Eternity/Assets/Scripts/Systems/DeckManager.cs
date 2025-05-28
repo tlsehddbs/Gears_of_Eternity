@@ -130,31 +130,18 @@ public class DeckManager : MonoBehaviour
         Debug.Log("드로우 완료. 현재 핸드: " + hand.Count);
     }
 
-    public void UseCard(/*RuntimeUnitCard card*/int index)
+    public void UseCard(RuntimeUnitCard card)
     {
-        //if (hand.Contains(card))
-        //{
-        //    hand.Remove(card);
-        //    usedCards.Add(card);
-        //
-        //    Debug.Log(card.unitName + " 사용됨");
-        //}
-        
-        if (index < 0 || index >= hand.Count)
+        if (!hand.Contains(card))
         {
-            Debug.LogWarning($"[DeckManager] 유효하지 않은 인덱스 접근: {index}");
+            Debug.LogWarning($"[DeckManager] 핸드에 없는 카드 사용 시도: {card.unitName}");
             return;
         }
 
-        RuntimeUnitCard selectedCard = hand[index];
-
-        // 실제 카드 사용 로직 추가 가능: ex. selectedCard.ActivateSkill() 등
-
-        // 카드 이동
-        usedCards.Add(selectedCard);
-        hand.RemoveAt(index);
-
-        Debug.Log($"[DeckManager] 카드 사용됨: {selectedCard.unitName}, used로 이동");
+        hand.Remove(card);
+        usedCards.Add(card);
+        
+        Debug.Log($"[DeckManager] 카드 사용됨: {card.unitName}, used로 이동");
     }
 
     // TODO : 협의한 내용에 따라서 소환 cost 보충 시기 등 고려할 것 

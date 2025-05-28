@@ -10,6 +10,9 @@ public class DeckTestUI : MonoBehaviour
     public Button drawButton;
     public Button useButton;
     public Button debugButton;
+    
+    [SerializeField]
+    public HandCurveUI handPanelManager;
 
     void Start()
     {
@@ -21,6 +24,8 @@ public class DeckTestUI : MonoBehaviour
 
         // if (debugButton != null) debugButton.onClick.AddListener(OnDebugClick);
         // else Debug.LogError("debugButton is not assigned.");
+        
+        handPanelManager.RefreshHandUI(DeckManager.Instance.hand);
     }
     
     void Update()
@@ -36,6 +41,7 @@ public class DeckTestUI : MonoBehaviour
     public void OnDrawClick()
     {
         DeckManager.Instance.DrawCards(1);
+        handPanelManager.RefreshHandUI(DeckManager.Instance.hand);
     }
 
     public void OnUseClick()
@@ -43,7 +49,9 @@ public class DeckTestUI : MonoBehaviour
         if (DeckManager.Instance.hand.Count > 0)
         {
             int testRandHand = Random.Range(0, DeckManager.Instance.hand.Count);
-            DeckManager.Instance.UseCard(testRandHand);
+            var card = DeckManager.Instance.hand[testRandHand];
+            DeckManager.Instance.UseCard(card);
         }
+        handPanelManager.RefreshHandUI(DeckManager.Instance.hand);
     }
 }
