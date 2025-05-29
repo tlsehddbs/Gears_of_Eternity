@@ -15,7 +15,7 @@ public class DeckManager : MonoBehaviour
     public FactionType filterFaction = FactionType.IronGearFederation;
     
     //public List<UnitCardData> cards;
-    public List<RuntimeUnitCard> runtimeCards;
+    //public List<RuntimeUnitCard> runtimeCards;
     public List<RuntimeUnitCard> deck = new List<RuntimeUnitCard>();
     public List<RuntimeUnitCard> hand = new List<RuntimeUnitCard>();
     public List<RuntimeUnitCard> usedCards = new List<RuntimeUnitCard>();
@@ -55,32 +55,37 @@ public class DeckManager : MonoBehaviour
             return;
         }
         
-        runtimeCards = cardCollection.allAvailableCards.Select(unitCard => new RuntimeUnitCard(unitCard)).ToList();
+        //runtimeCards = cardCollection.allAvailableCards.Select(unitCard => new RuntimeUnitCard(unitCard)).ToList();
         
         // 덱 드로우를 위한 전체 유닛 카드 리스트화 및 세력별 필터링
-        if (runtimeCards == null || runtimeCards.Count == 0)
+        if (cardCollection.allAvailableCards == null || cardCollection.allAvailableCards.Count == 0)
         {
             Debug.LogWarning("❗카드 목록이 비어 있음");
-        }
-        
-        var filtered = runtimeCards
-            .Where(card => card.faction == filterFaction)
-            .Where(card => card.level == 1)
-            .ToList();
-        
-        if (filtered.Count == 0)
+        } 
+        else 
         {
-            Debug.LogWarning($"⚠️세력 '{filterFaction}'에 해당하는 카드가 없음");
-            return;
-        }
+            var filtered = cardCollection.allAvailableCards
+                .Where(card => card.faction == filterFaction)
+                .Where(card => card.level == 1)
+                .ToList();
         
-        // 테스트용 초기 덱 세팅 (12장)
-        for (int i = 0; i < 12; i++)
-        {
-            RuntimeUnitCard randomCard = filtered[Random.Range(0, filtered.Count)];
-            deck.Add(randomCard);
+            if (filtered.Count == 0)
+            {
+                Debug.LogWarning($"⚠️세력 '{filterFaction}'에 해당하는 카드가 없음");
+                return;
+            }
+        
+            // 테스트용 초기 덱 세팅 (12장)
+            for (int i = 0; i < 12; i++)
+            {
+                var randomCard = filtered[Random.Range(0, filtered.Count)];
+                var runtimeCardCopy = new RuntimeUnitCard(randomCard);
+                
+                
+                deck.Add(runtimeCardCopy);
             
-            Debug.Log($"덱에 카드 추가됨: {randomCard.unitName} / 세력 : {randomCard.faction} / 레벨 : {randomCard.level}");
+                Debug.Log($"덱에 카드 추가됨: {randomCard.unitName} / 세력 : {randomCard.faction} / 레벨 : {randomCard.level}");
+            }
         }
 
         Shuffle(deck);
@@ -127,14 +132,13 @@ public class DeckManager : MonoBehaviour
             deck.RemoveAt(0);
             hand.Add(card);
         }
-        Debug.Log("드로우 완료. 현재 핸드: " + hand.Count);
     }
 
     public void UseCard(RuntimeUnitCard card)
     {
         if (!hand.Contains(card))
         {
-            Debug.LogWarning($"[DeckManager] 핸드에 없는 카드 사용 시도: {card.unitName}");
+            //Debug.LogWarning($"[DeckManager] 핸드에 없는 카드 사용 시도: {card.unitName}");
             return;
         }
 

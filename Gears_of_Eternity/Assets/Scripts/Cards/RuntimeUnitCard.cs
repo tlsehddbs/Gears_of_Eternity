@@ -1,3 +1,4 @@
+using System;
 using BattleTypes.Enums;
 using FactionTypes.Enums;
 using UnityEngine;
@@ -23,8 +24,16 @@ public class RuntimeUnitCard
     public int level;
     
     
+    
+    public string uniqueId;
+
+
+    
     public RuntimeUnitCard(UnitCardData data)
     {
+        uniqueId = Guid.NewGuid().ToString();
+        
+        
         unitName = data.unitName;
         faction = data.faction;
         

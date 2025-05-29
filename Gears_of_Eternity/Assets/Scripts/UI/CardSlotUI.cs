@@ -1,23 +1,24 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
+//using UnityEngine.EventSystems;
 
-public class CardSlotUI : MonoBehaviour, IPointerClickHandler
+public class CardSlotUI : MonoBehaviour  //, IPointerClickHandler
 {
-    public Text cardNameText;
-    //public Text costText;
-    public RuntimeUnitCard cardData;
+    // public Text cardNameText;
+    // public RuntimeUnitCard cardData;
+    
+    public RuntimeUnitCard CardData { get; private set; }
 
-    public void Initialize(RuntimeUnitCard card)
+    public void Initialize(RuntimeUnitCard data)
     {
-        cardData = card;
+        CardData = data;
         //cardNameText.text = card.unitName;
         //costText.text = card.cost.ToString();
     }
 
-    public void OnPointerClick(PointerEventData eventData)
-    {
-        DeckManager.Instance.UseCard(cardData);
-        Destroy(gameObject);
-    }
+    // public void OnPointerClick(PointerEventData eventData)
+    // {
+    //     DeckManager.Instance.UseCard(cardData);
+    //     Destroy(gameObject);
+    // }
 }

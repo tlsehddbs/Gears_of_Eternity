@@ -32,8 +32,14 @@ public class DeckTestUI : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            Debug.Log("🔸 Space 눌림 - 강제 드로우 실행");
+            Debug.Log("🔸 Space 눌림 - 강제 Draw 실행");
             OnDrawClick();
+        }
+        
+        if (Input.GetKeyDown(KeyCode.U))
+        {
+            Debug.Log("🔸 U 눌림 - 강제 Use 실행");
+            OnUseClick();
         }
     }
     

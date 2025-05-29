@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class HandPanelManager : MonoBehaviour
@@ -5,7 +8,7 @@ public class HandPanelManager : MonoBehaviour
     public Transform handPanel;
     public GameObject cardPrefab;
 
-    public void RefreshHandUI()
+    public void RefreshHandUI(List<RuntimeUnitCard> hand)
     {
         if (handPanel.childCount > 0)
         {
