@@ -45,6 +45,7 @@ namespace UnitSkillTypes.Enums
         BuffDurationIncrease,      // 버프 지속시간 증가
         RemoveEnemyBuff,           // 적 버프 제거
         RemoveAllEnemyBuffs,       // 전체 버프 제거
+        DelayBuff,                 // 지연 발동 버프 
 
         // 특수/기타
         Taunt,                     // 도발

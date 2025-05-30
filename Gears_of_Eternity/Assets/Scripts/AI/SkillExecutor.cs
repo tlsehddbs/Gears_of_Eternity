@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnitSkillTypes.Enums;
+using Unity.Android.Gradle.Manifest;
 using UnityEngine;
 
 public class SkillExecutor
@@ -9,6 +10,7 @@ public class SkillExecutor
         { UnitSkillType.InstantHeal, new InstantHealSkill() },
         { UnitSkillType.IncreaseAttack, new BuffAttackSkill() },
         { UnitSkillType.AttackDown, new DebuffAttackSkill() },
+        { UnitSkillType.MultiHit, new MultiHitSkill()},
        
         // 추가 스킬은 여기에 등록
     };

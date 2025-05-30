@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [System.Serializable]
-public class RuntimeUnitStats 
+public class RuntimeUnitStats
 {
     public float health;
     public float moveSpeed;
@@ -9,4 +9,5 @@ public class RuntimeUnitStats
     public float defense;
     public float attackSpeed;
     public float attackDistance;
+    public float damageReduction;
 }

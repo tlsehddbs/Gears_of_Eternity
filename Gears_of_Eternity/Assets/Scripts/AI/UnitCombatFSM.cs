@@ -5,6 +5,7 @@ using UnitSkillTypes.Enums;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Android.Gradle.Manifest;
 
 public class AppliedPassiveEffect
 {
@@ -15,10 +16,14 @@ public class AppliedPassiveEffect
 }
 public enum BuffStat
 {
+    None,
     Attack,
     Defense,
     MoveSpeed,
-    AttackSpeed
+    AttackSpeed,
+    Health,
+    AttackDistance,
+    DamageReduction,
 }
 
 public partial class UnitCombatFSM : MonoBehaviour
@@ -43,8 +48,7 @@ public partial class UnitCombatFSM : MonoBehaviour
 
 
     public List<AppliedPassiveEffect> activePassiveEffects = new List<AppliedPassiveEffect>();
-    public float damageReductionBonus = 0f;
-
+ 
 
 
     void Awake()
@@ -63,7 +67,7 @@ public partial class UnitCombatFSM : MonoBehaviour
         AssignCriticalChance();
         ChangeState(new IdleState(this));
 
-        // 패시브
+        // 패시브 스킬 
         StartCoroutine(ApplyPassiveEffectsDelayed());
 
     }
@@ -130,10 +134,13 @@ public partial class UnitCombatFSM : MonoBehaviour
 
     public void TakeDamage(float damage)
     {
-        float reductionFactor = 1.0f - damageReductionBonus;
+        //Clamp 처리: damageReduction이 1.0 이상이면 최소 0, 음수면 최대 1
+        float reductionFactor = Mathf.Clamp01(1.0f - stats.damageReduction);
+
         float effectiveDamage = damage * (100f / (100f + stats.defense));
         effectiveDamage *= reductionFactor;
         currentHP -= effectiveDamage;
+        
         Debug.Log($"[피격] {name} - 받은 데미지: {effectiveDamage:F1} / 남은 HP: {currentHP:F1}");
 
         if (currentHP <= 0)
@@ -272,9 +279,9 @@ public partial class UnitCombatFSM : MonoBehaviour
         Debug.Log($"[회복] {gameObject.name} → {amount} 회복 / 현재 HP: {currentHP:F1}");
     }
 
-    public void ApplyBuff(BuffStat stat, float amount, float duration)
+    public void ApplyBuff(BuffStat stat, float amount, float duration, bool isPercent = false)
     {
-        StartCoroutine(BuffRoutine(stat, amount, duration));
+        StartCoroutine(BuffRoutine(stat, amount, duration, isPercent));
     }
 
     public void ApplyDebuff(BuffStat stat, float amount, float duration)
@@ -283,11 +290,14 @@ public partial class UnitCombatFSM : MonoBehaviour
     }
 
     //버프 
-    private IEnumerator BuffRoutine(BuffStat stat, float amount, float duration)
+    private IEnumerator BuffRoutine(BuffStat stat, float value, float duration, bool isPercent)
     {
-        ModifyStat(stat, amount); // 스탯 증가 
-        yield return new WaitForSeconds(duration);
-        ModifyStat(stat, -amount); //스탯 복구 
+        ModifyStat(stat, value, isPercent, false);   // 적용
+        if (duration > 0f)
+        {
+            yield return new WaitForSeconds(duration);
+            ModifyStat(stat, value, isPercent, true); // 해제
+        }
     }
 
     //디버프 
@@ -298,32 +308,32 @@ public partial class UnitCombatFSM : MonoBehaviour
         ModifyStat(stat, amount); // 스탯 복구
     }
 
-    private void ModifyStat(BuffStat stat, float value)
-    {
-        switch (stat)
-        {
-            case BuffStat.Attack:
-                stats.attack += value;
-                break;
-            case BuffStat.Defense:
-                stats.defense += value;
-                break;
-            case BuffStat.MoveSpeed:
-                stats.moveSpeed += value;
-                agent.speed = stats.moveSpeed; //NavMeshAgent에도 적용 
-                break;
-            case BuffStat.AttackSpeed:
-                stats.attackSpeed += value;
-                break;
-        }
-    }
+    // private void ModifyStat(BuffStat stat, float value)
+    // {
+    //     switch (stat)
+    //     {
+    //         case BuffStat.Attack:
+    //             stats.attack += value;
+    //             break;
+    //         case BuffStat.Defense:
+    //             stats.defense += value;
+    //             break;
+    //         case BuffStat.MoveSpeed:
+    //             stats.moveSpeed += value;
+    //             agent.speed = stats.moveSpeed; //NavMeshAgent에도 적용 
+    //             break;
+    //         case BuffStat.AttackSpeed:
+    //             stats.attackSpeed += value;
+    //             break;
+    //     }
+    // }
 
 
-    //스킬 
+    //-------------------------------------------스킬-----------------------------------------------
     public void TryUseSkill()
     {
         if (!CanUseSkill() || skillData == null || skillData.effects == null) return;
-
+        
         foreach (var effect in skillData.effects)
         {
             UnitCombatFSM skillTarget = null;
@@ -338,17 +348,23 @@ public partial class UnitCombatFSM : MonoBehaviour
                 case UnitSkillType.AttackDown:
                     skillTarget = FindNearestEnemy();
                     break;
+                case UnitSkillType.MultiHit:
+                    skillTarget = FindNearestEnemy();
+                    break;
                     // 기타 스킬타입 분기 추가
             }
             skillExecutor.ExecuteSkill(skillData, this, skillTarget);
         }
         skillTimer = 0f;
     }
+    
+    //스킬 쿨타임 조건 확인 
     public bool CanUseSkill()
     {
         return skillData != null && skillTimer >= skillData.skillCoolDown;
     }
 
+    //스킬 조건 진입 (ShouldUseSKill → TryUseSkill)
     public bool ShouldUseSkill()
     {
         if (!CanUseSkill() || skillData == null || skillData.effects == null || skillData.effects.Count == 0)
@@ -368,24 +384,21 @@ public partial class UnitCombatFSM : MonoBehaviour
             case UnitSkillType.AttackDown:
                 targetEnemy = FindNearestEnemy();
                 return targetEnemy != null;
+            case UnitSkillType.MultiHit:
+                targetEnemy = FindNearestEnemy();
+                return targetEnemy != null;
             default:
                 return false;
         }
     }
 
 
-    // ----- [패시브: 효과 적용/해제 함수맵] -----
+    // ----- [조건부 버프 및 스킬 : 효과 적용/해제 함수맵] -----
  
     private static readonly Dictionary<UnitSkillType, System.Action<UnitCombatFSM, SkillEffect>> applyEffectMap =
         new Dictionary<UnitSkillType, System.Action<UnitCombatFSM, SkillEffect>>()
     {
-        // 자신이 받는 피해 감소 /기어 방패병
-        { UnitSkillType.DamageReduction, (unit, effect) => {
-            unit.damageReductionBonus += effect.skillValue;
-            unit.activePassiveEffects.Add(new AppliedPassiveEffect { skillType = effect.skillType, value = effect.skillValue, source = unit });
-        }},
-
-         // 근접형 아군 전체 방어력 5% 증가 (자기 자신 포함, 모든 근접 아군)/ 기어 방패병
+        // 근접형 아군 전체 방어력 5% 증가 (자기 자신 포함, 모든 근접 아군)/ 기어 방패병
         { UnitSkillType.IncreaseDefense, (unit, effect) => {
             foreach (var ally in GameObject.FindObjectsOfType<UnitCombatFSM>())
             {
@@ -398,21 +411,18 @@ public partial class UnitCombatFSM : MonoBehaviour
                 ally.activePassiveEffects.Add(new AppliedPassiveEffect { skillType = effect.skillType, value = addValue, source = unit });
             }
         }},
+        
+        //지연 발동 버프 / 하이브리드 기병병
+        { UnitSkillType.DelayBuff, (unit, effect) => {
+            unit.StartCoroutine(DelayedBuffRoutine(unit, effect));
+        }},
         // 신규 효과는 여기만 추가
+
     };
 
     private static readonly Dictionary<UnitSkillType, System.Action<UnitCombatFSM, SkillEffect>> removeEffectMap =
         new Dictionary<UnitSkillType, System.Action<UnitCombatFSM, SkillEffect>>()
     {
-        // 자신이 받는 피해 감소 해제 /기어 방패병
-        { UnitSkillType.DamageReduction, (unit, effect) => {
-            var targetEffect = unit.activePassiveEffects.FirstOrDefault(e => e.skillType == effect.skillType && e.source == unit);
-            if (targetEffect != null)
-            {
-                unit.damageReductionBonus -= targetEffect.value;
-                unit.activePassiveEffects.Remove(targetEffect);
-            }
-        }},
         // 근접형 아군 전체 방어력 5% 증가 해제 (자기 자신 포함, 모든 근접 아군)/ 기어 방패병
         { UnitSkillType.IncreaseDefense, (unit, effect) => {
             foreach (var ally in GameObject.FindObjectsOfType<UnitCombatFSM>())
@@ -428,24 +438,34 @@ public partial class UnitCombatFSM : MonoBehaviour
                 }
             }
         }},
-        // 신규 효과는 여기만 추가
+        // 신규 효과는 여기만 추가 
     };
 
+    //지연 발동 버프관련 / 하이브리드 기병 
+    private static IEnumerator DelayedBuffRoutine(UnitCombatFSM unit, SkillEffect effect) 
+    {
+        yield return new WaitForSeconds(effect.skillDelayTime);
+        unit.ApplyBuff(effect.buffStat, effect.skillValue, effect.skillDuration, effect.isPercent);
+    }
+
     // ----- [적용/해제 실행부] -----
-    public void ApplyPassiveEffects()
+    public void ApplyBuffEffects()
     {
         if (skillData == null || skillData.effects == null) return;
+        
         foreach (var effect in skillData.effects)
         {
             if (applyEffectMap.TryGetValue(effect.skillType, out var apply))
-                apply(this, effect);
+                apply(this, effect); // DelayBuff, IncreaseDefense 등 커스텀 map을 반드시 태움
+            else
+                ApplyBuff(effect.buffStat, effect.skillValue, effect.skillDuration, effect.isPercent);
         }
     }
-
-    IEnumerator ApplyPassiveEffectsDelayed()
+    
+    IEnumerator ApplyPassiveEffectsDelayed() 
     {
         yield return null; // 한 프레임 대기 (필요시 yield return new WaitForSeconds(0.05f); 도 가능) / 유닛 생성 순서/Start 타이밍 이슈를 해결하기 위해
-        ApplyPassiveEffects();
+        ApplyBuffEffects();
     }
 
 
@@ -459,10 +479,102 @@ public partial class UnitCombatFSM : MonoBehaviour
         }
     }
 
+    //스탯 버프 관련 딕셔너리 Map ModifyStat
+    private static readonly Dictionary<BuffStat, System.Action<RuntimeUnitStats, float, bool, bool>> statModifierMap =
+    new Dictionary<BuffStat, System.Action<RuntimeUnitStats, float, bool, bool>>()
+    {
+        // isPercent = true → 곱셈(1 + v), false → 가산(+=)
+        // isRemove = true → 해제(곱셈은 /=, 가산은 -=)
+        { BuffStat.Attack,      (s, v, isPer, isRemove) => {
+            if (isPer)
+            {
+                if (isRemove) s.attack /= (1f + v);  // 해제: 나누기
+                else s.attack *= (1f + v);           // 적용: 곱하기
+            }
+            else
+            {
+                if (isRemove) s.attack -= v;
+                else s.attack += v;
+            }
+        }},
+        { BuffStat.Defense,     (s, v, isPer, isRemove) => {
+            if (isPer)
+            {
+                if (isRemove) s.defense /= (1f + v);
+                else s.defense *= (1f + v);
+            }
+            else
+            {
+                if (isRemove) s.defense -= v;
+                else s.defense += v;
+            }
+        }},
+        { BuffStat.MoveSpeed,   (s, v, isPer, isRemove) => {
+            if (isPer)
+            {
+                if (isRemove) s.moveSpeed /= (1f + v);
+                else s.moveSpeed *= (1f + v);
+            }
+            else
+            {
+                if (isRemove) s.moveSpeed -= v;
+                else s.moveSpeed += v;
+            }
+        }},
+        { BuffStat.AttackSpeed, (s, v, isPer, isRemove) => {
+            if (isPer)
+            {
+                if (isRemove) s.attackSpeed /= (1f + v);
+                else s.attackSpeed *= (1f + v);
+            }
+            else
+            {
+                if (isRemove) s.attackSpeed -= v;
+                else s.attackSpeed += v;
+            }
+        }},
+        { BuffStat.Health,      (s, v, isPer, isRemove) => {
+            if (isPer)
+            {
+                if (isRemove) s.health /= (1f + v);
+                else s.health *= (1f + v);
+            }
+            else
+            {
+                if (isRemove) s.health -= v;
+                else s.health += v;
+            }
+        }},
+        { BuffStat.AttackDistance, (s, v, isPer, isRemove) => {
+            if (isPer)
+            {
+                if (isRemove) s.attackDistance /= (1f + v);
+                else s.attackDistance *= (1f + v);
+            }
+            else
+            {
+                if (isRemove) s.attackDistance -= v;
+                else s.attackDistance += v;
+            }
+        }},
+        { BuffStat.DamageReduction, (s, v, isPer, isRemove) => {
+            // 피해감소는 누적형(가산)만 사용
+            if (isRemove) s.damageReduction -= v;
+            else s.damageReduction += v;
+        }},
+        // 필요한 스탯 계속 추가
+    };
 
-
-
-
+    private void ModifyStat(BuffStat stat, float value, bool isPercent = false, bool isRemove = false)
+    {
+        if (statModifierMap.TryGetValue(stat, out var apply))
+        {
+            apply(stats, value, isPercent, isRemove);
+        }
+        // 부가처리: 이동속도 등
+        if (stat == BuffStat.MoveSpeed)
+            agent.speed = stats.moveSpeed;
+    }
 
 
 
