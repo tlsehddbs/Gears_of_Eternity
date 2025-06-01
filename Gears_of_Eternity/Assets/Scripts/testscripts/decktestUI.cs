@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,6 +12,15 @@ public class DeckTestUI : MonoBehaviour
     [SerializeField]
     public HandCurveUI handPanelManager;
 
+    //
+    //
+    //
+    //
+    // TODO: 추후 test 파일을 정리하면서 여기(decktest)에 있는 로직을 다른 파일로 병합할 예정 -> deckManager 또는 별도 신규 파일 등
+    //
+    //
+    //
+    
     void Start()
     {
         if (drawButton != null) drawButton.onClick.AddListener(OnDrawClick);
@@ -44,13 +51,13 @@ public class DeckTestUI : MonoBehaviour
     }
     
     // ReSharper disable Unity.PerformanceAnalysis
-    public void OnDrawClick()
+    private void OnDrawClick()
     {
         DeckManager.Instance.DrawCards(1);
         handPanelManager.RefreshHandUI(DeckManager.Instance.hand);
     }
 
-    public void OnUseClick()
+    private void OnUseClick()
     {
         if (DeckManager.Instance.hand.Count > 0)
         {

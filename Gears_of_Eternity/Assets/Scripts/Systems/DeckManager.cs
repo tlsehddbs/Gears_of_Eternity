@@ -23,7 +23,7 @@ public class DeckManager : MonoBehaviour
     public int drawCount = 4;
     
     // 중요 ! : DeckManager 가 게임 실행시 최초 씬에서 생성되게 하여야 함. 추후 Scene이 확장되고 난 이후 테스트를 진행해 볼 것.
-    // TODO : 게임 최초 실행이 아닌 이어하는 경우를 대비하여 게임 실행시 DeckManager Instance를 생성할 때 저장된 값에서 불러와 적용할 수 있도록 할 것.
+    // TODO: 게임 최초 실행이 아닌 이어하는 경우를 대비하여 게임 실행시 DeckManager Instance를 생성할 때 저장된 값에서 불러와 적용할 수 있도록 할 것.
     void Awake()
     {
         if (Instance == null)
@@ -75,7 +75,6 @@ public class DeckManager : MonoBehaviour
                 return;
             }
         
-            // 테스트용 초기 덱 세팅 (12장)
             for (int i = 0; i < 12; i++)
             {
                 var randomCard = filtered[Random.Range(0, filtered.Count)];
@@ -117,10 +116,8 @@ public class DeckManager : MonoBehaviour
         {
             if (usedCards.Count == 0)
             {
-                Debug.LogWarning("재활용할 카드 없음");
                 return;
             }
-            Debug.Log("덱 부족 -> used 카드 재활용 셔플");
             deck.AddRange(usedCards);
             usedCards.Clear();
             Shuffle(deck);
@@ -144,14 +141,11 @@ public class DeckManager : MonoBehaviour
 
         hand.Remove(card);
         usedCards.Add(card);
-        
-        Debug.Log($"[DeckManager] 카드 사용됨: {card.unitName}, used로 이동");
     }
 
-    // TODO : 협의한 내용에 따라서 소환 cost 보충 시기 등 고려할 것 
+    // TODO: 협의한 내용에 따라서 소환 cost 보충 시기 등 고려할 것 
     public void EndTurn()
     {
-        // 남은 핸드는 다시 덱으로 보냄
         deck.AddRange(hand);
         hand.Clear();
 

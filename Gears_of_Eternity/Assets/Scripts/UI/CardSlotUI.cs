@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 public class CardSlotUI : MonoBehaviour  //, IPointerClickHandler
 {
-    // public Text cardNameText;
+    public Text cardNameText;
     // public RuntimeUnitCard cardData;
     
     public RuntimeUnitCard CardData { get; private set; }
@@ -12,8 +12,13 @@ public class CardSlotUI : MonoBehaviour  //, IPointerClickHandler
     public void Initialize(RuntimeUnitCard data)
     {
         CardData = data;
+        GetComponent<CardDragHandler>().cardData = data;
+        
+        cardNameText.text = data.unitName;
+        
         //cardNameText.text = card.unitName;
         //costText.text = card.cost.ToString();
+
     }
 
     // public void OnPointerClick(PointerEventData eventData)
