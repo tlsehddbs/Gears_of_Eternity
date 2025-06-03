@@ -11,7 +11,7 @@ public class UnitCardData : BaseCardData
     [Space(10)]
     [Header("Unit Card Info")]
     public string unitName;
-    // public string description;
+    public string description;
     public BattleType battleType;
     public GameObject unitPrefab;
     

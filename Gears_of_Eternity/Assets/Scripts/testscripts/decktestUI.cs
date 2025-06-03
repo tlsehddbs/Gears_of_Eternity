@@ -26,8 +26,8 @@ public class DeckTestUI : MonoBehaviour
         if (drawButton != null) drawButton.onClick.AddListener(OnDrawClick);
         else Debug.LogError("drawButton is not assigned.");
 
-        if (useButton != null) useButton.onClick.AddListener(OnUseClick);
-        else Debug.LogError("useButton is not assigned.");
+        // if (useButton != null) useButton.onClick.AddListener(OnUseClick);
+        // else Debug.LogError("useButton is not assigned.");
 
         // if (debugButton != null) debugButton.onClick.AddListener(OnDebugClick);
         // else Debug.LogError("debugButton is not assigned.");
@@ -37,16 +37,10 @@ public class DeckTestUI : MonoBehaviour
     
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space) && !GameManager.Instance.isDraggingCard)
         {
             Debug.Log("🔸 Space 눌림 - 강제 Draw 실행");
             OnDrawClick();
-        }
-        
-        if (Input.GetKeyDown(KeyCode.U))
-        {
-            Debug.Log("🔸 U 눌림 - 강제 Use 실행");
-            OnUseClick();
         }
     }
     
@@ -57,14 +51,14 @@ public class DeckTestUI : MonoBehaviour
         handPanelManager.RefreshHandUI(DeckManager.Instance.hand);
     }
 
-    private void OnUseClick()
-    {
-        if (DeckManager.Instance.hand.Count > 0)
-        {
-            int testRandHand = Random.Range(0, DeckManager.Instance.hand.Count);
-            var card = DeckManager.Instance.hand[testRandHand];
-            DeckManager.Instance.UseCard(card);
-        }
-        handPanelManager.RefreshHandUI(DeckManager.Instance.hand);
-    }
+    // private void OnUseClick()
+    // {
+    //     if (DeckManager.Instance.hand.Count > 0)
+    //     {
+    //         int testRandHand = Random.Range(0, DeckManager.Instance.hand.Count);
+    //         var card = DeckManager.Instance.hand[testRandHand];
+    //         DeckManager.Instance.UseCard(card);
+    //     }
+    //     handPanelManager.RefreshHandUI(DeckManager.Instance.hand);
+    // }
 }

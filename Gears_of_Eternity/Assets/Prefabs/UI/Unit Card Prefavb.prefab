@@ -263,6 +263,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardNameText: {fileID: 742408359782067369}
+  cardDescriptionText: {fileID: 4387899091923834487}
 --- !u!114 &5590614917427412719
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -277,6 +278,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cardData:
     unitName: 
+    unitDescription: 
     faction: 0
     battleType: 0
     unitPrefab: {fileID: 0}
@@ -289,3 +291,4 @@ MonoBehaviour:
     attackDistance: 0
     level: 0
     uniqueId: 
+  handCurveUI: {fileID: 0}

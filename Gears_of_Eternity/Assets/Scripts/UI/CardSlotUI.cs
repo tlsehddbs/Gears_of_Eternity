@@ -1,11 +1,10 @@
 using UnityEngine;
 using UnityEngine.UI;
-//using UnityEngine.EventSystems;
 
-public class CardSlotUI : MonoBehaviour  //, IPointerClickHandler
+public class CardSlotUI : MonoBehaviour
 {
     public Text cardNameText;
-    // public RuntimeUnitCard cardData;
+    public Text cardDescriptionText;
     
     public RuntimeUnitCard CardData { get; private set; }
 
@@ -15,15 +14,9 @@ public class CardSlotUI : MonoBehaviour  //, IPointerClickHandler
         GetComponent<CardDragHandler>().cardData = data;
         
         cardNameText.text = data.unitName;
+        cardDescriptionText.text = data.unitDescription;
         
-        //cardNameText.text = card.unitName;
         //costText.text = card.cost.ToString();
 
     }
-
-    // public void OnPointerClick(PointerEventData eventData)
-    // {
-    //     DeckManager.Instance.UseCard(cardData);
-    //     Destroy(gameObject);
-    // }
 }

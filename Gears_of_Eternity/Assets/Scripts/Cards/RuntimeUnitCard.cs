@@ -7,6 +7,8 @@ using UnityEngine;
 public class RuntimeUnitCard
 {
     public string unitName;
+    public string unitDescription;
+    
     public FactionType faction;
     public BattleType battleType;
     public GameObject unitPrefab;
@@ -35,6 +37,8 @@ public class RuntimeUnitCard
         
         
         unitName = data.unitName;
+        unitDescription = data.description;
+        
         faction = data.faction;
         
         battleType = data.battleType;
