@@ -3,7 +3,7 @@ using BattleTypes.Enums;
 using FactionTypes.Enums;
 using UnityEngine;
 
-[System.Serializable]
+[Serializable]
 public class RuntimeUnitCard
 {
     public string unitName;

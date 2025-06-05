@@ -1,78 +1,114 @@
-using System;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
-public class CardDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class CardDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerEnterHandler, IPointerExitHandler
 {
-    private CanvasGroup canvasGroup;
-    private Canvas canvas;
+    private CanvasGroup _canvasGroup;
+    private Canvas _canvas;
     
-    private RectTransform rectTransform;
-    private Transform originalParent;
+    private RectTransform _rectTransform;
+    private Transform _originalParent;
 
     public RuntimeUnitCard cardData;
 
     public HandCurveUI handCurveUI;
     
-    private Vector3 targetPosition;
+    
+    // 카드가 마우스를 부드럽게 따라가게 만들기 위한 변수
+    private Vector3 _targetPosition;
 
-    private Vector3 originalPosition;
-    private Quaternion originalRotation;
+    // 배치 실패시 원래의 Position으로 복귀를 위한 변수
+    private Vector3 _originalPosition;
+    private Quaternion _originalRotation;
+    
+    private Vector3 _originalScale;
+    private int _originalSortingOrder;
 
-    private bool isDragging = false;
+    public float hoverScale = 1.2f;
+    public float hoverMoveY = 50f;
+
+    private bool _isDragging = false;
 
     void Awake()
     {
-        canvasGroup = GetComponent<CanvasGroup>();
-        canvas = GameObject.Find("Canvas").GetComponent<Canvas>();
+        _canvasGroup = GetComponent<CanvasGroup>();
+        _canvas = GameObject.Find("Canvas").GetComponent<Canvas>();
         
-        rectTransform = GetComponent<RectTransform>();
+        _rectTransform = GetComponent<RectTransform>();
         handCurveUI = GameObject.Find("HandCurveUI").GetComponent<HandCurveUI>();
     }
+    
+    // Hover
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        _originalPosition = transform.localPosition;
+        _originalScale = transform.localScale;
+        if (_canvas != null)
+        {
+            _originalSortingOrder = _canvas.sortingOrder;
+            _canvas.overrideSorting = true;
+            _canvas.sortingOrder = 100; // 다른 카드보다 위에 보이게
+        }
 
+        transform.DOScale(hoverScale, 0.2f).SetEase(Ease.OutBack);
+        transform.DOLocalMoveY(_originalPosition.y + hoverMoveY, 0.2f).SetEase(Ease.OutCubic);
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        transform.DOScale(_originalScale, 0.2f).SetEase(Ease.OutQuad);
+        transform.DOLocalMove(_originalPosition, 0.2f).SetEase(Ease.OutCubic);
+
+        if (_canvas != null)
+        {
+            _canvas.sortingOrder = _originalSortingOrder;
+            _canvas.overrideSorting = false;
+        }
+    }
+
+    // Drag
     public void OnBeginDrag(PointerEventData eventData)
     {
-        isDragging = true;
+        _isDragging = true;
         GameManager.Instance.isDraggingCard = true;
         
-        originalPosition = rectTransform.localPosition;
-        originalRotation = rectTransform.localRotation;
+        _originalPosition = _rectTransform.localPosition;
+        _originalRotation = _rectTransform.localRotation;
         
-        originalParent = transform.parent;
+        _originalParent = transform.parent;
         //transform.SetParent(transform.root, false); // UI 최상단으로 올림
-        canvasGroup.blocksRaycasts = false;     // Raycast 막기 → 드롭 감지 가능하게
+        _canvasGroup.blocksRaycasts = false;     // Raycast 막기 → 드롭 감지 가능하게
     }
     
     public void OnDrag(PointerEventData eventData)
     {
-        Vector2 localPoint = rectTransform.localPosition;
+        Vector2 localPoint = _rectTransform.localPosition;
         
         if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                canvas.transform as RectTransform,
+                _canvas.transform as RectTransform,
                 Input.mousePosition,
-                canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera,
+                _canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : _canvas.worldCamera,
                 out localPoint))
         {
-            targetPosition = localPoint;
+            _targetPosition = localPoint;
         }
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        isDragging = false;
+        _isDragging = false;
         GameManager.Instance.isDraggingCard = false;
         
-        canvasGroup.blocksRaycasts = true;
+        _canvasGroup.blocksRaycasts = true;
         //transform.SetParent(originalParent);
 
         // 드롭 실패 시 제자리 복귀
         // rectTransform.position = originalPosition;
         // rectTransform.rotation = originalRotation;
         
-        rectTransform.DOAnchorPos(originalPosition, 0.3f).SetEase(Ease.OutExpo);
-        rectTransform.DOLocalRotateQuaternion(originalRotation, 0.3f);
+        _rectTransform.DOAnchorPos(_originalPosition, 0.3f).SetEase(Ease.OutExpo);
+        _rectTransform.DOLocalRotateQuaternion(_originalRotation, 0.3f);
         
         // UI → 월드 좌표로 전환
         Vector3 worldPoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -90,18 +126,17 @@ public class CardDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
                 DeckManager.Instance.UseCard(cardData);
                 UnitSpawnManager.Instance.SpawnUnit(cardData, hit.point);
                 handCurveUI.RefreshHandUI(DeckManager.Instance.hand);
-                return;
             }
         }
     }
 
     private void Update()
     {
-        targetPosition = Input.mousePosition;
+        _targetPosition = Input.mousePosition;
         
-        if (isDragging)
+        if (_isDragging)
         {
-            rectTransform.position = Vector3.Lerp(rectTransform.position, targetPosition, Time.deltaTime * 20f);
+            _rectTransform.position = Vector3.Lerp(_rectTransform.position, _targetPosition, Time.deltaTime * 20f);
         }
     }
 }
