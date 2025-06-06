@@ -28,7 +28,8 @@ public class CardDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     public float hoverScale = 1.2f;
     public float hoverMoveY = 50f;
 
-    private bool _isDragging = false;
+    private bool _isDragging;
+    private bool _isHovering;
 
     void Awake()
     {
@@ -38,12 +39,24 @@ public class CardDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         _rectTransform = GetComponent<RectTransform>();
         handCurveUI = GameObject.Find("HandCurveUI").GetComponent<HandCurveUI>();
     }
+
+    public void UpdateOriginalTransform()
+    {
+        _originalPosition = transform.localPosition;
+        _originalScale = transform.localScale;
+    }
     
     // Hover
     public void OnPointerEnter(PointerEventData eventData)
     {
-        _originalPosition = transform.localPosition;
-        _originalScale = transform.localScale;
+        // _originalPosition = transform.localPosition;
+        // _originalScale = transform.localScale;
+        if(GameManager.Instance.isHoveringCard || GameManager.Instance.isDraggingCard) 
+            return;
+        
+        _isHovering = true;
+        GameManager.Instance.isHoveringCard = true;
+        
         if (_canvas != null)
         {
             _originalSortingOrder = _canvas.sortingOrder;
@@ -57,8 +70,15 @@ public class CardDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        transform.DOScale(_originalScale, 0.2f).SetEase(Ease.OutQuad);
-        transform.DOLocalMove(_originalPosition, 0.2f).SetEase(Ease.OutCubic);
+        GameManager.Instance.isHoveringCard = false;
+        Sequence seq = DOTween.Sequence();
+
+        seq.Join(transform.DOScale(new Vector3(1, 1, 1), 0.2f).SetEase(Ease.OutQuad));
+        seq.Join(transform.DOLocalMove(_originalPosition, 0.2f).SetEase(Ease.OutCubic));
+        seq.OnComplete(() => _isHovering = false );
+        
+        // transform.DOScale(_originalScale, 0.2f).SetEase(Ease.OutQuad);
+        // transform.DOLocalMove(_originalPosition, 0.2f).SetEase(Ease.OutCubic);
 
         if (_canvas != null)
         {
@@ -67,32 +87,33 @@ public class CardDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         }
     }
 
+    
     // Drag
     public void OnBeginDrag(PointerEventData eventData)
     {
+        //transform.DOKill();
+        DOTween.Kill(this);
+        
+        // TODO: Drag시 DOTween의 transform.DOLocalMove 시퀀스를 중지해야 할 듯. 이것때문에 Drag할 때 원래의 자리를 유지하려는 것 처럼 보임. DOTween이 모두 완료된 이후에는 제자지를 찾으려는 움직임이 덜한 것으로 확인됨.
+        
+        _isHovering = false;
         _isDragging = true;
+        GameManager.Instance.isHoveringCard = false;
         GameManager.Instance.isDraggingCard = true;
         
         _originalPosition = _rectTransform.localPosition;
         _originalRotation = _rectTransform.localRotation;
         
-        _originalParent = transform.parent;
-        //transform.SetParent(transform.root, false); // UI 최상단으로 올림
-        _canvasGroup.blocksRaycasts = false;     // Raycast 막기 → 드롭 감지 가능하게
+        //_originalParent = transform.parent;
+        //transform.SetParent(_canvas.transform);   // UI 최상단으로 올림
+        _canvasGroup.blocksRaycasts = false;      // Raycast 차단, 드롭 감지 가능하게
+        
+        CardMove();
     }
     
     public void OnDrag(PointerEventData eventData)
     {
-        Vector2 localPoint = _rectTransform.localPosition;
-        
-        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                _canvas.transform as RectTransform,
-                Input.mousePosition,
-                _canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : _canvas.worldCamera,
-                out localPoint))
-        {
-            _targetPosition = localPoint;
-        }
+        CardMove();
     }
 
     public void OnEndDrag(PointerEventData eventData)
@@ -101,16 +122,12 @@ public class CardDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         GameManager.Instance.isDraggingCard = false;
         
         _canvasGroup.blocksRaycasts = true;
-        //transform.SetParent(originalParent);
-
-        // 드롭 실패 시 제자리 복귀
-        // rectTransform.position = originalPosition;
-        // rectTransform.rotation = originalRotation;
+        //transform.SetParent(_originalParent);
         
         _rectTransform.DOAnchorPos(_originalPosition, 0.3f).SetEase(Ease.OutExpo);
         _rectTransform.DOLocalRotateQuaternion(_originalRotation, 0.3f);
         
-        // UI → 월드 좌표로 전환
+        // UI -> 월드 좌표로 전환
         Vector3 worldPoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         worldPoint.z = 0f;
 
@@ -122,7 +139,6 @@ public class CardDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             CardDrop cardDrop = hit.collider.GetComponent<CardDrop>();
             if (cardDrop != null)
             {
-                Debug.Log("✅ DropZone 감지됨: 유닛 소환");
                 DeckManager.Instance.UseCard(cardData);
                 UnitSpawnManager.Instance.SpawnUnit(cardData, hit.point);
                 handCurveUI.RefreshHandUI(DeckManager.Instance.hand);
@@ -132,11 +148,28 @@ public class CardDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
     private void Update()
     {
+        //Debug.Log($"{_rectTransform.position}      //////     {Input.mousePosition}");
         _targetPosition = Input.mousePosition;
         
         if (_isDragging)
+        { 
+            // Lerp 사용시 OnBeginDrag에서 버벅이는? 현상이 있는듯. 해결 방법을 모르겠음.
+            // _rectTransform.position = Vector3.Lerp(_rectTransform.position, _targetPosition, Time.deltaTime * 40f);
+            _rectTransform.position = _targetPosition;
+        }
+    }
+
+    private void CardMove()
+    {
+        Vector2 localPoint = _rectTransform.localPosition;
+        
+        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                _canvas.transform as RectTransform,
+                Input.mousePosition,
+                _canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : _canvas.worldCamera,
+                out localPoint))
         {
-            _rectTransform.position = Vector3.Lerp(_rectTransform.position, _targetPosition, Time.deltaTime * 20f);
+            _targetPosition= localPoint;
         }
     }
 }

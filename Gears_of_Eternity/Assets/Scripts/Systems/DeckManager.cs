@@ -79,10 +79,7 @@ public class DeckManager : MonoBehaviour
                 var randomCard = filtered[Random.Range(0, filtered.Count)];
                 var runtimeCardCopy = new RuntimeUnitCard(randomCard);
                 
-                
                 deck.Add(runtimeCardCopy);
-            
-                Debug.Log($"덱에 카드 추가됨: {randomCard.unitName} / 세력 : {randomCard.faction} / 레벨 : {randomCard.level}");
             }
         }
 
