@@ -46,6 +46,7 @@ public class HandCurveUI : MonoBehaviour
             if (!alreadyExists)
             {
                 var go = Instantiate(cardPrefab, handPanel);
+                go.GetComponent<RectTransform>().localPosition = new Vector3(0, -250f, 0);
                 go.GetComponent<CardSlotUI>().Initialize(newCard);
                 cardInstances.Add(go);
             }
@@ -72,19 +73,21 @@ public class HandCurveUI : MonoBehaviour
 
             var card = cardInstances[i];
             var cardHandler = card.GetComponent<CardDragHandler>();
-            
-            Sequence seq = DOTween.Sequence();
+
+            float delay = i * 0.02f;
             
             float angleScale = 0.4f; // 회전 강도 계수 (0.0 ~ 1.0)
             float limitedAngle = -angle * angleScale;
-
-            seq.Join(card.transform.DOLocalMove(pos, 0.5f).SetEase(Ease.OutExpo));
+            
+            Sequence seq = DOTween.Sequence();
+            
+            seq.AppendInterval(delay);
+            seq.Append(card.transform.DOLocalMove(pos, 0.5f).SetEase(Ease.OutExpo));
             seq.Join(card.transform.DOLocalRotate(Vector3.forward * limitedAngle, 0.5f).SetEase(Ease.OutQuad));
             
             seq.OnComplete(() => cardHandler.UpdateOriginalTransform());
             // card.transform.DOLocalMove(pos, 0.5f).SetEase(Ease.OutExpo);
             // card.transform.DOLocalRotate(Vector3.forward * limitedAngle, 0.5f).SetEase(Ease.OutQuad);
-
         }
     }
 }
