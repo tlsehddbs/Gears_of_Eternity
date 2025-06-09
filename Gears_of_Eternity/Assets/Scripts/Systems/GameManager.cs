@@ -3,7 +3,8 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
-    
+
+    public bool isDrawingCards = false;
     public bool isDraggingCard = false;
     public bool isHoveringCard = false;
 

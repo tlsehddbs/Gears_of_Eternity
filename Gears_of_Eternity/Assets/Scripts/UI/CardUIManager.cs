@@ -2,7 +2,7 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class CardDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerEnterHandler, IPointerExitHandler
+public class CardUIManager : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerEnterHandler, IPointerExitHandler
 {
     private CanvasGroup _canvasGroup;
     private Canvas _canvas;
@@ -12,7 +12,7 @@ public class CardDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
     public RuntimeUnitCard cardData;
 
-    public HandCurveUI handCurveUI;
+    public CardUIHandler cardUIHandler;
     
     
     // 카드가 마우스를 부드럽게 따라가게 만들기 위한 변수
@@ -37,7 +37,7 @@ public class CardDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         _canvas = GameObject.Find("Canvas").GetComponent<Canvas>();
         
         _rectTransform = GetComponent<RectTransform>();
-        handCurveUI = GameObject.Find("HandCurveUI").GetComponent<HandCurveUI>();
+        cardUIHandler = GameObject.Find("CardUIHandler").GetComponent<CardUIHandler>();
     }
 
     public void UpdateOriginalTransform()
@@ -45,6 +45,15 @@ public class CardDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         _originalPosition = transform.localPosition;
         _originalScale = transform.localScale;
     }
+    
+    //
+    //
+    // TODO: 유니티에서 제공하는 DragHandler나 Pointer를 대체할 수 있는 커스텀 hover check 시스템을 만들 것
+    //
+    // 1. 마우스는 가만히 있는 상태, 카드가 움직이는 상황에서 DOTween이 정상적으로 작동하지 않을 가는ㅇ성 높음
+    // 2. Drag시 카드가 마우스 포인터를 따라갈 때 버벅이는 현상 있음
+    //
+    //
     
     // Hover
     public void OnPointerEnter(PointerEventData eventData)
@@ -141,7 +150,7 @@ public class CardDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             {
                 DeckManager.Instance.UseCard(cardData);
                 UnitSpawnManager.Instance.SpawnUnit(cardData, hit.point);
-                handCurveUI.RefreshHandUI(DeckManager.Instance.hand);
+                cardUIHandler.RefreshHandUI(DeckManager.Instance.hand);
             }
         }
     }

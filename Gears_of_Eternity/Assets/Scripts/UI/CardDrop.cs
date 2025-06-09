@@ -5,7 +5,7 @@ public class CardDrop : MonoBehaviour, IDropHandler
 {
     public void OnDrop(PointerEventData eventData)
     {
-        CardDragHandler droppedCard = eventData.pointerDrag?.GetComponent<CardDragHandler>();
+        CardUIManager droppedCard = eventData.pointerDrag?.GetComponent<CardUIManager>();
         
         if (droppedCard == null) 
             return;

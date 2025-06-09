@@ -3,7 +3,7 @@ using System.Linq;
 using DG.Tweening;
 using UnityEngine;
 
-public class HandCurveUI : MonoBehaviour
+public class CardUIHandler : MonoBehaviour
 {
     public GameObject cardPrefab;
     public Transform handPanel;
@@ -72,7 +72,7 @@ public class HandCurveUI : MonoBehaviour
             );
 
             var card = cardInstances[i];
-            var cardHandler = card.GetComponent<CardDragHandler>();
+            var cardHandler = card.GetComponent<CardUIManager>();
 
             float delay = i * 0.02f;
             

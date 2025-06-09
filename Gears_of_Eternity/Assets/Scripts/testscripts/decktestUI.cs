@@ -6,7 +6,7 @@ public class DeckTestUI : MonoBehaviour
     private int testDrawCount;
     
     [SerializeField]
-    public HandCurveUI handPanelManager;
+    public CardUIHandler cardUIHandler;
 
     // TODO: 추후 test 파일을 정리하면서 여기(decktest)에 있는 로직을 다른 파일로 병합할 예정 -> deckManager 또는 별도 신규 파일 등
     void Update()
@@ -21,7 +21,7 @@ public class DeckTestUI : MonoBehaviour
     private void OnDrawClick()
     {
         DeckManager.Instance.DrawCards(testDrawCount);
-        handPanelManager.RefreshHandUI(DeckManager.Instance.hand);
+        cardUIHandler.RefreshHandUI(DeckManager.Instance.hand);
     }
 
     // private void OnUseClick()

@@ -9,7 +9,7 @@ public class DeckManager : MonoBehaviour
     
     [SerializeField]
     public CardCollection cardCollection;
-    public HandCurveUI handPanelManager;
+    public CardUIHandler cardUIHandler;
 
     [Header("세력 필터링")] 
     public FactionType filterFaction = FactionType.IronGearFederation;
@@ -32,6 +32,9 @@ public class DeckManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+        
+        cardCollection = GameObject.Find("CardCollection").GetComponent<CardCollection>();
+        cardUIHandler = GameObject.Find("CardUIHandler").GetComponent<CardUIHandler>();
     }
     
     void Start()
@@ -39,7 +42,7 @@ public class DeckManager : MonoBehaviour
         if (deck.Count == 0)
         {
             InitializeDeck();
-            DrawCards(4);   // 초기 카드 draw
+            //DrawCards(4);   // 초기 카드 draw (4장)
         }
     }
 
@@ -72,6 +75,7 @@ public class DeckManager : MonoBehaviour
                 return;
             }
         
+            // TODO: 근거리 5, 원거리 4, 지원 3 유닛을 지정 생성하도록 변경
             for (int i = 0; i < 12; i++)
             {
                 var randomCard = filtered[Random.Range(0, filtered.Count)];
@@ -86,6 +90,8 @@ public class DeckManager : MonoBehaviour
 
     public void DrawCards(int count)
     {
+        GameManager.Instance.isDrawingCards = true;
+        
         // deck에 카드 부족 시 used에서 가져와 shuffle
         if (deck.Count < count)
         {
@@ -116,7 +122,8 @@ public class DeckManager : MonoBehaviour
         //     hand.Add(card);
         // }
         
-        handPanelManager.RefreshHandUI(hand);
+        cardUIHandler.RefreshHandUI(hand);
+        GameManager.Instance.isDrawingCards = false;
     }
 
     public void UseCard(RuntimeUnitCard card)

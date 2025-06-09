@@ -11,7 +11,7 @@ public class CardSlotUI : MonoBehaviour
     public void Initialize(RuntimeUnitCard data)
     {
         CardData = data;
-        GetComponent<CardDragHandler>().cardData = data;
+        GetComponent<CardUIManager>().cardData = data;
         
         cardNameText.text = data.unitName;
         cardDescriptionText.text = data.unitDescription;
