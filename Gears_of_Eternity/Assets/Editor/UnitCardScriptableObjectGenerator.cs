@@ -59,6 +59,7 @@ public class UnitCardScriptableGenerator : EditorWindow
             card.health = float.Parse(row[4]);
             card.defense = float.Parse(row[5]);
             
+            
             card.moveSpeed = float.Parse(row[6]);
 
             card.attack = float.Parse(row[8]);
