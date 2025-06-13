@@ -390,9 +390,6 @@ public partial class UnitCombatFSM : MonoBehaviour
                 case UnitSkillType.DashAttackAndGuard:
                     skillTarget = FindNearestEnemy();
                     break;
-                case UnitSkillType.ThrowSpearAttack:
-                    skillTarget = FindNearestEnemy();
-                    break;
                     // 기타 스킬타입 분기 추가
             }
             skillExecutor.ExecuteSkill(skillData, this, skillTarget);
@@ -441,12 +438,8 @@ public partial class UnitCombatFSM : MonoBehaviour
                 {
                     float distance = Vector3.Distance(transform.position, targetEnemy.transform.position);
                     float maxRange = stats.attackDistance * 6f;
-                     Debug.Log($"[창투척 조건] 타겟: {targetEnemy.name}, 거리: {distance:F2}, 허용범위: {maxRange:F2}");
                     return distance <= maxRange;
                 }
-                Debug.LogWarning("[창투척 조건] 타겟 없음");
-
-                return false;
             default:
                 return false;
         }

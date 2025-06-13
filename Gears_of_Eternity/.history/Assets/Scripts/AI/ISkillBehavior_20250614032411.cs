@@ -3,8 +3,8 @@ using UnityEngine;
 
 public interface ISkillBehavior
 {
-     void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect skillEffect);
-     void Remove(UnitCombatFSM caster, SkillEffect skillEffect); // 패시브 등 해제용
+    void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect skillEffect);
+    void Remove(UnitCombatFSM caster, SkillEffect skillEffect); // 패시브 등 해제용
 }
 
 // 즉시 힐 스킬 
@@ -14,7 +14,7 @@ public class InstantHealSkill : ISkillBehavior
     {
         target?.ReceiveHealing(skillEffect.skillValue);
     }
-    public void Remove(UnitCombatFSM caster, SkillEffect skillEffect) { }
+    public void Remove(UnitCombatFSM caster, SkillEffect effect) { }
 }
 
 public class BuffAttackSkill : ISkillBehavior
@@ -23,7 +23,7 @@ public class BuffAttackSkill : ISkillBehavior
     {
         target?.ApplyBuff(BuffStat.Attack, skillEffect.skillValue, skillEffect.skillDuration);
     }
-    public void Remove(UnitCombatFSM caster, SkillEffect skillEffect) { }
+    public void Remove(UnitCombatFSM caster, SkillEffect effect) { }
 }
 
 public class DebuffAttackSkill : ISkillBehavior
@@ -32,7 +32,7 @@ public class DebuffAttackSkill : ISkillBehavior
     {
         target?.ApplyDebuff(BuffStat.Attack, skillEffect.skillValue, skillEffect.skillDuration);
     }
-    public void Remove(UnitCombatFSM caster, SkillEffect skillEffect) { }
+    public void Remove(UnitCombatFSM caster, SkillEffect effect) { }
 }
 
 // 연속 타격 스킬 / 터빈 절삭자 
@@ -58,7 +58,7 @@ public class MultiHitSkill : ISkillBehavior
             yield return new WaitForSeconds(delay);
         }
     }
-    public void Remove(UnitCombatFSM caster, SkillEffect skillEffect) { }
+    public void Remove(UnitCombatFSM caster, SkillEffect effect) { }
 }
 
 public class BarrierOnHpHalfSkill : ISkillBehavior
@@ -71,7 +71,7 @@ public class BarrierOnHpHalfSkill : ISkillBehavior
         Debug.Log("방어막 발동");
 
     }
-    public void Remove(UnitCombatFSM caster, SkillEffect skillEffect) { }
+    public void Remove(UnitCombatFSM caster, SkillEffect effect) { }
 }
 
 public class DashAttackAndGuardSkill : ISkillBehavior
@@ -117,11 +117,11 @@ public class DashAttackAndGuardSkill : ISkillBehavior
 
         caster.stats.guardCount += 3;
     }
-    public void Remove(UnitCombatFSM caster, SkillEffect skillEffect) { }
+    public void Remove(UnitCombatFSM caster, SkillEffect effect) { }
 }
 
-//창 투척 스킬 /기어 창 투척병 
-public class ThrowSpearAttackSkill : ISkillBehavior
+
+public class ThrowSpearAttack : ISkillBehavior
 {
     public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect skillEffect)
     {
@@ -131,8 +131,7 @@ public class ThrowSpearAttackSkill : ISkillBehavior
         target.TakeDamage(damage);
 
         //향후: 투사체 애니메이션 또는 이펙트 처리 위치 
-        Debug.Log($"[창 투척] {caster.name} → {target.name} 에게 {damage:F1} 피해");
     }
 
-    public void Remove(UnitCombatFSM caster, SkillEffect skillEffect) { }
+    public void Remove(UnitCombatFSM caster, SkillEffect skillEffect)
 }

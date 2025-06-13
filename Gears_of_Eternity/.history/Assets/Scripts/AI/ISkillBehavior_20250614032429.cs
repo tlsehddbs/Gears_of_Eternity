@@ -3,8 +3,8 @@ using UnityEngine;
 
 public interface ISkillBehavior
 {
-     void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect skillEffect);
-     void Remove(UnitCombatFSM caster, SkillEffect skillEffect); // 패시브 등 해제용
+    void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect skillEffect);
+    void Remove(UnitCombatFSM caster, SkillEffect skillEffect); // 패시브 등 해제용
 }
 
 // 즉시 힐 스킬 
@@ -120,8 +120,8 @@ public class DashAttackAndGuardSkill : ISkillBehavior
     public void Remove(UnitCombatFSM caster, SkillEffect skillEffect) { }
 }
 
-//창 투척 스킬 /기어 창 투척병 
-public class ThrowSpearAttackSkill : ISkillBehavior
+
+public class ThrowSpearAttack : ISkillBehavior
 {
     public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect skillEffect)
     {
@@ -131,8 +131,7 @@ public class ThrowSpearAttackSkill : ISkillBehavior
         target.TakeDamage(damage);
 
         //향후: 투사체 애니메이션 또는 이펙트 처리 위치 
-        Debug.Log($"[창 투척] {caster.name} → {target.name} 에게 {damage:F1} 피해");
     }
 
-    public void Remove(UnitCombatFSM caster, SkillEffect skillEffect) { }
+    public void Remove(UnitCombatFSM caster, SkillEffect skillEffect)
 }

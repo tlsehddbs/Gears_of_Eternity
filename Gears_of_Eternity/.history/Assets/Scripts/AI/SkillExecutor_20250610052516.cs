@@ -12,7 +12,6 @@ public class SkillExecutor
         { UnitSkillType.MultiHit, new MultiHitSkill()},
         { UnitSkillType.BarrierOnHpHalf, new BarrierOnHpHalfSkill()},
         { UnitSkillType.DashAttackAndGuard, new DashAttackAndGuardSkill()},
-        { UnitSkillType.ThrowSpearAttack, new ThrowSpearAttackSkill()},
        
         // 추가 스킬은 여기에 등록
     };

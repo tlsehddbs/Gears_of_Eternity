@@ -3,8 +3,15 @@ using UnityEngine;
 
 public interface ISkillBehavior
 {
-     void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect skillEffect);
-     void Remove(UnitCombatFSM caster, SkillEffect skillEffect); // 패시브 등 해제용
+    public interface ISkillBehavior
+    {
+    bool ShouldTrigger(UnitCombatFSM caster, SkillEffect effect);
+    IEnumerator Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect);
+    void Remove(UnitCombatFSM caster, SkillEffect effect); // 패시브 해제용
+    }
+
+    // void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect skillEffect);
+    // void Remove(UnitCombatFSM caster, SkillEffect skillEffect); // 패시브 등 해제용
 }
 
 // 즉시 힐 스킬 
@@ -123,16 +130,37 @@ public class DashAttackAndGuardSkill : ISkillBehavior
 //창 투척 스킬 /기어 창 투척병 
 public class ThrowSpearAttackSkill : ISkillBehavior
 {
-    public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect skillEffect)
+    public bool ShouldTrigger(UnitCombatFSM caster, SkillEffect effect)
     {
-        if (caster == null || target == null) return;
+        var target = caster.FindNearestEnemy();
+        if (target == null) return false;
 
-        float damage = caster.stats.attack * skillEffect.skillValue;
-        target.TakeDamage(damage);
+        float dist = Vector3.Distance(caster.transform.position, target.transform.position);
+        float range = caster.stats.attackDistance * 3f;
 
-        //향후: 투사체 애니메이션 또는 이펙트 처리 위치 
-        Debug.Log($"[창 투척] {caster.name} → {target.name} 에게 {damage:F1} 피해");
+        return caster.CanUseSkill() && dist <= range;
     }
 
-    public void Remove(UnitCombatFSM caster, SkillEffect skillEffect) { }
+    public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
+    {
+        if (caster == null || target == null) return;
+        float damage = caster.stats.attack * effect.skillValue;
+        target.TakeDamage(damage);
+        Debug.Log($"[창 투척] {caster.name} → {target.name}에게 {damage:F1} 피해");
+    }
+
+    public void Remove(UnitCombatFSM caster, SkillEffect effect) { }
+
+    // public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect skillEffect)
+    // {
+    //     if (caster == null || target == null) return;
+
+    //     float damage = caster.stats.attack * skillEffect.skillValue;
+    //     target.TakeDamage(damage);
+
+    //     //향후: 투사체 애니메이션 또는 이펙트 처리 위치 
+    //     Debug.Log($"[창 투척] {caster.name} → {target.name} 에게 {damage:F1} 피해");
+    // }
+
+    // public void Remove(UnitCombatFSM caster, SkillEffect skillEffect) { }
 }

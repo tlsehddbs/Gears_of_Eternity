@@ -3,8 +3,15 @@ using UnityEngine;
 
 public interface ISkillBehavior
 {
-     void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect skillEffect);
-     void Remove(UnitCombatFSM caster, SkillEffect skillEffect); // 패시브 등 해제용
+    public interface ISkillBehavior
+    {
+    bool ShouldTrigger(UnitCombatFSM caster, SkillEffect effect);
+    void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect);
+    void Remove(UnitCombatFSM caster, SkillEffect effect); // 패시브 해제용
+    }
+
+    // void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect skillEffect);
+    // void Remove(UnitCombatFSM caster, SkillEffect skillEffect); // 패시브 등 해제용
 }
 
 // 즉시 힐 스킬 
@@ -120,7 +127,7 @@ public class DashAttackAndGuardSkill : ISkillBehavior
     public void Remove(UnitCombatFSM caster, SkillEffect skillEffect) { }
 }
 
-//창 투척 스킬 /기어 창 투척병 
+
 public class ThrowSpearAttackSkill : ISkillBehavior
 {
     public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect skillEffect)
