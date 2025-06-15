@@ -24,3 +24,4 @@ MonoBehaviour:
     skillValue: 0.6
     skillDuration: 0
     skillDelayTime: 0
+    isPercent: 1

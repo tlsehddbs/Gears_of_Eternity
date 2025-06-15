@@ -15,11 +15,11 @@ MonoBehaviour:
   faction: 0
   unitName: "\uAE30\uB3D9 \uC911\uC7A5\uAE30\uBCD1"
   skillName: 
-  skillDescription: "\uC2A4\uD300 \uBC29\uC5B4\uB9C9: \uCCB4\uB825 25% \uC774\uD558
-    \uC2DC \uBC29\uC5B4 +20%/ 1\uD68C"
+  skillDescription: "\uCCB4\uB825 50% \uC774\uD558 \uC2DC \uCCB4\uB825\uC758 25%\uB9CC\uD07C\uC758
+    \uBC29\uC5B4\uB9C9 \uC0DD\uC131/ 15\uCD08"
   skillCoolDown: 15
   effects:
-  - skillType: 16
+  - skillType: 18
     buffStat: 0
     skillValue: 0.25
     skillDuration: 8

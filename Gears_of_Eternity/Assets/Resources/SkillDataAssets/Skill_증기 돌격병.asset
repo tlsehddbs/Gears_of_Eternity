@@ -15,7 +15,8 @@ MonoBehaviour:
   faction: 0
   unitName: "\uC99D\uAE30 \uB3CC\uACA9\uBCD1"
   skillName: 
-  skillDescription: "\uC9C1\uC120 \uB3CC\uC9C4 \uD6C4 \uD53C\uACA9 \uBC29\uC5B4 3\uD68C "
+  skillDescription: "\uC9C1\uC120 \uB3CC\uC9C4 \uACF5\uACA9(\uACF5\uACA9\uB825\uC758
+    130%) \uD6C4 \uD53C\uACA9 \uBC29\uC5B4 3\uD68C / \uCFE8\uD0C0\uC784 8\uCD08"
   skillCoolDown: 10
   effects:
   - skillType: 9

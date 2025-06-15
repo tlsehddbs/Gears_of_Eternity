@@ -15,8 +15,35 @@ MonoBehaviour:
   faction: 0
   unitName: "\uAC15\uD654 \uC804\uC220\uAE30\uC5B4"
   skillName: 
-  skillDescription: "\uC804\uD22C \uC2DC\uC791 \uC2DC \uACF5\uBC29 +10%"
-  skillType: 0
-  skillValue: 0
-  skillDuration: 0
+  skillDescription: "\uC804\uD22C \uC2DC\uC791 \uC2DC \uACF5\uBC29 +10% / \uC774\uD6C4
+    5\uCD08\uB9C8\uB2E4 5%\uC529 \uC99D\uAC00(5\uC911\uCCA9)"
   skillCoolDown: 0
+  effects:
+  - skillType: 0
+    buffStat: 1
+    skillValue: 0.1
+    skillDuration: 0
+    skillDelayTime: 0
+    skillMaxStack: 0
+    isPercent: 1
+  - skillType: 0
+    buffStat: 2
+    skillValue: 0.1
+    skillDuration: 0
+    skillDelayTime: 0
+    skillMaxStack: 0
+    isPercent: 1
+  - skillType: 40
+    buffStat: 1
+    skillValue: 0.05
+    skillDuration: 0
+    skillDelayTime: 5
+    skillMaxStack: 5
+    isPercent: 1
+  - skillType: 40
+    buffStat: 2
+    skillValue: 0.05
+    skillDuration: 0
+    skillDelayTime: 5
+    skillMaxStack: 5
+    isPercent: 1
