@@ -18,9 +18,10 @@ MonoBehaviour:
   skillDescription: 
   skillCoolDown: 10
   effects:
-  - skillType: 18
+  - skillType: 19
     buffStat: 0
     skillValue: 30
     skillDuration: 0
     skillDelayTime: 0
+    skillMaxStack: 0
     isPercent: 0

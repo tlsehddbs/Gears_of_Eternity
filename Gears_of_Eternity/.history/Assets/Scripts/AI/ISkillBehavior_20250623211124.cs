@@ -419,9 +419,8 @@ public class ReflectDamageSkill : ISkillBehavior
         caster.OnReflectDamage = null; // 리셋
     }
 
-    private IEnumerator ApplyReflect(UnitCombatFSM caster, float percent, float duration)
+    private  IEnumerator  ApplyReflect(UnitCombatFSM caster, float percent, float duration)
     {
-        Debug.Log($"[Reflect] 시작 - {caster.name} {duration}s 동안 {percent * 100}% 반사");
         caster.OnReflectDamage = (float damageTaken, UnitCombatFSM attacker) =>
         {
             float reflectDmg = damageTaken * percent;
@@ -430,7 +429,7 @@ public class ReflectDamageSkill : ISkillBehavior
         };
 
         yield return new WaitForSeconds(duration);
-        Debug.Log("반사종료");
+
         caster.OnReflectDamage = null;
     }
 }

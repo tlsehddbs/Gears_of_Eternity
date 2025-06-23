@@ -541,6 +541,13 @@ public partial class UnitCombatFSM : MonoBehaviour
                 new GrowBuffOverTimeSkill().Execute(unit, null, effect);
             }
         },
+        //ReflectDamage
+        // { UnitSkillType.ReflectDamage, (unit, effect) =>
+        //     {
+        //         new ReflectDamageSkill().Execute(unit, unit, effect);
+        //     }
+        // },
+        
         // 신규 효과는 여기만 추가
 
         };
@@ -577,7 +584,12 @@ public partial class UnitCombatFSM : MonoBehaviour
                 new GrowBuffOverTimeSkill().Remove(unit, effect);
             }
         },
-        
+        //ReflectDamage 해제
+        // { UnitSkillType.ReflectDamage, (unit, effect) =>
+        //     {
+        //         new ReflectDamageSkill().Execute(unit, unit, effect);
+        //     }
+        // },
         // 신규 효과는 여기만 추가 
         };
 

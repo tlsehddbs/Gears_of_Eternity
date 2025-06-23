@@ -77,7 +77,6 @@ public partial class UnitCombatFSM : MonoBehaviour
     public void OnDeath()
     {
         RemovePassiveEffects(); // 패시브 해제
-        OnReflectDamage = null; // 💥 반사 효과도 제거
     }
 
     void Update()
@@ -160,13 +159,13 @@ public partial class UnitCombatFSM : MonoBehaviour
             Debug.Log($"[Critical] {gameObject.name} → 치명타!");
         }
 
-        targetEnemy.TakeDamage(baseDamage, this); // 공격자 자신 전달
+        targetEnemy.TakeDamage(baseDamage);
         
         //추가 타격, 버프, 출혈 등 모든 후처리를 이곳에서 수행 가능 
         OnPostAttack?.Invoke();
     }
 
-    public void TakeDamage(float damage, UnitCombatFSM attacker = null)
+    public void TakeDamage(float damage)
     {
         if (stats.guardCount > 0)
         {
@@ -180,7 +179,7 @@ public partial class UnitCombatFSM : MonoBehaviour
         float effectiveDamage = damage * (100f / (100f + stats.defense));
         effectiveDamage *= reductionFactor;
 
-
+    
         // 방어막 우선 차감 
         if (stats.barrier > 0f)
         {
@@ -199,13 +198,6 @@ public partial class UnitCombatFSM : MonoBehaviour
         if (currentHP <= 0)
         {
             ChangeState(new DeadState(this));
-        }
-        
-        // 데미지 반사 처리
-        if (attacker != null && OnReflectDamage != null)
-        {
-            Debug.Log($"[Reflect] 반사 발동 - {this.name} ← {attacker.name}");
-            OnReflectDamage.Invoke(effectiveDamage, attacker);
         }
     }
 
@@ -541,6 +533,8 @@ public partial class UnitCombatFSM : MonoBehaviour
                 new GrowBuffOverTimeSkill().Execute(unit, null, effect);
             }
         },
+
+        
         // 신규 효과는 여기만 추가
 
         };
@@ -577,7 +571,6 @@ public partial class UnitCombatFSM : MonoBehaviour
                 new GrowBuffOverTimeSkill().Remove(unit, effect);
             }
         },
-        
         // 신규 효과는 여기만 추가 
         };
 

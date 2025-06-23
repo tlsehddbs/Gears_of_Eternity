@@ -17,7 +17,7 @@ public class SkillExecutor
         { UnitSkillType.BleedBurst, new BleedBurstSkill() },
         { UnitSkillType.DoubleAttack, new DoubleAttackSkill() },
         { UnitSkillType.GrowBuffOverTime, new GrowBuffOverTimeSkill() },
-        { UnitSkillType.ReflectDamage, new ReflectDamageSkill() },
+        { UnitSkillType.ReflectDamage, new ReflectDamageSkill() }
        
         // 추가 스킬은 여기에 등록
     };

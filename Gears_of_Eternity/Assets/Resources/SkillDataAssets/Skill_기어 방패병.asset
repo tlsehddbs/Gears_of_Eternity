@@ -19,15 +19,17 @@ MonoBehaviour:
     \uADFC\uC811 \uC544\uAD70 \uBC29\uC5B4\uB825 +5%"
   skillCoolDown: 0
   effects:
-  - skillType: 0
+  - skillType: 14
     buffStat: 7
     skillValue: 0.12
     skillDuration: 0
     skillDelayTime: 0
+    skillMaxStack: 0
     isPercent: 1
   - skillType: 15
     buffStat: 0
     skillValue: 0.1
     skillDuration: 0
     skillDelayTime: 0
+    skillMaxStack: 0
     isPercent: 1

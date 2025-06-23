@@ -430,7 +430,6 @@ public class ReflectDamageSkill : ISkillBehavior
         };
 
         yield return new WaitForSeconds(duration);
-        Debug.Log("반사종료");
         caster.OnReflectDamage = null;
     }
 }
