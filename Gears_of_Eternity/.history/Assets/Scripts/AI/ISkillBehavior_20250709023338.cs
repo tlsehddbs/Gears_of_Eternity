@@ -1,7 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Xml.Schema;
 using UnityEngine;
-
+using UnityEngine.Rendering.Universal;
 
 public interface ISkillBehavior
 {
@@ -18,9 +19,12 @@ public class InstantHealSkill : ISkillBehavior
 {
     public bool ShouldTrigger(UnitCombatFSM caster, SkillEffect effect)
     {
-        // 힐이 필요한 아군이 존재하는지만 확인
         var target = caster.FindLowestHpAlly();
-        return target != null && target.currentHP < target.stats.health;
+        if (target == null || target.currentHP >= target.stats.health)
+            return false;
+
+        float dist = Vector3.Distance(caster.transform.position, target.transform.position);
+        return dist <= caster.stats.attackDistance;
     }
 
     public UnitCombatFSM FindTarget(UnitCombatFSM caster, SkillEffect effect)
@@ -30,12 +34,12 @@ public class InstantHealSkill : ISkillBehavior
 
     public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
     {
-        if (target == null || !target.IsAlive()) return;        
-        target.ReceiveHealing(effect.skillValue);
-        Debug.Log($"[InstantHeal] {caster.name} → {target.name} : {effect.skillValue:F1} 회복");
+        if (target == null || !target.IsAlive()) return;
     }
+
     public void Remove(UnitCombatFSM caster, SkillEffect effect) { }
 }
+
 public class BuffAttackSkill : ISkillBehavior
 {
     public bool ShouldTrigger(UnitCombatFSM caster, SkillEffect effect)

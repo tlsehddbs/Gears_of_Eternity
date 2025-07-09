@@ -20,7 +20,7 @@ public class MoveState : UnitState
             return;
         }
 
-        float distance = Vector3.Distance(unit.transform.position, target.transform.position);
+        
 
         //스킬 조건 만족 시 우선 발동
         if (!unit.isProcessingSkill && unit.skillData != null)
@@ -33,6 +33,7 @@ public class MoveState : UnitState
             }
         }
 
+        float distance = Vector3.Distance(unit.transform.position, target.transform.position);
 
         //적군 타겟 자동 갱신
         if (!isSupportTarget)
@@ -62,28 +63,16 @@ public class MoveState : UnitState
             unit.agent.ResetPath();
             unit.ChangeState(isSupportTarget ? new SupportState(unit) : new AttackState(unit));
         }
-        
-        // 이동 도착 시점
-        if (distance <= stopping + 0.05f)
-        {
-            unit.agent.ResetPath();
-
-            // 서포트 목적이면 스킬 시도 후 Idle로
-            if (isSupportTarget)
-            {
-                unit.TryUseSkill(); // 스킬이 사용되든 안되든
-                unit.isProcessingSkill = false;
-                unit.ChangeState(new IdleState(unit));
-            }
-            else
-            {
-                unit.ChangeState(new AttackState(unit));
-            }
-        }
     }
         
 
     
+
+
+
+
+
+
 
 
 

@@ -30,7 +30,16 @@ public class InstantHealSkill : ISkillBehavior
 
     public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
     {
-        if (target == null || !target.IsAlive()) return;        
+        if (target == null || !target.IsAlive()) return;
+
+        float dist = Vector3.Distance(caster.transform.position, target.transform.position);
+        if (dist > caster.stats.attackDistance)
+        {
+            Debug.LogWarning($"[InstantHeal] {caster.name} → {target.name} : 사거리({dist:F1}) 초과로 힐 취소");
+            return;
+        }
+
+        
         target.ReceiveHealing(effect.skillValue);
         Debug.Log($"[InstantHeal] {caster.name} → {target.name} : {effect.skillValue:F1} 회복");
     }

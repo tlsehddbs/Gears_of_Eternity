@@ -84,24 +84,9 @@ public partial class UnitCombatFSM : MonoBehaviour
     {
         skillTimer += Time.deltaTime; // 스킬 쿨타이머 
 
-        // 스킬 우선 타겟 전환 체크
-        if (!isProcessingSkill && skillData != null && skillExecutor.ShouldMoveToSkillTarget(this, skillData))
-        {
-            isProcessingSkill = true;
-            agent.ResetPath();
-            ChangeState(new MoveState(this, true)); // true = 아군 타겟팅
-            return;
-        }
-
-        // 기존 Idle 상태일 때 바로 발동 (즉시 거리 안에 있는 경우)
-        if (currentState is IdleState && !isProcessingSkill && skillData != null)
-        {
-            if (TryUseSkill()) return;
-        }
-
-
         if (targetEnemy == null || !targetEnemy.IsAlive())
             FindNewTarget();
+
 
         if (currentState is IdleState && !isProcessingSkill && skillData != null)
         {
@@ -109,9 +94,22 @@ public partial class UnitCombatFSM : MonoBehaviour
                 return; // 스킬이 발동되면 그 턴은 종료
         }
 
-        
+        if (currentState is IdleState && !isProcessingSkill && skillData != null)
+        {
+            // 💡 스킬 발동 시도 (여기서 발동 안 되면 아래 문제들 때문)
+            if (TryUseSkill())
+                return;
+        }
         currentState?.Update();
 
+        // // 스킬 사용 우선 서포트/타겟팅 스킬 
+        // if (!isProcessingSkill && ShouldUseSkill())
+        // {
+        //     isProcessingSkill = true;
+        //     agent.ResetPath();
+        //     ChangeState(new MoveState(this, true)); // 서포트 이동 우선
+        //     return;
+        // }
 
         if (!IsAlive() && !(currentState is DeadState))
         {

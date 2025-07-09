@@ -20,7 +20,7 @@ public class MoveState : UnitState
             return;
         }
 
-        float distance = Vector3.Distance(unit.transform.position, target.transform.position);
+
 
         //스킬 조건 만족 시 우선 발동
         if (!unit.isProcessingSkill && unit.skillData != null)
@@ -33,6 +33,7 @@ public class MoveState : UnitState
             }
         }
 
+        float distance = Vector3.Distance(unit.transform.position, target.transform.position);
 
         //적군 타겟 자동 갱신
         if (!isSupportTarget)

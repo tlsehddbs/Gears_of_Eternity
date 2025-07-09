@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class SkillExecutor
 {
-    private static readonly Dictionary<UnitSkillType, ISkillBehavior> behaviorMap = new()
+    private readonly Dictionary<UnitSkillType, ISkillBehavior> behaviorMap = new()
     {
         { UnitSkillType.InstantHeal, new InstantHealSkill() },
         //{ UnitSkillType.IncreaseAttack, new BuffAttackSkill() },
@@ -21,13 +21,6 @@ public class SkillExecutor
        
         // 추가 스킬은 여기에 등록
     };
-
-
-    public static ISkillBehavior GetSkillBehavior(UnitSkillType type)
-    {
-        behaviorMap.TryGetValue(type, out var behavior);
-        return behavior;
-    }
 
     public void ExecuteSkill(SkillData skillData, UnitCombatFSM caster, UnitCombatFSM target)
     {
@@ -52,11 +45,7 @@ public class SkillExecutor
         foreach (var effect in skillData.effects)
         {
             if (!behaviorMap.TryGetValue(effect.skillType, out var behavior)) continue;
-            if (!behavior.ShouldTrigger(caster, effect))
-            {
-                caster.FindNewTarget();
-                continue;
-            }
+            if (!behavior.ShouldTrigger(caster, effect)) continue;
 
             var target = behavior.FindTarget(caster, effect);
             if (target == null) continue;
@@ -69,30 +58,5 @@ public class SkillExecutor
         return false;
     }
 
-    public bool ShouldMoveToSkillTarget(UnitCombatFSM caster, SkillData skillData)
-    {
-        if (skillData == null || skillData.effects == null || !caster.CanUseSkill()) return false;
-
-        foreach (var effect in skillData.effects)
-        {
-            if (!behaviorMap.TryGetValue(effect.skillType, out var behavior)) continue;
-            if (!behavior.ShouldTrigger(caster, effect)) continue;
-
-            var target = behavior.FindTarget(caster, effect);
-            if (target == null) continue;
-
-            float dist = Vector3.Distance(caster.transform.position, target.transform.position);
-            float range = caster.stats.attackDistance * 1.5f;
-
-            // 💡 사거리 밖이면 접근 필요
-            if (dist > range)
-            {
-                caster.targetAlly = target;
-                return true;
-            }
-        }
-
-        return false;
-    }
-
+    
 }

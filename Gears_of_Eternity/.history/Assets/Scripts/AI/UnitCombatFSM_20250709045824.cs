@@ -83,6 +83,8 @@ public partial class UnitCombatFSM : MonoBehaviour
     void Update()
     {
         skillTimer += Time.deltaTime; // 스킬 쿨타이머 
+        if (!IsAlive()) return;
+
 
         // 스킬 우선 타겟 전환 체크
         if (!isProcessingSkill && skillData != null && skillExecutor.ShouldMoveToSkillTarget(this, skillData))
@@ -92,13 +94,6 @@ public partial class UnitCombatFSM : MonoBehaviour
             ChangeState(new MoveState(this, true)); // true = 아군 타겟팅
             return;
         }
-
-        // 기존 Idle 상태일 때 바로 발동 (즉시 거리 안에 있는 경우)
-        if (currentState is IdleState && !isProcessingSkill && skillData != null)
-        {
-            if (TryUseSkill()) return;
-        }
-
 
         if (targetEnemy == null || !targetEnemy.IsAlive())
             FindNewTarget();

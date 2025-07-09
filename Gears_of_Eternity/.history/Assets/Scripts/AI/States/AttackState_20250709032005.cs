@@ -47,7 +47,6 @@ public class AttackState : UnitState
                 }
             }
 
-        // 일반 공격 
         if (unit.attackTimer >= unit.stats.attackSpeed)
         {
             unit.Attack();

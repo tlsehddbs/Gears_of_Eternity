@@ -83,6 +83,8 @@ public partial class UnitCombatFSM : MonoBehaviour
     void Update()
     {
         skillTimer += Time.deltaTime; // 스킬 쿨타이머 
+        if (!IsAlive()) return;
+
 
         // 스킬 우선 타겟 전환 체크
         if (!isProcessingSkill && skillData != null && skillExecutor.ShouldMoveToSkillTarget(this, skillData))
