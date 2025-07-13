@@ -18,4 +18,12 @@ MonoBehaviour:
   skillDescription: "\uADFC\uCC98 \uC544\uAD70\uC5D0\uAC8C \uC790\uC2E0\uC758 \uBC29\uC5B4\uB825
     40% \uACF5\uC720"
   skillCoolDown: 0
-  effects: []
+  effects:
+  - skillType: 50
+    buffStat: 2
+    skillValue: 0.4
+    skillDuration: 0
+    skillDelayTime: 0
+    skillMaxStack: 0
+    isPercent: 1
+    skillRange: 15

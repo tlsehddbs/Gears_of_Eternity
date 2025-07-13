@@ -78,12 +78,6 @@ public partial class UnitCombatFSM : MonoBehaviour
     {
         RemovePassiveEffects(); // 패시브 해제
         OnReflectDamage = null; // 💥 반사 효과도 제거
-
-        foreach (var effect in skillData?.effects)
-        {
-            var behavior = SkillExecutor.GetSkillBehavior(effect.skillType);
-            behavior?.Remove(this, effect); // Execute()와 동일하게 Remove도 호출
-        }
     }
 
     void Update()
@@ -560,10 +554,10 @@ public partial class UnitCombatFSM : MonoBehaviour
             }
         },
         { UnitSkillType.PassiveAreaBuff, (unit, effect) =>
-            {
-                new PassiveAreaBuffSkill().Execute(unit, null, effect);
-            }
-        },
+        {
+            new PassiveAreaBuffSkill().Execute(unit, null, effect);
+        }
+},
         // 신규 효과는 여기만 추가
 
         };
@@ -598,12 +592,6 @@ public partial class UnitCombatFSM : MonoBehaviour
         { UnitSkillType.GrowBuffOverTime, (unit, effect) =>
             {
                 new GrowBuffOverTimeSkill().Remove(unit, effect);
-            }
-        },
-
-        { UnitSkillType.PassiveAreaBuff, (unit, effect) =>
-            {
-                new PassiveAreaBuffSkill().Execute(unit, null, effect);
             }
         },
         

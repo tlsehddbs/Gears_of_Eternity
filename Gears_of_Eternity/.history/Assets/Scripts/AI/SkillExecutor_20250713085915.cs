@@ -18,7 +18,7 @@ public class SkillExecutor
         { UnitSkillType.DoubleAttack, new DoubleAttackSkill() },
         { UnitSkillType.GrowBuffOverTime, new GrowBuffOverTimeSkill() },
         { UnitSkillType.ReflectDamage, new ReflectDamageSkill() },
-        { UnitSkillType.PassiveAreaBuff, new PassiveAreaBuffSkill ()},
+        { UnitSkillType.DefenceShareAura, new DefenceShareAuraSkill()},
        
         // 추가 스킬은 여기에 등록
     };

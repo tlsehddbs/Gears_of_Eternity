@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq; 
+using Unity.Android.Gradle.Manifest;
 using UnityEngine;
 
 
@@ -447,84 +447,74 @@ public class PassiveAreaBuffSkill  : ISkillBehavior
         public float value;
     }
 
-    private static readonly Dictionary<UnitCombatFSM, Dictionary<UnitCombatFSM, BuffRecord>> sharedBuffMap = new();
+    private readonly Dictionary<UnitCombatFSM, Dictionary<UnitCombatFSM, BuffRecord>> sharedMap = new();
 
     public bool ShouldTrigger(UnitCombatFSM caster, SkillEffect effect) => true;
 
-    public UnitCombatFSM FindTarget(UnitCombatFSM caster, SkillEffect effect) => null; // 전방위 버프
+    public UnitCombatFSM FindTarget(UnitCombatFSM caster, SkillEffect effect) => null;
 
     public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
     {
-        if (!sharedBuffMap.ContainsKey(caster))
+        if (effect.buffStat == BuffStat.None) return;
+        if (!sharedMap.ContainsKey(caster))
+            sharedMap[caster] = new Dictionary<UnitCombatFSM, BuffRecord>();
+
+        var map = sharedMap[caster];
+        var allies = GameObject.FindObjectsByType<UnitCombatFSM>(FindObjectsSortMode.None);
+        float radius = effect.skillRange;
+        float value = GetBaseStat(caster.stats, effect.buffStat) * effect.skillValue;
+
+        HashSet<UnitCombatFSM> validTargets = new();
+
+        foreach (var ally in allies)
         {
-            sharedBuffMap[caster] = new Dictionary<UnitCombatFSM, BuffRecord>();
-            caster.StartCoroutine(BuffLoop(caster, effect));
-        }
-    }
+            if (ally == caster || !ally.IsAlive()) continue;
+            if (ally.unitData.faction != caster.unitData.faction) continue;
 
-    private IEnumerator BuffLoop(UnitCombatFSM caster, SkillEffect effect)
-    {
-        var map = sharedBuffMap[caster];
-        float radius = effect.skillRange > 0 ? effect.skillRange : caster.stats.attackDistance * 2f;
-        BuffStat stat = effect.buffStat;
-        float value = GetBaseStat(caster.stats, stat) * effect.skillValue;
-
-        while (true)
-        {
-            if (!caster.IsAlive())
+            float dist = Vector3.Distance(caster.transform.position, ally.transform.position);
+            if (dist <= radius)
             {
-                Remove(caster, effect);
-                yield break;
-            }
+                validTargets.Add(ally);
 
-            var allAllies = GameObject.FindObjectsByType<UnitCombatFSM>(FindObjectsSortMode.None)
-                .Where(u => u.IsAlive() && u.unitData.faction == caster.unitData.faction && u != caster);
-
-            HashSet<UnitCombatFSM> validTargets = new();
-
-            foreach (var ally in allAllies)
-            {
-                float dist = Vector3.Distance(caster.transform.position, ally.transform.position);
-                if (dist <= radius)
+                if (!map.ContainsKey(ally))
                 {
-                    validTargets.Add(ally);
-
-                    if (!map.ContainsKey(ally))
-                    {
-                        ally.ModifyStat(stat, value, false, false);
-                        map[ally] = new BuffRecord { stat = stat, value = value };
-                        Debug.Log($"[AreaBuff] {caster.name} → {ally.name} : {stat} +{value:F2}");
-                    }
+                    ally.ModifyStat(effect.buffStat, value, false, false); // 가산 적용
+                    map[ally] = new BuffRecord { stat = effect.buffStat, value = value };
+                    Debug.Log($"[AreaBuff] {caster.name} → {ally.name} : {effect.buffStat} +{value:F2}");
                 }
             }
+        }
 
-            var toRemove = map.Keys.Where(u => !validTargets.Contains(u)).ToList();
-            foreach (var u in toRemove)
-            {
-                var record = map[u];
-                u.ModifyStat(record.stat, record.value, false, true);
-                Debug.Log($"[AreaBuff] {u.name} ← {record.stat} 버프 해제 -{record.value:F2}");
-                map.Remove(u);
-            }
+        // 범위에서 벗어난 유닛 제거
+        var toRemove = map.Keys.Where(u => !validTargets.Contains(u)).ToList();
+        foreach (var u in toRemove)
+        {
+            var record = map[u];
+            u.ModifyStat(record.stat, record.value, false, true); // 해제
+            Debug.Log($"[AreaBuff] {u.name} ← {record.stat} 버프 해제 -{record.value:F2}");
+            map.Remove(u);
+        }
 
-            yield return new WaitForSeconds(0.5f);
+        // caster가 죽은 경우 전체 제거
+        if (!caster.IsAlive())
+        {
+            Remove(caster, effect);
         }
     }
+
     public void Remove(UnitCombatFSM caster, SkillEffect effect)
     {
-        if (!sharedBuffMap.TryGetValue(caster, out var map)) return;
+        if (!sharedMap.TryGetValue(caster, out var map)) return;
 
-        foreach (var pair in map)
+        foreach (var kvp in map)
         {
-            var unit = pair.Key;
-            var record = pair.Value;
+            var unit = kvp.Key;
+            var record = kvp.Value;
             unit.ModifyStat(record.stat, record.value, false, true);
-            Debug.Log($"[AreaBuff:Remove] {unit.name} ← {record.stat} 해제 -{record.value:F2}");
-
+            Debug.Log($"[AreaBuff] {unit.name} ← {record.stat} 완전 제거");
         }
 
-        map.Clear();
-        sharedBuffMap.Remove(caster);
+        sharedMap.Remove(caster);
     }
 
     private float GetBaseStat(RuntimeUnitStats stats, BuffStat stat)
@@ -536,12 +526,11 @@ public class PassiveAreaBuffSkill  : ISkillBehavior
             BuffStat.MoveSpeed => stats.moveSpeed,
             BuffStat.AttackSpeed => stats.attackSpeed,
             BuffStat.AttackDistance => stats.attackDistance,
-            BuffStat.DamageReduction => 1f,
+            BuffStat.DamageReduction => 1f, // 고정 비율
             _ => 0f,
         };
     }
 }
-
 
 
 //출혈 로직 /현재 체력 비례 /최대 중첩3(중첩당 1초 증가)

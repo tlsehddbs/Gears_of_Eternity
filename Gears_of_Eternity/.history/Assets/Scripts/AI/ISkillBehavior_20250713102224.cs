@@ -462,6 +462,20 @@ public class PassiveAreaBuffSkill  : ISkillBehavior
         }
     }
 
+    public void Remove(UnitCombatFSM caster, SkillEffect effect)
+    {
+        if (!sharedBuffMap.TryGetValue(caster, out var map)) return;
+
+        foreach (var pair in map)
+        {
+            var unit = pair.Key;
+            var record = pair.Value;
+            unit.ModifyStat(record.stat, record.value, false, true);
+        }
+
+        map.Clear();
+    }
+
     private IEnumerator BuffLoop(UnitCombatFSM caster, SkillEffect effect)
     {
         var map = sharedBuffMap[caster];
@@ -509,22 +523,6 @@ public class PassiveAreaBuffSkill  : ISkillBehavior
 
             yield return new WaitForSeconds(0.5f);
         }
-    }
-    public void Remove(UnitCombatFSM caster, SkillEffect effect)
-    {
-        if (!sharedBuffMap.TryGetValue(caster, out var map)) return;
-
-        foreach (var pair in map)
-        {
-            var unit = pair.Key;
-            var record = pair.Value;
-            unit.ModifyStat(record.stat, record.value, false, true);
-            Debug.Log($"[AreaBuff:Remove] {unit.name} ← {record.stat} 해제 -{record.value:F2}");
-
-        }
-
-        map.Clear();
-        sharedBuffMap.Remove(caster);
     }
 
     private float GetBaseStat(RuntimeUnitStats stats, BuffStat stat)

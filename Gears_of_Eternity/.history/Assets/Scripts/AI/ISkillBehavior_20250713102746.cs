@@ -519,8 +519,6 @@ public class PassiveAreaBuffSkill  : ISkillBehavior
             var unit = pair.Key;
             var record = pair.Value;
             unit.ModifyStat(record.stat, record.value, false, true);
-            Debug.Log($"[AreaBuff:Remove] {unit.name} ← {record.stat} 해제 -{record.value:F2}");
-
         }
 
         map.Clear();

@@ -65,6 +65,6 @@ namespace UnitSkillTypes.Enums
         TimeStop,                  // 시간 정지 (전체 행동 불가)
         RevealStealth,             // 은신 해제
         TeleportReset,             // 위치 되돌림
-        PassiveAreaBuff,          // 기어 공명기 방어력 공유
+        DefenceShareAura,          // 기어 공명기 방어력 공유
     }
 }
