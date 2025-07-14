@@ -35,7 +35,7 @@ public partial class UnitCombatFSM : MonoBehaviour
     [HideInInspector] public float attackTimer;
     public float currentHP;
     private float criticalChance;
-    public float criticalMultiplier = 1.5f;
+    //public float criticalMultiplier = 1.5f;
     public float skillTimer = 0f; // 스킬 쿨다운 누적 
     public SkillData skillData;
     public UnitCombatFSM targetAlly; //힐 버프 대상 
@@ -67,6 +67,7 @@ public partial class UnitCombatFSM : MonoBehaviour
         agent.speed = stats.moveSpeed;
         agent.stoppingDistance = stats.attackDistance * 5;
 
+        AssignCriticalChance();
         ChangeState(new IdleState(this));
 
         // 패시브 스킬 
@@ -173,18 +174,17 @@ public partial class UnitCombatFSM : MonoBehaviour
     {
         if (targetEnemy == null || !targetEnemy.IsAlive()) return;
         float baseDamage = stats.attack;
-        //치명타 판정 
-        bool isCritical = UnityEngine.Random.value < stats.criticalChance;
+        bool isCritical = UnityEngine.Random.value < criticalChance;
 
         if (isCritical)
         {
-            baseDamage *= criticalMultiplier; // 치명타 배율 적용 
+            baseDamage *= criticalChance;
             Debug.Log($"[Critical] {gameObject.name} → 치명타!");
         }
 
         targetEnemy.TakeDamage(baseDamage, this); // 공격자 자신 전달
         
-        //후처리용 이벤트 :추가 타격, 버프, 출혈 등 모든 후처리를 이곳에서 수행 가능 
+        //추가 타격, 버프, 출혈 등 모든 후처리를 이곳에서 수행 가능 
         OnPostAttack?.Invoke();
     }
 
@@ -289,37 +289,29 @@ public partial class UnitCombatFSM : MonoBehaviour
             attack = unitData.attack,
             defense = unitData.defense,
             attackSpeed = unitData.attackSpeed,
-            attackDistance = unitData.attackDistance,
-            criticalChance = unitData.battleType switch
-            {
-                BattleType.Melee => 0.1f,
-                BattleType.Ranged => 0.3f,
-                BattleType.Support => 0.05f,
-                _ => 0.1f
-            }
+            attackDistance = unitData.attackDistance
         };
 
     }
 
-    //이전 치명타 배율 
-    // private void AssignCriticalChance()
-    // {
-    //     switch (unitData.battleType)
-    //     {
-    //         case BattleType.Melee:
-    //             criticalChance = 0.1f;
-    //             break;
-    //         case BattleType.Ranged:
-    //             criticalChance = 0.3f;
-    //             break;
-    //         case BattleType.Support:
-    //             criticalChance = 0.05f;
-    //             break;
-    //         default:
-    //             criticalChance = 0.1f;
-    //             break;
-    //     }
-    // }
+    private void AssignCriticalChance()
+    {
+        switch (unitData.battleType)
+        {
+            case BattleType.Melee:
+                criticalChance = 0.1f;
+                break;
+            case BattleType.Ranged:
+                criticalChance = 0.3f;
+                break;
+            case BattleType.Support:
+                criticalChance = 0.05f;
+                break;
+            default:
+                criticalChance = 0.1f;
+                break;
+        }
+    }
 
     public UnitCombatFSM FindNearestEnemy()
     {

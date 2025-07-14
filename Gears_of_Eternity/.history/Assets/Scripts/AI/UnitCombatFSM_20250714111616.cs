@@ -67,6 +67,7 @@ public partial class UnitCombatFSM : MonoBehaviour
         agent.speed = stats.moveSpeed;
         agent.stoppingDistance = stats.attackDistance * 5;
 
+        AssignCriticalChance();
         ChangeState(new IdleState(this));
 
         // 패시브 스킬 

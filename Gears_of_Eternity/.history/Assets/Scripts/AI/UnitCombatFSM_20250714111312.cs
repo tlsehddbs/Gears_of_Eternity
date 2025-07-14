@@ -67,6 +67,7 @@ public partial class UnitCombatFSM : MonoBehaviour
         agent.speed = stats.moveSpeed;
         agent.stoppingDistance = stats.attackDistance * 5;
 
+        AssignCriticalChance();
         ChangeState(new IdleState(this));
 
         // 패시브 스킬 
@@ -289,7 +290,7 @@ public partial class UnitCombatFSM : MonoBehaviour
             attack = unitData.attack,
             defense = unitData.defense,
             attackSpeed = unitData.attackSpeed,
-            attackDistance = unitData.attackDistance,
+            attackDistance = unitData.attackDistance
             criticalChance = unitData.battleType switch
             {
                 BattleType.Melee => 0.1f,
@@ -301,25 +302,24 @@ public partial class UnitCombatFSM : MonoBehaviour
 
     }
 
-    //이전 치명타 배율 
-    // private void AssignCriticalChance()
-    // {
-    //     switch (unitData.battleType)
-    //     {
-    //         case BattleType.Melee:
-    //             criticalChance = 0.1f;
-    //             break;
-    //         case BattleType.Ranged:
-    //             criticalChance = 0.3f;
-    //             break;
-    //         case BattleType.Support:
-    //             criticalChance = 0.05f;
-    //             break;
-    //         default:
-    //             criticalChance = 0.1f;
-    //             break;
-    //     }
-    // }
+    private void AssignCriticalChance()
+    {
+        switch (unitData.battleType)
+        {
+            case BattleType.Melee:
+                criticalChance = 0.1f;
+                break;
+            case BattleType.Ranged:
+                criticalChance = 0.3f;
+                break;
+            case BattleType.Support:
+                criticalChance = 0.05f;
+                break;
+            default:
+                criticalChance = 0.1f;
+                break;
+        }
+    }
 
     public UnitCombatFSM FindNearestEnemy()
     {

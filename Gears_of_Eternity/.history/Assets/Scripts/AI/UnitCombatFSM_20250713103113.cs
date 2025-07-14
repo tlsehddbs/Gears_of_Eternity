@@ -24,7 +24,6 @@ public enum BuffStat
     Health,
     AttackDistance,
     DamageReduction,
-    CriticalChance,
 }
 
 public partial class UnitCombatFSM : MonoBehaviour
@@ -67,6 +66,7 @@ public partial class UnitCombatFSM : MonoBehaviour
         agent.speed = stats.moveSpeed;
         agent.stoppingDistance = stats.attackDistance * 5;
 
+        AssignCriticalChance();
         ChangeState(new IdleState(this));
 
         // 패시브 스킬 
@@ -79,13 +79,10 @@ public partial class UnitCombatFSM : MonoBehaviour
         RemovePassiveEffects(); // 패시브 해제
         OnReflectDamage = null; // 💥 반사 효과도 제거
 
-        if (skillData != null && skillData.effects != null)
+        foreach (var effect in skillData?.effects)
         {
-            foreach (var effect in skillData.effects)
-            {
-                var behavior = SkillExecutor.GetSkillBehavior(effect.skillType);
-                behavior?.Remove(this, effect);
-            }
+            var behavior = SkillExecutor.GetSkillBehavior(effect.skillType);
+            behavior?.Remove(this, effect); // Execute()와 동일하게 Remove도 호출
         }
     }
 
@@ -173,18 +170,17 @@ public partial class UnitCombatFSM : MonoBehaviour
     {
         if (targetEnemy == null || !targetEnemy.IsAlive()) return;
         float baseDamage = stats.attack;
-        //치명타 판정 
-        bool isCritical = UnityEngine.Random.value < stats.criticalChance;
+        bool isCritical = UnityEngine.Random.value < criticalChance;
 
         if (isCritical)
         {
-            baseDamage *= criticalMultiplier; // 치명타 배율 적용 
+            baseDamage *= criticalMultiplier;
             Debug.Log($"[Critical] {gameObject.name} → 치명타!");
         }
 
         targetEnemy.TakeDamage(baseDamage, this); // 공격자 자신 전달
         
-        //후처리용 이벤트 :추가 타격, 버프, 출혈 등 모든 후처리를 이곳에서 수행 가능 
+        //추가 타격, 버프, 출혈 등 모든 후처리를 이곳에서 수행 가능 
         OnPostAttack?.Invoke();
     }
 
@@ -289,37 +285,29 @@ public partial class UnitCombatFSM : MonoBehaviour
             attack = unitData.attack,
             defense = unitData.defense,
             attackSpeed = unitData.attackSpeed,
-            attackDistance = unitData.attackDistance,
-            criticalChance = unitData.battleType switch
-            {
-                BattleType.Melee => 0.1f,
-                BattleType.Ranged => 0.3f,
-                BattleType.Support => 0.05f,
-                _ => 0.1f
-            }
+            attackDistance = unitData.attackDistance
         };
 
     }
 
-    //이전 치명타 배율 
-    // private void AssignCriticalChance()
-    // {
-    //     switch (unitData.battleType)
-    //     {
-    //         case BattleType.Melee:
-    //             criticalChance = 0.1f;
-    //             break;
-    //         case BattleType.Ranged:
-    //             criticalChance = 0.3f;
-    //             break;
-    //         case BattleType.Support:
-    //             criticalChance = 0.05f;
-    //             break;
-    //         default:
-    //             criticalChance = 0.1f;
-    //             break;
-    //     }
-    // }
+    private void AssignCriticalChance()
+    {
+        switch (unitData.battleType)
+        {
+            case BattleType.Melee:
+                criticalChance = 0.1f;
+                break;
+            case BattleType.Ranged:
+                criticalChance = 0.3f;
+                break;
+            case BattleType.Support:
+                criticalChance = 0.05f;
+                break;
+            default:
+                criticalChance = 0.1f;
+                break;
+        }
+    }
 
     public UnitCombatFSM FindNearestEnemy()
     {
@@ -757,18 +745,6 @@ public partial class UnitCombatFSM : MonoBehaviour
             // 피해감소는 누적형(가산)만 사용
             if (isRemove) s.damageReduction -= v;
             else s.damageReduction += v;
-        }},
-        { BuffStat.CriticalChance, (s, v, isPer, isRemove) => {
-            if(isPer)
-            {
-                if(isRemove) s.criticalChance /= (1f + v);
-                else s.criticalChance *= (1f + v);
-            }
-            else
-            {
-                if(isRemove) s.criticalChance -= v;
-                else s.criticalChance += v;
-            }
         }},
         // 필요한 스탯 계속 추가
     };
