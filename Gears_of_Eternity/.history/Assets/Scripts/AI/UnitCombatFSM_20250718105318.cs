@@ -34,6 +34,7 @@ public partial class UnitCombatFSM : MonoBehaviour
     public UnitCombatFSM targetEnemy; //현재 타겟 Enemy 
     [HideInInspector] public float attackTimer;
     public float currentHP;
+    private float criticalChance;
     public float criticalMultiplier = 1.5f;
     public float skillTimer = 0f; // 스킬 쿨다운 누적 
     public SkillData skillData;
@@ -46,7 +47,6 @@ public partial class UnitCombatFSM : MonoBehaviour
     public RuntimeUnitStats stats; // 복사된 인스턴스 스텟 
 
     public bool isProcessingSkill = false; // 중복 상태 전환 방지용 
-    public bool isSilenced = false;
 
 
     public List<AppliedPassiveEffect> activePassiveEffects = new List<AppliedPassiveEffect>();
@@ -137,12 +137,6 @@ public partial class UnitCombatFSM : MonoBehaviour
 
     public bool TryUseSkill() // 기존 FSM 상태에서 이 메서드만 호출하면 됨
     {
-        if (isSilenced)
-        {
-            Debug.Log("[TryUseSkill] 침묵 상태로 인해 취소됨");
-            return false; // 침묵 시 스킬 사용 불가 
-        }
-        
         return skillExecutor.TryUseSkillIfPossible(this, this.skillData);
     }
 
@@ -642,14 +636,10 @@ public partial class UnitCombatFSM : MonoBehaviour
         
         foreach (var effect in skillData.effects)
         {
-            //패시브만 적용(지속시간 0 이하만)
-            if (effect.skillDuration <= 0f)
-            {
-                if (applyEffectMap.TryGetValue(effect.skillType, out var apply))
-                    apply(this, effect); // DelayBuff, IncreaseDefense 등 커스텀 map을 반드시 태움
-                else
-                    ApplyBuff(effect.buffStat, effect.skillValue, effect.skillDuration, effect.isPercent);
-            } 
+            if (applyEffectMap.TryGetValue(effect.skillType, out var apply))
+                apply(this, effect); // DelayBuff, IncreaseDefense 등 커스텀 map을 반드시 태움
+            else
+                ApplyBuff(effect.buffStat, effect.skillValue, effect.skillDuration, effect.isPercent);
         }
     }
     
@@ -794,25 +784,10 @@ public partial class UnitCombatFSM : MonoBehaviour
             agent.speed = stats.moveSpeed;
     }
 
-    //특정 범위 내 적 유닛 탐색 리스트 반환 
-    public List<UnitCombatFSM> FindEnemiesInRange(float range)
-    {
-        var results = new List<UnitCombatFSM>();
 
-        foreach (var unit in FindObjectsByType<UnitCombatFSM>(FindObjectsSortMode.None))
-        {
-            if (unit == this || !unit.IsAlive()) continue;
-            if (unit.unitData.faction == this.unitData.faction) continue; // 같은 진영 제외
 
-            float distance = Vector3.Distance(transform.position, unit.transform.position);
-            if (distance <= range)
-            {
-                results.Add(unit);
-            }
-        }
 
-        return results;
-    }
+
 
 
     //런타임 사거리 

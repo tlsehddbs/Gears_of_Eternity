@@ -12,8 +12,10 @@ public class SkillEffect
     public float skillDuration;     // 0(영구) 또는 임시 
     public float skillDelayTime;    //스킬 발동하기까지 딜레이 시간
     public float skillMaxStack;
-    public bool isPercent;          //true: 비율(곱셈), false: 가산(절대값)으로 계산 
+    public bool isPercent;
     public float skillRange;
+    public float range;
+         //true: 비율(곱셈), false: 가산(절대값)으로 계산 
 }
 
 public class SkillData : ScriptableObject

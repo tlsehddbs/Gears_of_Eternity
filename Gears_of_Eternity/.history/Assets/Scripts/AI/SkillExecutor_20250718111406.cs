@@ -6,22 +6,21 @@ public class SkillExecutor
 {
     private static readonly Dictionary<UnitSkillType, ISkillBehavior> behaviorMap = new()
     {
-        { UnitSkillType.InstantHeal, new InstantHealSkill()},
-        //{ UnitSkillType.IncreaseAttack, new BuffAttackSkill()},
-        //{ UnitSkillType.AttackDown, new DebuffAttackSkill()},
+        { UnitSkillType.InstantHeal, new InstantHealSkill() },
+        //{ UnitSkillType.IncreaseAttack, new BuffAttackSkill() },
+        //{ UnitSkillType.AttackDown, new DebuffAttackSkill() },
         { UnitSkillType.MultiHit, new MultiHitSkill()},
         { UnitSkillType.BarrierOnHpHalf, new BarrierOnHpHalfSkill()},
         { UnitSkillType.DashAttackAndGuard, new DashAttackAndGuardSkill()},
         { UnitSkillType.ThrowSpearAttack, new ThrowSpearAttackSkill()},
         { UnitSkillType.ConeTripleHit, new ConeTripleHitSkill()},
-        { UnitSkillType.BleedBurst, new BleedBurstSkill()},
-        { UnitSkillType.DoubleAttack, new DoubleAttackSkill()},
-        { UnitSkillType.GrowBuffOverTime, new GrowBuffOverTimeSkill()},
-        { UnitSkillType.ReflectDamage, new ReflectDamageSkill()},
+        { UnitSkillType.BleedBurst, new BleedBurstSkill() },
+        { UnitSkillType.DoubleAttack, new DoubleAttackSkill() },
+        { UnitSkillType.GrowBuffOverTime, new GrowBuffOverTimeSkill() },
+        { UnitSkillType.ReflectDamage, new ReflectDamageSkill() },
         { UnitSkillType.PassiveAreaBuff, new PassiveAreaBuffSkill ()},
         { UnitSkillType.AttackSpeedUp, new AttackSpeedUpSkill ()},
-        { UnitSkillType.Silence, new SilenceSkill()},
-        
+       
         // 추가 스킬은 여기에 등록
     };
 
@@ -50,8 +49,6 @@ public class SkillExecutor
 
     public bool TryUseSkillIfPossible(UnitCombatFSM caster, SkillData skillData)
     {
-        if (caster.isSilenced) return false;
-
         if (skillData == null || skillData.effects == null || !caster.CanUseSkill()) return false;
 
         foreach (var effect in skillData.effects)

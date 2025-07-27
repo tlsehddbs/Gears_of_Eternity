@@ -336,7 +336,7 @@ public class DoubleAttackSkill : ISkillBehavior
 
     public UnitCombatFSM FindTarget(UnitCombatFSM caster, SkillEffect effect)
     {
-        return null; 
+        return null; // 타겟 없음
     }
 
     public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
@@ -574,10 +574,7 @@ public class SilenceSkill : ISkillBehavior
         return enemies.Count > 0;
     }
 
-    public UnitCombatFSM FindTarget(UnitCombatFSM caster, SkillEffect effect)
-    {
-        return caster.FindNearestEnemy();
-    }
+    public UnitCombatFSM FindTarget(UnitCombatFSM caster, SkillEffect effect) => null;
 
 
     public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)

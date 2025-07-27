@@ -14,6 +14,8 @@ public class SkillEffect
     public float skillMaxStack;
     public bool isPercent;          //true: 비율(곱셈), false: 가산(절대값)으로 계산 
     public float skillRange;
+    public float range;
+    
 }
 
 public class SkillData : ScriptableObject

@@ -64,7 +64,7 @@ public class SkillExecutor
             }
 
             var target = behavior.FindTarget(caster, effect);
-            if (target == null) continue;
+            //if (target == null) continue;
 
             behavior.Execute(caster, target, effect);
             caster.skillTimer = 0f;

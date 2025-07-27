@@ -574,10 +574,7 @@ public class SilenceSkill : ISkillBehavior
         return enemies.Count > 0;
     }
 
-    public UnitCombatFSM FindTarget(UnitCombatFSM caster, SkillEffect effect)
-    {
-        return caster.FindNearestEnemy();
-    }
+    public UnitCombatFSM FindTarget(UnitCombatFSM caster, SkillEffect effect) => null;
 
 
     public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)

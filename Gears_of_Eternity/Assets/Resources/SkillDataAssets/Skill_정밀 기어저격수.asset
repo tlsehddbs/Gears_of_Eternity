@@ -28,9 +28,9 @@ MonoBehaviour:
     skillRange: 0
   - skillType: 0
     buffStat: 8
-    skillValue: 0.25
+    skillValue: 0.15
     skillDuration: 0
     skillDelayTime: 0
     skillMaxStack: 0
-    isPercent: 0
+    isPercent: 1
     skillRange: 0

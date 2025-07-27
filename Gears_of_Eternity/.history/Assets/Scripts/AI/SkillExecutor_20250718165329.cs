@@ -50,9 +50,9 @@ public class SkillExecutor
 
     public bool TryUseSkillIfPossible(UnitCombatFSM caster, SkillData skillData)
     {
-        if (caster.isSilenced) return false;
-
         if (skillData == null || skillData.effects == null || !caster.CanUseSkill()) return false;
+
+        //if (caster.isSilenced) return false;
 
         foreach (var effect in skillData.effects)
         {

@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
+using System.Linq; 
 using UnityEngine;
 
 
@@ -336,7 +336,7 @@ public class DoubleAttackSkill : ISkillBehavior
 
     public UnitCombatFSM FindTarget(UnitCombatFSM caster, SkillEffect effect)
     {
-        return null; 
+        return null; // 타겟 없음
     }
 
     public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
@@ -548,7 +548,7 @@ public class AttackSpeedUpSkill : ISkillBehavior
 {
     public bool ShouldTrigger(UnitCombatFSM caster, SkillEffect effect)
     {
-        return true;
+        return caster.CanUseSkill();
     }
 
     public UnitCombatFSM FindTarget(UnitCombatFSM caster, SkillEffect effect)
@@ -565,32 +565,7 @@ public class AttackSpeedUpSkill : ISkillBehavior
     public void Remove(UnitCombatFSM caster, SkillEffect effect) {}
 }
 
-//침묵 스킬 //기계 교란수
-public class SilenceSkill : ISkillBehavior
-{
-    public bool ShouldTrigger(UnitCombatFSM caster, SkillEffect effect)
-    {
-        var enemies = caster.FindEnemiesInRange(effect.skillRange);
-        return enemies.Count > 0;
-    }
 
-    public UnitCombatFSM FindTarget(UnitCombatFSM caster, SkillEffect effect)
-    {
-        return caster.FindNearestEnemy();
-    }
-
-
-    public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
-    {
-        var enemies = caster.FindEnemiesInRange(effect.skillRange);
-        foreach (var enemy in enemies)
-        {
-            SilenceSystem.ApplySilence(enemy, effect.skillDuration);
-            Debug.Log($"[Silence] {enemy.name} 침묵 상태 적용 ({effect.skillDuration}s)");
-        }
-    }
-    public void Remove(UnitCombatFSM caster, SkillEffect effect) { }
-}
 
 //출혈 로직 /현재 체력 비례 /최대 중첩3(중첩당 1초 증가)
 public static class BleedSystem
@@ -641,29 +616,5 @@ public static class BleedSystem
         }
 
         activeBleeds.Remove(target);
-    }
-}
-//침묵 로직 
-public static class SilenceSystem
-{
-    private static readonly Dictionary<UnitCombatFSM, Coroutine> activeSilences = new();
-
-    public static void ApplySilence(UnitCombatFSM target, float duration)
-    {
-        if (!target.IsAlive()) return;
-
-        if (activeSilences.TryGetValue(target, out var existing))
-            target.StopCoroutine(existing);
-
-        target.isSilenced = true;
-        var routine = target.StartCoroutine(SilenceRoutine(target, duration));
-        activeSilences[target] = routine;
-    }
-
-    private static IEnumerator SilenceRoutine(UnitCombatFSM target, float duration)
-    {
-        yield return new WaitForSeconds(duration);
-        target.isSilenced = false;
-        activeSilences.Remove(target);
     }
 }

@@ -137,12 +137,7 @@ public partial class UnitCombatFSM : MonoBehaviour
 
     public bool TryUseSkill() // 기존 FSM 상태에서 이 메서드만 호출하면 됨
     {
-        if (isSilenced)
-        {
-            Debug.Log("[TryUseSkill] 침묵 상태로 인해 취소됨");
-            return false; // 침묵 시 스킬 사용 불가 
-        }
-        
+        if (isSilenced) return false; // 침묵 시 스킬 사용 불가 
         return skillExecutor.TryUseSkillIfPossible(this, this.skillData);
     }
 

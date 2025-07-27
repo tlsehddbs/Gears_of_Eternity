@@ -142,7 +142,7 @@ public partial class UnitCombatFSM : MonoBehaviour
             Debug.Log("[TryUseSkill] 침묵 상태로 인해 취소됨");
             return false; // 침묵 시 스킬 사용 불가 
         }
-        
+        Debug.Log("TryUseSkill호출");
         return skillExecutor.TryUseSkillIfPossible(this, this.skillData);
     }
 

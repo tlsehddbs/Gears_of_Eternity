@@ -26,6 +26,7 @@ MonoBehaviour:
     skillDelayTime: 0
     skillMaxStack: 0
     isPercent: 1
+    skillRange: 0
   - skillType: 0
     buffStat: 2
     skillValue: 0.1
@@ -33,17 +34,20 @@ MonoBehaviour:
     skillDelayTime: 0
     skillMaxStack: 0
     isPercent: 1
-  - skillType: 40
+    skillRange: 0
+  - skillType: 41
     buffStat: 1
     skillValue: 0.05
     skillDuration: 0
     skillDelayTime: 5
     skillMaxStack: 5
     isPercent: 1
-  - skillType: 40
+    skillRange: 0
+  - skillType: 41
     buffStat: 2
     skillValue: 0.05
     skillDuration: 0
     skillDelayTime: 5
     skillMaxStack: 5
     isPercent: 1
+    skillRange: 0

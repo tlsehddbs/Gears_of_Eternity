@@ -137,12 +137,7 @@ public partial class UnitCombatFSM : MonoBehaviour
 
     public bool TryUseSkill() // 기존 FSM 상태에서 이 메서드만 호출하면 됨
     {
-        if (isSilenced)
-        {
-            Debug.Log("[TryUseSkill] 침묵 상태로 인해 취소됨");
-            return false; // 침묵 시 스킬 사용 불가 
-        }
-        
+        if (isSilenced) return false; // 침묵 시 스킬 사용 불가 
         return skillExecutor.TryUseSkillIfPossible(this, this.skillData);
     }
 
@@ -794,7 +789,6 @@ public partial class UnitCombatFSM : MonoBehaviour
             agent.speed = stats.moveSpeed;
     }
 
-    //특정 범위 내 적 유닛 탐색 리스트 반환 
     public List<UnitCombatFSM> FindEnemiesInRange(float range)
     {
         var results = new List<UnitCombatFSM>();

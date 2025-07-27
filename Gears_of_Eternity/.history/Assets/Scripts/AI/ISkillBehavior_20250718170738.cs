@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Android.Gradle.Manifest;
 using UnityEngine;
 
 
@@ -336,7 +337,7 @@ public class DoubleAttackSkill : ISkillBehavior
 
     public UnitCombatFSM FindTarget(UnitCombatFSM caster, SkillEffect effect)
     {
-        return null; 
+        return null; // 타겟 없음
     }
 
     public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
@@ -572,13 +573,13 @@ public class SilenceSkill : ISkillBehavior
     {
         var enemies = caster.FindEnemiesInRange(effect.skillRange);
         return enemies.Count > 0;
+        Debug.Log($"[SilenceSkill] 탐지된 적 수: {enemies.Count}");
     }
 
     public UnitCombatFSM FindTarget(UnitCombatFSM caster, SkillEffect effect)
     {
-        return caster.FindNearestEnemy();
+        return null;
     }
-
 
     public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
     {

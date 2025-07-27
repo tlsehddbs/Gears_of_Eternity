@@ -68,7 +68,6 @@ namespace UnitSkillTypes.Enums
 
         // 새로운 스킬들 중간에 껴 넣으면 설정해둔게 밀림.. 
         PassiveAreaBuff,          //방어력 공유 //기어 공명기
-        AttackSpeedUp,             //공속 증가 버프 //자동 발사기
-        
+        AttackSpeedUp             //공속 증가 버프 //자동 발사기
     }
 }
