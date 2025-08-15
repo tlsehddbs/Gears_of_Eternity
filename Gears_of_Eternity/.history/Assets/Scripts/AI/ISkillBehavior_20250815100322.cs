@@ -646,7 +646,7 @@ public class HeatReactiveMarkSkill : ISkillBehavior
 
 
         //표식 해제
-        try                                       
+        try
         {
             yield return new WaitForSeconds(MarkDuration);
         }
@@ -655,8 +655,6 @@ public class HeatReactiveMarkSkill : ISkillBehavior
             if (target != null)
                 target.OnBeforeTakeDamage -= Amplify; //변경: 누수/영구버프 방지
         }
-        // try / finally //try 블록:이 구간을 실행해보고 finally 블록:어떻게 끝나든(정상 종료, return, break, throw 예외) 마지막에 무조건 이 정리 코드를 실행해라
-        // 정리코드를 반드시 실행시키는 안전 장치 역할
 
         if (caster == null || target == null || !target.IsAlive())
             yield break;
@@ -734,25 +732,11 @@ public class HeavyStrikeAndSlowSkill : ISkillBehavior
 
         // 가장 가까운 적
         return enemies
-            .OrderBy(e => Vector3.SqrMagnitude(e.transform.position - caster.transform.position)) // OrderBy(제곱거리) → 제곱거리가 작은 순으로 전체 목록을 정렬(O(n log n)) //Vector3.SqrMagnitude(Δ) → Δ의 길이의 제곱(제곱거리).
+            .OrderBy(e => Vector3.SqrMagnitude(e.transform.position - caster.transform.position))
             .FirstOrDefault();
-    }
-
+    }   
+    
     public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
-    {
-        if (caster == null || target == null || !target.IsAlive()) return;
-
-        //피해 적용(150%)
-        float dmg = caster.stats.attack * effect.skillValue;
-        target.TakeDamage(dmg, caster);
-        Debug.Log($"[HeavyStrikeAndSlow] {caster.name} → {target.name} : {dmg:F1} (150%)");
-
-        //명중 시 슬로우(이동속도 30% 감소, 5초) - 퍼센트 버프로 음수값 전달
-        target.ApplyBuff(BuffStat.MoveSpeed, SlowPercent, SlowDuration, isPercent: true);
-        Debug.Log($"[HeavyStrikeAndSlow] {target.name} : MoveSpeed {SlowPercent * -100f:F0}% ↓ ({SlowDuration:F1}s)");
-    }
-
-    public void Remove(UnitCombatFSM caster, SkillEffect effect){}
 }
 
 

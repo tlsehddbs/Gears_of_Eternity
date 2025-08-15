@@ -81,7 +81,6 @@ public partial class UnitCombatFSM : MonoBehaviour
     {
         RemovePassiveEffects(); // 패시브 해제
         OnReflectDamage = null; // 💥 반사 효과도 제거
-        OnBeforeTakeDamage = null;
 
         if (skillData != null && skillData.effects != null)
         {

@@ -23,7 +23,6 @@ public class SkillExecutor
         { UnitSkillType.Silence, new SilenceSkill()},
         { UnitSkillType.CriticalStrike, new CriticalStrikeSkill()},
         { UnitSkillType.HeatReactiveMark, new HeatReactiveMarkSkill()},
-        { UnitSkillType.HeavyStrikeAndSlow, new HeavyStrikeAndSlowSkill()},
         
         // 추가 스킬은 여기에 등록
     };

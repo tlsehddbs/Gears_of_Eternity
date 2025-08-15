@@ -656,7 +656,7 @@ public class HeatReactiveMarkSkill : ISkillBehavior
                 target.OnBeforeTakeDamage -= Amplify; //변경: 누수/영구버프 방지
         }
         // try / finally //try 블록:이 구간을 실행해보고 finally 블록:어떻게 끝나든(정상 종료, return, break, throw 예외) 마지막에 무조건 이 정리 코드를 실행해라
-        // 정리코드를 반드시 실행시키는 안전 장치 역할
+        // 정리코드를 반드시 실행시키는 안전 장치 역힐
 
         if (caster == null || target == null || !target.IsAlive())
             yield break;

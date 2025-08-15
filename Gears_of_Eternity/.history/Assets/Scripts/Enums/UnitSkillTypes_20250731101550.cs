@@ -66,11 +66,10 @@ namespace UnitSkillTypes.Enums
         RevealStealth,             // 은신 해제
         TeleportReset,             // 위치 되돌림
 
-        // 새로운 스킬들 중간에 껴 넣으면 설정해둔게 밀림 방지
-        PassiveAreaBuff,           //방어력 공유 //기어 공명기
+        // 새로운 스킬들 중간에 껴 넣으면 설정해둔게 밀림.. 
+        PassiveAreaBuff,          //방어력 공유 //기어 공명기
         AttackSpeedUp,             //공속 증가 버프 //자동 발사기
         CriticalStrike,            //지정 대상에게 치명타 + 공격력 +60%의 피해 //초정밀 저격수
-        HeatReactiveMark,          // 체력 최상위 적에 표식 → 폭발 // 열선 추적자
-        HeavyStrikeAndSlow,        //가장 가까운 적 150% 피해 + 명중 시 5초간 이동속도 30% 감소 //스팀 저격병
+        
     }
 }

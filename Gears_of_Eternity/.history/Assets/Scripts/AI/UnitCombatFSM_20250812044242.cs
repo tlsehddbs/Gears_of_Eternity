@@ -53,7 +53,7 @@ public partial class UnitCombatFSM : MonoBehaviour
 
     public Action<float, UnitCombatFSM> OnReflectDamage;
 
-    public delegate void BeforeTakeDamageHandler(ref float damage, UnitCombatFSM attacker); //ref float damage: 실제 적용될 피해값을 수정할 수 있도록 참조 전달
+    public delegate void BeforeTakeDamageHandler(ref float damage, UnitCombatFSM attacker);
     public event BeforeTakeDamageHandler OnBeforeTakeDamage;
 
 
@@ -81,7 +81,6 @@ public partial class UnitCombatFSM : MonoBehaviour
     {
         RemovePassiveEffects(); // 패시브 해제
         OnReflectDamage = null; // 💥 반사 효과도 제거
-        OnBeforeTakeDamage = null;
 
         if (skillData != null && skillData.effects != null)
         {
@@ -211,9 +210,6 @@ public partial class UnitCombatFSM : MonoBehaviour
         float reductionFactor = Mathf.Clamp01(1.0f - stats.damageReduction);
         float effectiveDamage = damage * (100f / (100f + stats.defense));
         effectiveDamage *= reductionFactor;
-
-        //받는 피해 수정 훅 (표식 등)
-        OnBeforeTakeDamage?.Invoke(ref effectiveDamage, attacker);
 
 
         // 방어막 우선 차감 

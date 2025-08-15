@@ -23,7 +23,6 @@ public class SkillExecutor
         { UnitSkillType.Silence, new SilenceSkill()},
         { UnitSkillType.CriticalStrike, new CriticalStrikeSkill()},
         { UnitSkillType.HeatReactiveMark, new HeatReactiveMarkSkill()},
-        { UnitSkillType.HeavyStrikeAndSlow, new HeavyStrikeAndSlowSkill()},
         
         // 추가 스킬은 여기에 등록
     };
@@ -69,31 +68,17 @@ public class SkillExecutor
             var target = behavior.FindTarget(caster, effect);
             if (target == null) continue;
 
-            if (effect.skillRange <= 0f || target == caster)
-            {
-                behavior.Execute(caster, target, effect);
-                caster.skillTimer = 0f;
-                return true;
-            }
-
-            float dist = Vector3.Distance(caster.transform.position, target.transform.position);
-            float range = effect.skillRange;
 
 
-            // 사거리 밖이면 이동만 준비
-            if (dist > range)
-            {
-                if (target.unitData.faction == caster.unitData.faction)
-                {
-                    caster.targetAlly = target;
-                }
-                else
-                {
-                    caster.targetEnemy = target;
-                }
-                return true;
-            }
-            // 사거리 안이면 즉시 시전
+
+
+
+
+
+
+
+            
+
             behavior.Execute(caster, target, effect);
             caster.skillTimer = 0f;
             return true;

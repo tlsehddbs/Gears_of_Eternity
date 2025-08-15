@@ -601,12 +601,13 @@ public class CriticalStrikeSkill : ISkillBehavior
 // 체력 최상위 적에 표식 → 폭발 // 열선 추적자
 public class HeatReactiveMarkSkill : ISkillBehavior
 {
-    private const float MarkDuration = 6f;
+    private const float DefaultMarkDuration = 6f;
     private const float DamageAmp = 0.15f;    // +15%
     private const float ExplosionRatio = 1f;  // 폭발 시 본체 100%
-    private const float ExplosionAoE = 0.5f;      // 주변 50%
-    private const float AoERadius = 8f;
+    private const float AoERatio = 0.5f;      // 주변 50%
+    private const float AoERadius = 40f;
 
+    private static readonly int UnitMask = ~0;  //레이어 관련
     public bool ShouldTrigger(UnitCombatFSM caster, SkillEffect effect)
     {
         if (caster == null || effect == null) return false;
@@ -634,33 +635,18 @@ public class HeatReactiveMarkSkill : ISkillBehavior
 
     public void Remove(UnitCombatFSM caster, SkillEffect effect) { }
 
-    private IEnumerator ApplyMarkAndExplode(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
+    private IEnumerator ApplyMarkAndExplode(UnitCombatFSM caster, UnitCombatFSM target, float markDuration)
     {
 
         //표식 적용
         void Amplify(ref float dmg, UnitCombatFSM atk) { dmg *= (1f + DamageAmp); }
-        if (target != null)
-            target.OnBeforeTakeDamage += Amplify;
+        target.OnBeforeTakeDamage += Amplify;
 
         Debug.Log($"[HeatMark] {target.name} 표식 시작 ({MarkDuration}s, 피해 +{DamageAmp * 100f}%)");
-
+        yield return new WaitForSeconds(MarkDuration);
 
         //표식 해제
-        try                                       
-        {
-            yield return new WaitForSeconds(MarkDuration);
-        }
-        finally
-        {
-            if (target != null)
-                target.OnBeforeTakeDamage -= Amplify; //변경: 누수/영구버프 방지
-        }
-        // try / finally //try 블록:이 구간을 실행해보고 finally 블록:어떻게 끝나든(정상 종료, return, break, throw 예외) 마지막에 무조건 이 정리 코드를 실행해라
-        // 정리코드를 반드시 실행시키는 안전 장치 역할
-
-        if (caster == null || target == null || !target.IsAlive())
-            yield break;
-
+        target.OnBeforeTakeDamage -= Amplify;
         Debug.Log($"[HeatMark] {target.name} 표식 종료 → 폭발");
 
         //폭발: 본체 고정 피해(100%)
@@ -668,91 +654,19 @@ public class HeatReactiveMarkSkill : ISkillBehavior
         target.TakeDamage(baseAtk * ExplosionRatio, caster);
         Debug.Log($"[HeatMark] {target.name} 본체 폭발: {baseAtk * ExplosionRatio:F1} 피해");
 
-        //폭발: 주변 적에게 데미지
-        ApplyAoEAroundTarget(caster, target, baseAtk, AoERadius); // 본체 제외 로직 포함
+        var others = FindAllEnemies().Where(e => e.IsAlive() && Vector3.Distance(e.transform.position, target.transform.position) <= AoERadius);
 
-        // var others = FindAllEnemies(caster).Where(e => e.IsAlive() && Vector3.Distance(e.transform.position, target.transform.position) <= AoERadius);
-
-        // foreach (var enemy in others)
-        // {
-        //     enemy.TakeDamage(baseAtk * AoERatio, caster);
-        //     Debug.Log($"[HeatMark] {enemy.name} 주변 폭발: {baseAtk * AoERatio:F1} 피해");
-        // }
-    }
-
-    private void ApplyAoEAroundTarget(UnitCombatFSM caster, UnitCombatFSM center, float baseAtk, float radius)
-    {
-        if (caster == null || center == null) return;
-
-        // refUnit은 'caster'를 넣어야 적군만 반환
-        // (target을 넣으면 target의 적 = caster 편 = 아군이 리턴되는 설계가 되니 주의)
-        var enemies = FindAllEnemies(caster);
-
-        foreach (var enemy in enemies)
+        foreach (var enemy in others)
         {
-            if (enemy == null || !enemy.IsAlive()) continue;
-
-            // 본체는 AoE 대상에서 제외 (100% 피해를 이미 받았기 때문)
-            if (enemy == center) continue;
-
-            // 중심거리 판정 (제곱 비교로 sqrt 비용 절감)
-            float sqrDist = (enemy.transform.position - center.transform.position).sqrMagnitude;
-            if (sqrDist <= radius * radius)
-            {
-                enemy.TakeDamage(baseAtk * ExplosionAoE, caster);
-                Debug.Log($"[HeatMark AoE] {enemy.name} 주변 폭발: {(baseAtk * ExplosionAoE):F1} 피해");
-            }
+            enemy.TakeDamage(baseAtk * AoERatio, caster);
+            Debug.Log($"[HeatMark] {enemy.name} 주변 폭발: {baseAtk * AoERatio:F1} 피해");
         }
     }
 
-    private static IEnumerable<UnitCombatFSM> FindAllEnemies(UnitCombatFSM refUnit)
+    private IEnumerable<UnitCombatFSM> FindAllEnemies()
     {
-        return GameObject.FindObjectsByType<UnitCombatFSM>(FindObjectsSortMode.None).Where(u => u.IsAlive() && u.unitData.faction != refUnit.unitData.faction);
+        return GameObject.FindObjectsByType<UnitCombatFSM>(FindObjectsSortMode.None).Where(u => u.IsAlive() && u.unitData.faction != u.unitData.faction);
     }
-
-}
-
-public class HeavyStrikeAndSlowSkill : ISkillBehavior
-{
-    private const float SlowPercent = -0.30f;    // -30% (음수)
-    private const float SlowDuration = 5f;       // 5초
-
-    public bool ShouldTrigger(UnitCombatFSM caster, SkillEffect effect)
-    {
-        if (caster == null || effect == null) return false;
-        if (!caster.CanUseSkill()) return false;
-
-        return FindTarget(caster, effect) != null;
-    }
-    public UnitCombatFSM FindTarget(UnitCombatFSM caster, SkillEffect effect)
-    {
-        if (caster == null || effect == null) return null;
-
-        // 사거리 0이면 의미가 없으니, 반드시 에셋에서 유효 사거리 설정 필요
-        var enemies = caster.FindEnemiesInRange(effect.skillRange);
-        if (enemies == null || enemies.Count == 0) return null;
-
-        // 가장 가까운 적
-        return enemies
-            .OrderBy(e => Vector3.SqrMagnitude(e.transform.position - caster.transform.position)) // OrderBy(제곱거리) → 제곱거리가 작은 순으로 전체 목록을 정렬(O(n log n)) //Vector3.SqrMagnitude(Δ) → Δ의 길이의 제곱(제곱거리).
-            .FirstOrDefault();
-    }
-
-    public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
-    {
-        if (caster == null || target == null || !target.IsAlive()) return;
-
-        //피해 적용(150%)
-        float dmg = caster.stats.attack * effect.skillValue;
-        target.TakeDamage(dmg, caster);
-        Debug.Log($"[HeavyStrikeAndSlow] {caster.name} → {target.name} : {dmg:F1} (150%)");
-
-        //명중 시 슬로우(이동속도 30% 감소, 5초) - 퍼센트 버프로 음수값 전달
-        target.ApplyBuff(BuffStat.MoveSpeed, SlowPercent, SlowDuration, isPercent: true);
-        Debug.Log($"[HeavyStrikeAndSlow] {target.name} : MoveSpeed {SlowPercent * -100f:F0}% ↓ ({SlowDuration:F1}s)");
-    }
-
-    public void Remove(UnitCombatFSM caster, SkillEffect effect){}
 }
 
 
