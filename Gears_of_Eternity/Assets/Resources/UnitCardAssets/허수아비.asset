@@ -21,7 +21,7 @@ MonoBehaviour:
   unitName: "\uD5C8\uC218\uC544\uBE44"
   battleType: 0
   unitPrefab: {fileID: 0}
-  health: 500
+  health: 1000
   defense: 0
   moveSpeed: 2.2
   attack: 10

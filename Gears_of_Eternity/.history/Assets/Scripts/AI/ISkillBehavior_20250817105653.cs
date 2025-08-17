@@ -756,7 +756,7 @@ public class HeavyStrikeAndSlowSkill : ISkillBehavior
     public void Remove(UnitCombatFSM caster, SkillEffect effect){}
 }
 
-// 맵 전역: 가장 먼 적에게 1초 간격 원형 AoE 2회(각 80%)
+// 맵 전역: 가장 먼 적에게 1초 간격 원형 AoE 2회(각 160%)
 public class FarthestDoubleAoeSkill : ISkillBehavior
 {
     //데미지는 SKillValue, 원형 범위는 SkillRange

@@ -756,12 +756,12 @@ public class HeavyStrikeAndSlowSkill : ISkillBehavior
     public void Remove(UnitCombatFSM caster, SkillEffect effect){}
 }
 
-// 맵 전역: 가장 먼 적에게 1초 간격 원형 AoE 2회(각 80%)
+// 맵 전역: 가장 먼 적에게 1초 간격 원형 AoE 2회(각 160%)
 public class FarthestDoubleAoeSkill : ISkillBehavior
 {
     //데미지는 SKillValue, 원형 범위는 SkillRange
-    private const float ShotInterval = 1.0f;     // 두 발 사이 간격(게임 시간 기준)
-    private const float AoERadius = 8.0f;
+    private const float ShotInterval = 2.0f;     // 두 발 사이 간격(게임 시간 기준)
+    private const float AoERadius = 5.0f;
     public bool ShouldTrigger(UnitCombatFSM caster, SkillEffect effect)
     {
         if (caster == null || effect == null) return false;

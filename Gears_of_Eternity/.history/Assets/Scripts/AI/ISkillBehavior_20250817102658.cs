@@ -756,12 +756,12 @@ public class HeavyStrikeAndSlowSkill : ISkillBehavior
     public void Remove(UnitCombatFSM caster, SkillEffect effect){}
 }
 
-// 맵 전역: 가장 먼 적에게 1초 간격 원형 AoE 2회(각 80%)
+// 맵 전역: 가장 먼 적에게 1초 간격 원형 AoE 2회(각 160%)
 public class FarthestDoubleAoeSkill : ISkillBehavior
 {
-    //데미지는 SKillValue, 원형 범위는 SkillRange
+    private const float DamageMultiplier = 1.6f; // 각 타격당 160%
     private const float ShotInterval = 1.0f;     // 두 발 사이 간격(게임 시간 기준)
-    private const float AoERadius = 8.0f;
+    private const float DefaultRadius = 2.0f;    // effect.skillValue 미설정 시 기본 반경
     public bool ShouldTrigger(UnitCombatFSM caster, SkillEffect effect)
     {
         if (caster == null || effect == null) return false;
@@ -781,73 +781,6 @@ public class FarthestDoubleAoeSkill : ISkillBehavior
         if (caster == null || target == null || !target.IsAlive()) return;
 
         caster.StartCoroutine(DoDoubleAoe(caster, target, effect));
-    }
-
-    public void Remove(UnitCombatFSM caster, SkillEffect effect) { }
-
-    private IEnumerator DoDoubleAoe(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
-    {
-        for (int i = 0; i < 2; i++)
-        {
-            //가장 먼 적에게 2회 날림, 최초 타깃 기준 죽었으면 재탐색
-            var firstTarget = (target != null && target.IsAlive()) ? target : FindTarget(caster, effect);
-
-            if (firstTarget == null) yield break;
-
-            // 타격 시점의 타깃 현재 위치를 중심으로 원형AoE
-            Vector3 center = firstTarget.transform.position;
-            float damage = caster.stats.attack * effect.skillValue;
-
-            ApplyAoeDamage(caster, center, AoERadius, damage);
-
-            yield return new WaitForSeconds(ShotInterval);
-        }
-    }
-
-    private void ApplyAoeDamage(UnitCombatFSM caster, Vector3 center, float radius, float damage)
-    {
-        var cols = Physics.OverlapSphere(center, radius, ~0);
-        var hit = new HashSet<UnitCombatFSM>();
-
-        if (cols != null && cols.Length > 0)
-        {
-            foreach (var col in cols)
-            {
-                var enemy = col.GetComponentInParent<UnitCombatFSM>();
-                if (!IsValidEnemy(enemy, caster)) continue;
-
-                if ((enemy.transform.position - center).sqrMagnitude <= radius * radius)
-                {
-                    if (hit.Add(enemy))
-                    {
-                        enemy.TakeDamage(damage, caster);
-                        Debug.Log($"[FarthestDoubleAoe] {enemy.name} AoE {damage:F1}");
-                    }
-                }
-            }
-        }
-        else
-        {
-            // 콜라이더/레이어 문제 시 폴백
-            var all = GameObject.FindObjectsByType<UnitCombatFSM>(FindObjectsSortMode.None);
-            foreach (var enemy in all)
-            {
-                if (!IsValidEnemy(enemy, caster)) continue;
-                if ((enemy.transform.position - center).sqrMagnitude <= radius * radius)
-                {
-                    if (hit.Add(enemy))
-                    {
-                        enemy.TakeDamage(damage, caster);
-                        Debug.Log($"[FarthestDoubleAoe-Fallback] {enemy.name} AoE {damage:F1}");
-                    }
-                }
-            }
-        }
-    }
-    
-    private static bool IsValidEnemy(UnitCombatFSM u, UnitCombatFSM caster)
-    {
-        return u != null && u.IsAlive() && u.unitData.faction != caster.unitData.faction;
     }
 }
 
