@@ -74,7 +74,6 @@ namespace UnitSkillTypes.Enums
         HeavyStrikeAndSlow,        //가장 가까운 적 150% 피해 + 명중 시 5초간 이동속도 30% 감소 //스팀 저격병
         FarthestDoubleAoe,         // 맵 전역: 가장 먼 적에게 1초 간격 원형 AoE 2회(각 160%)    //연산 포격수
         PassiveTurretBarrage,      // 고정 포탑: 3초마다 근접 적 AoE(280%) + 사망 시 자폭(400%) // 기어 포탑병
-        QuadFlurryBlind,           // 4연속(각 60%), 4타 명중 시 2초 실명, 쿨타임 7초 //연속 발사기
 
     }
 }

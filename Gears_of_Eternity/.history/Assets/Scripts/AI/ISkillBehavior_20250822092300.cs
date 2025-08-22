@@ -1029,94 +1029,9 @@ public class SilenceSkill : ISkillBehavior
     public void Remove(UnitCombatFSM caster, SkillEffect effect) { }
 }
 
-// 4연속(각 60%), 4타 명중 시 2초 실명, 쿨타임 7초 //연속 발사기
-public class QuadFlurryBlindSkill : ISkillBehavior
-{
-    private const int HitCount = 4;
-    private const float TotalWindowSec = 1.0f;    // 1초 안에 4타
-    private const float Epsilon = 0.0001f; // 안전용
-
-
-    public bool ShouldTrigger(UnitCombatFSM caster, SkillEffect effect)
-    {
-        if (caster == null || effect == null) return false;
-        if (!caster.CanUseSkill()) return false;
-
-        return FindTarget(caster, effect) != null;
-    }
-
-
-    public UnitCombatFSM FindTarget(UnitCombatFSM caster, SkillEffect effect)
-    {
-        if (caster == null) return null;
-        var enemies = caster.FindEnemiesInRange(effect.skillRange);
-        return TargetingUtil.FindNearestFromList(caster, enemies, enemyOnly: true, aliveOnly: true, xzOnly: true);
-    }
-
-
-    public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
-    {
-        if (caster == null || target == null || !target.IsAlive()) return;
-        caster.StartCoroutine(CoFlurry(caster, target, effect));
-    }
-
-    public void Remove(UnitCombatFSM caster, SkillEffect effect) { }
-
-
-    private IEnumerator CoFlurry(UnitCombatFSM caster, UnitCombatFSM initialTarget, SkillEffect effect)
-    {
-        // 1초 안에 4타를 누적: 간격 1/3초씩 3번 대기하면 0s, 0.333s, 0.666s, 0.999s 타격
-        float waitBetween = TotalWindowSec / (HitCount - 1 + Epsilon);
-
-        UnitCombatFSM target = initialTarget;
-        for (int i = 0; i < HitCount; i++)
-        {
-            // 타격 순간마다 대상이 죽었으면 중단
-            if (caster == null || target == null || !caster.IsAlive() || !target.IsAlive())
-                yield break;
-
-            // 단일 타겟 직격
-            float damage = caster.stats.attack * effect.skillValue;
-            target.TakeDamage(damage, caster);
-            Debug.Log($"[QuadFlurryBlind] {caster.name} → {target.name} : hit {i+1}/{HitCount}, {damage:F1}");
-
-            // 마지막 타격: 실명 부여
-            if (i == HitCount - 1)
-            {
-                if (target.blind != null)
-                {
-                    target.blind.Apply(effect.skillDuration);
-                    Debug.Log($"[QuadFlurryBlind] {target.name} BLIND for {effect.skillDuration:F2}s");
-                }
-            }
-
-            // 다음 타격까지 대기 (마지막 타는 대기 없음)
-            if (i < HitCount - 1)
-                yield return new WaitForSeconds(waitBetween);
-        }
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // --------------------------------------------  스킬 부가 효과들 ----------------------------------------
 
-/// <summary>
-/// BleedSystem
-/// - 역할: 출혈 로직 통합 관리
-/// - 효과: 현재 체력 비례로 10% 데미지 최대 3중첩(중첩당 출혈 효과 1초 증가)
-/// </summary>
+//출혈 로직 /현재 체력 비례 /최대 중첩3(중첩당 1초 증가)
 public static class BleedSystem
 {
     private class BleedStatus
@@ -1167,11 +1082,7 @@ public static class BleedSystem
         activeBleeds.Remove(target);
     }
 }
-/// <summary>
-/// SilenceSystem
-/// - 역할: 침묵 상태를 통합 관리
-/// - 효과: 침묵 중에는 유닛 스킬 사용 불가
-/// </summary>
+//침묵 로직 
 public static class SilenceSystem
 {
     private static readonly Dictionary<UnitCombatFSM, Coroutine> activeSilences = new();
@@ -1199,9 +1110,9 @@ public static class SilenceSystem
 
 /// <summary>
 /// BlindSystem
-/// - 역할: 실명 상태를 통합 관리 (적용, 지속, 해제, 남은 시간, 이벤트)
+/// - 역할: '실명' 상태를 통합 관리 (적용, 지속, 해제, 남은 시간, 이벤트)
 /// - 효과: 실명 중엔 UnitCombatFSM.Attack()이 모두 MISS 처리됨(Attack()에서 가드)
-/// - blind.Apply(duration)
+/// - 재활용: 다른 스킬에서도 언제든 blind.Apply(duration)으로 동일 효과 적용 가능
 /// </summary>
 [DisallowMultipleComponent]
 public class BlindSystem : MonoBehaviour

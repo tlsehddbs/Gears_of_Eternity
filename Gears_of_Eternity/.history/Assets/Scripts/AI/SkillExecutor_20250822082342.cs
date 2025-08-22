@@ -25,8 +25,7 @@ public class SkillExecutor
         { UnitSkillType.HeatReactiveMark, new HeatReactiveMarkSkill()},
         { UnitSkillType.HeavyStrikeAndSlow, new HeavyStrikeAndSlowSkill()},
         { UnitSkillType.FarthestDoubleAoe, new FarthestDoubleAoeSkill()},
-        { UnitSkillType.PassiveTurretBarrage, new PassiveTurretBarrageSkill()},
-        { UnitSkillType.QuadFlurryBlind, new QuadFlurryBlindSkill()},
+        { UnitCombatFSM.PassiveTurretBarrage, new PassiveAreaBuffSkill()},
         // 추가 스킬은 여기에 등록
     };
 

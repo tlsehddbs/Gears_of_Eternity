@@ -15,15 +15,13 @@ public class AttackState : UnitState
             return;
         }
 
-        //평타 비활성화면 Idle 상태로
         if (unit.disableBasicAttack)
         {
             unit.ChangeState(new IdleState(unit));
             return;
         }
-        
         // 범위 밖이면 다시 이동 
-        float dist = Vector3.Distance(unit.transform.position, unit.targetEnemy.transform.position);
+            float dist = Vector3.Distance(unit.transform.position, unit.targetEnemy.transform.position);
         if (dist > unit.agent.stoppingDistance + 0.05f)
         {
             unit.ChangeState(new MoveState(unit, false));

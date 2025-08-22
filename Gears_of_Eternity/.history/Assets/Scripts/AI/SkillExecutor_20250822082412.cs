@@ -26,7 +26,6 @@ public class SkillExecutor
         { UnitSkillType.HeavyStrikeAndSlow, new HeavyStrikeAndSlowSkill()},
         { UnitSkillType.FarthestDoubleAoe, new FarthestDoubleAoeSkill()},
         { UnitSkillType.PassiveTurretBarrage, new PassiveTurretBarrageSkill()},
-        { UnitSkillType.QuadFlurryBlind, new QuadFlurryBlindSkill()},
         // 추가 스킬은 여기에 등록
     };
 

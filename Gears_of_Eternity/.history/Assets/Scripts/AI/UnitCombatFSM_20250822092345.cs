@@ -62,8 +62,6 @@ public partial class UnitCombatFSM : MonoBehaviour
     void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
-        blind = GetComponent<BlindSystem>();
-        if (blind == null) blind = gameObject.AddComponent<BlindSystem>();
     }
     void Start()
     {
@@ -188,7 +186,7 @@ public partial class UnitCombatFSM : MonoBehaviour
         //평타 비활성화면 공격 로직X
         if (disableBasicAttack) return;
 
-        if (blind != null && blind.IsBlinded)
+        if (isBlinded)
         {
             Debug.Log($"[Blind] {name} is blinded → Basic attack MISS");
             // TODO: MISS 팝업/사운드가 있다면 여기서 트리거

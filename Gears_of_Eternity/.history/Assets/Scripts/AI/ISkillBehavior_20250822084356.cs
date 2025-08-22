@@ -1,8 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
-using System;
 
 
 public interface ISkillBehavior
@@ -857,8 +857,8 @@ public class PassiveTurretBarrageSkill : ISkillBehavior
 {
     private const float FireIntervalSec = 3.0f; // 3초마다 발사
     private const float DeathMultiplier = 4.0f;  // 자폭 데미지
-    private const float DefaultRadius = 9f;  // AoE 기본 반경
-    private const float DefaultDeathRad = 10.0f;  // 자폭 기본 반경
+    private const float DefaultRadius = 8f;  // AoE 기본 반경
+    private const float DefaultDeathRad = 9.0f;  // 자폭 기본 반경
 
     private static readonly Dictionary<UnitCombatFSM, Coroutine> running = new();
     public bool ShouldTrigger(UnitCombatFSM caster, SkillEffect effect)
@@ -884,17 +884,7 @@ public class PassiveTurretBarrageSkill : ISkillBehavior
     // 패시브 제거 없음
     public void Remove(UnitCombatFSM caster, SkillEffect effect)
     {
-        if (caster == null) return;
-
-        // ★ OnDeath → Remove 호출 시점에 자폭 실행(파괴되기 전)
-        //    혹시 다른 경로로 Remove가 불릴 수 있으면 '사망일 때만' 자폭
-        if (!caster.IsAlive())
-        {
-            SelfDestruct(caster, DefaultDeathRad);
-        }
-
-        // 코루틴 정리
-        if (running.TryGetValue(caster, out var co))
+        if (caster != null && running.TryGetValue(caster, out var co))
         {
             caster.StopCoroutine(co);
             running.Remove(caster);
@@ -910,10 +900,13 @@ public class PassiveTurretBarrageSkill : ISkillBehavior
         {
             // 사망 감지 → 즉시 자폭하고 종료
             if (!caster.IsAlive())
+            {
+                SelfDestruct(caster, DefaultDeathRad);
                 break;
+            }
 
             // 3초마다 발사
-                fireTimer += Time.deltaTime;
+            fireTimer += Time.deltaTime;
             if (fireTimer >= FireIntervalSec)
             {
                 fireTimer = 0f;
@@ -931,12 +924,12 @@ public class PassiveTurretBarrageSkill : ISkillBehavior
         if (running.ContainsKey(caster)) running.Remove(caster);
     }
 
-    // 1회 발사: 가장 가까운 적의 현재 위치에 
+    // 1회 발사: '가장 가까운 적'의 현재 위치에 AoE 1번
     private void FireOnce(UnitCombatFSM caster, SkillEffect effect, float radius)
     {
         if (caster == null || !caster.IsAlive()) return;
 
-        // 맵 전역에서 가장 가까운 적
+        // 맵 전역에서 가장 가까운 '적'
         var target = TargetingUtil.FindNearestEnemyGlobal(caster, aliveOnly: true, xzOnly: true);
         if (target == null) return;
 
@@ -947,7 +940,7 @@ public class PassiveTurretBarrageSkill : ISkillBehavior
         Debug.Log($"[PassiveTurret] {caster.name} → {target.name} AoE {damage:F1} (r={radius:F1})");
     }
 
-    // 자폭: 자기 중심 원형 AoE로 400% 피해
+    // 자폭: '자기 중심' 원형 AoE로 400% 피해
     private void SelfDestruct(UnitCombatFSM caster, float radius)
     {
         if (caster == null) return;
@@ -1002,6 +995,9 @@ public class PassiveTurretBarrageSkill : ISkillBehavior
 }
 
 
+// --------------------------------------------  스킬 부가 효과들 ----------------------------------------
+
+
 //침묵 스킬 //기계 교란수
 public class SilenceSkill : ISkillBehavior
 {
@@ -1029,94 +1025,7 @@ public class SilenceSkill : ISkillBehavior
     public void Remove(UnitCombatFSM caster, SkillEffect effect) { }
 }
 
-// 4연속(각 60%), 4타 명중 시 2초 실명, 쿨타임 7초 //연속 발사기
-public class QuadFlurryBlindSkill : ISkillBehavior
-{
-    private const int HitCount = 4;
-    private const float TotalWindowSec = 1.0f;    // 1초 안에 4타
-    private const float Epsilon = 0.0001f; // 안전용
-
-
-    public bool ShouldTrigger(UnitCombatFSM caster, SkillEffect effect)
-    {
-        if (caster == null || effect == null) return false;
-        if (!caster.CanUseSkill()) return false;
-
-        return FindTarget(caster, effect) != null;
-    }
-
-
-    public UnitCombatFSM FindTarget(UnitCombatFSM caster, SkillEffect effect)
-    {
-        if (caster == null) return null;
-        var enemies = caster.FindEnemiesInRange(effect.skillRange);
-        return TargetingUtil.FindNearestFromList(caster, enemies, enemyOnly: true, aliveOnly: true, xzOnly: true);
-    }
-
-
-    public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
-    {
-        if (caster == null || target == null || !target.IsAlive()) return;
-        caster.StartCoroutine(CoFlurry(caster, target, effect));
-    }
-
-    public void Remove(UnitCombatFSM caster, SkillEffect effect) { }
-
-
-    private IEnumerator CoFlurry(UnitCombatFSM caster, UnitCombatFSM initialTarget, SkillEffect effect)
-    {
-        // 1초 안에 4타를 누적: 간격 1/3초씩 3번 대기하면 0s, 0.333s, 0.666s, 0.999s 타격
-        float waitBetween = TotalWindowSec / (HitCount - 1 + Epsilon);
-
-        UnitCombatFSM target = initialTarget;
-        for (int i = 0; i < HitCount; i++)
-        {
-            // 타격 순간마다 대상이 죽었으면 중단
-            if (caster == null || target == null || !caster.IsAlive() || !target.IsAlive())
-                yield break;
-
-            // 단일 타겟 직격
-            float damage = caster.stats.attack * effect.skillValue;
-            target.TakeDamage(damage, caster);
-            Debug.Log($"[QuadFlurryBlind] {caster.name} → {target.name} : hit {i+1}/{HitCount}, {damage:F1}");
-
-            // 마지막 타격: 실명 부여
-            if (i == HitCount - 1)
-            {
-                if (target.blind != null)
-                {
-                    target.blind.Apply(effect.skillDuration);
-                    Debug.Log($"[QuadFlurryBlind] {target.name} BLIND for {effect.skillDuration:F2}s");
-                }
-            }
-
-            // 다음 타격까지 대기 (마지막 타는 대기 없음)
-            if (i < HitCount - 1)
-                yield return new WaitForSeconds(waitBetween);
-        }
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// --------------------------------------------  스킬 부가 효과들 ----------------------------------------
-
-/// <summary>
-/// BleedSystem
-/// - 역할: 출혈 로직 통합 관리
-/// - 효과: 현재 체력 비례로 10% 데미지 최대 3중첩(중첩당 출혈 효과 1초 증가)
-/// </summary>
+//출혈 로직 /현재 체력 비례 /최대 중첩3(중첩당 1초 증가)
 public static class BleedSystem
 {
     private class BleedStatus
@@ -1167,11 +1076,7 @@ public static class BleedSystem
         activeBleeds.Remove(target);
     }
 }
-/// <summary>
-/// SilenceSystem
-/// - 역할: 침묵 상태를 통합 관리
-/// - 효과: 침묵 중에는 유닛 스킬 사용 불가
-/// </summary>
+//침묵 로직 
 public static class SilenceSystem
 {
     private static readonly Dictionary<UnitCombatFSM, Coroutine> activeSilences = new();
@@ -1195,98 +1100,3 @@ public static class SilenceSystem
         activeSilences.Remove(target);
     }
 }
-
-
-/// <summary>
-/// BlindSystem
-/// - 역할: 실명 상태를 통합 관리 (적용, 지속, 해제, 남은 시간, 이벤트)
-/// - 효과: 실명 중엔 UnitCombatFSM.Attack()이 모두 MISS 처리됨(Attack()에서 가드)
-/// - blind.Apply(duration)
-/// </summary>
-[DisallowMultipleComponent]
-public class BlindSystem : MonoBehaviour
-{
-    public enum StackPolicy
-    {
-        Refresh,    // 새로 적용 시 지속시간 갱신(덮어쓰기)  ← 기본
-        Extend,     // 새로 적용 시 지속시간 누적(최대 상한 적용)
-    }
-
-    [Header("Blind Settings")]
-    [SerializeField] private StackPolicy stackPolicy = StackPolicy.Refresh;
-    [SerializeField] private float maxDurationCap = 10f; // Extend일 때 누적 상한(원하면 0으로 꺼도 됨)
-
-    public bool IsBlinded => _isBlinded;
-    public float Remaining => _remaining;
-
-    public event Action<bool> OnBlindStateChanged; // 인게임 UI/아이콘 갱신용
-
-    private bool _isBlinded;
-    private float _remaining;
-    private Coroutine _co;
-
-    /// <summary>
-    /// 실명 적용. duration초 동안 블라인드 유지(정책에 따라 새 적용 시 갱신/누적).
-    /// </summary>
-    public void Apply(float durationSeconds)
-    {
-        if (durationSeconds <= 0f) return;
-
-        if (_isBlinded)
-        {
-            switch (stackPolicy)
-            {
-                case StackPolicy.Refresh:
-                    _remaining = durationSeconds;
-                    break;
-                case StackPolicy.Extend:
-                    _remaining += durationSeconds;
-                    if (maxDurationCap > 0f) _remaining = Mathf.Min(_remaining, maxDurationCap);
-                    break;
-            }
-        }
-        else
-        {
-            _isBlinded = true;
-            _remaining = durationSeconds;
-            OnBlindStateChanged?.Invoke(true);
-            _co = StartCoroutine(CoTick());
-        }
-    }
-
-    /// <summary>
-    /// 강제 해제(즉시).
-    /// </summary>
-    public void Clear()
-    {
-        if (_co != null) { StopCoroutine(_co); _co = null; }
-        if (_isBlinded)
-        {
-            _isBlinded = false;
-            _remaining = 0f;
-            OnBlindStateChanged?.Invoke(false);
-        }
-    }
-
-    private IEnumerator CoTick()
-    {
-        while (_remaining > 0f)
-        {
-            _remaining -= Time.deltaTime; // 게임 시간 기준(배속/슬로모 반영)
-            yield return null;
-        }
-        _co = null;
-        _isBlinded = false;
-        _remaining = 0f;
-        OnBlindStateChanged?.Invoke(false);
-    }
-
-    private void OnDisable()
-    {
-        // 오브젝트 비활성/파괴 시 안전 해제
-        if (_co != null) { StopCoroutine(_co); _co = null; }
-        _isBlinded = false;
-        _remaining = 0f;
-    }
-}
-

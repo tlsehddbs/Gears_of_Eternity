@@ -1033,6 +1033,7 @@ public class SilenceSkill : ISkillBehavior
 public class QuadFlurryBlindSkill : ISkillBehavior
 {
     private const int HitCount = 4;
+    private const float PerHitMul = 0.60f;   // 각 타격 60%
     private const float TotalWindowSec = 1.0f;    // 1초 안에 4타
     private const float Epsilon = 0.0001f; // 안전용
 
@@ -1044,56 +1045,13 @@ public class QuadFlurryBlindSkill : ISkillBehavior
 
         return FindTarget(caster, effect) != null;
     }
-
+    
 
     public UnitCombatFSM FindTarget(UnitCombatFSM caster, SkillEffect effect)
     {
         if (caster == null) return null;
         var enemies = caster.FindEnemiesInRange(effect.skillRange);
         return TargetingUtil.FindNearestFromList(caster, enemies, enemyOnly: true, aliveOnly: true, xzOnly: true);
-    }
-
-
-    public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
-    {
-        if (caster == null || target == null || !target.IsAlive()) return;
-        caster.StartCoroutine(CoFlurry(caster, target, effect));
-    }
-
-    public void Remove(UnitCombatFSM caster, SkillEffect effect) { }
-
-
-    private IEnumerator CoFlurry(UnitCombatFSM caster, UnitCombatFSM initialTarget, SkillEffect effect)
-    {
-        // 1초 안에 4타를 누적: 간격 1/3초씩 3번 대기하면 0s, 0.333s, 0.666s, 0.999s 타격
-        float waitBetween = TotalWindowSec / (HitCount - 1 + Epsilon);
-
-        UnitCombatFSM target = initialTarget;
-        for (int i = 0; i < HitCount; i++)
-        {
-            // 타격 순간마다 대상이 죽었으면 중단
-            if (caster == null || target == null || !caster.IsAlive() || !target.IsAlive())
-                yield break;
-
-            // 단일 타겟 직격
-            float damage = caster.stats.attack * effect.skillValue;
-            target.TakeDamage(damage, caster);
-            Debug.Log($"[QuadFlurryBlind] {caster.name} → {target.name} : hit {i+1}/{HitCount}, {damage:F1}");
-
-            // 마지막 타격: 실명 부여
-            if (i == HitCount - 1)
-            {
-                if (target.blind != null)
-                {
-                    target.blind.Apply(effect.skillDuration);
-                    Debug.Log($"[QuadFlurryBlind] {target.name} BLIND for {effect.skillDuration:F2}s");
-                }
-            }
-
-            // 다음 타격까지 대기 (마지막 타는 대기 없음)
-            if (i < HitCount - 1)
-                yield return new WaitForSeconds(waitBetween);
-        }
     }
 }
 

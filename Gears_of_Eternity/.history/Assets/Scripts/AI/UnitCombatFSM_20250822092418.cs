@@ -62,8 +62,6 @@ public partial class UnitCombatFSM : MonoBehaviour
     void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
-        blind = GetComponent<BlindSystem>();
-        if (blind == null) blind = gameObject.AddComponent<BlindSystem>();
     }
     void Start()
     {

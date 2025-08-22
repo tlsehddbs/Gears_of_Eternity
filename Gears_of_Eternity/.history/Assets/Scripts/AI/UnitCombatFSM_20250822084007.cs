@@ -34,7 +34,6 @@ public partial class UnitCombatFSM : MonoBehaviour
     public UnitCombatFSM targetEnemy; //현재 타겟 Enemy 
     [HideInInspector] public float attackTimer;
     [HideInInspector] public bool disableBasicAttack = false; //평타 비활성화
-    [HideInInspector] public BlindSystem blind;        // 실명 여부
     public float currentHP;
     public float criticalMultiplier = 1.5f;
     public float skillTimer = 0f; // 스킬 쿨다운 누적 
@@ -62,8 +61,6 @@ public partial class UnitCombatFSM : MonoBehaviour
     void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
-        blind = GetComponent<BlindSystem>();
-        if (blind == null) blind = gameObject.AddComponent<BlindSystem>();
     }
     void Start()
     {
@@ -185,16 +182,6 @@ public partial class UnitCombatFSM : MonoBehaviour
 
     public void Attack()
     {
-        //평타 비활성화면 공격 로직X
-        if (disableBasicAttack) return;
-
-        if (blind != null && blind.IsBlinded)
-        {
-            Debug.Log($"[Blind] {name} is blinded → Basic attack MISS");
-            // TODO: MISS 팝업/사운드가 있다면 여기서 트리거
-            return;
-        }
-
         if (targetEnemy == null || !targetEnemy.IsAlive()) return;
         float baseDamage = stats.attack;
         //치명타 판정 

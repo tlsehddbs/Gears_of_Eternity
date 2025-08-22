@@ -1033,6 +1033,7 @@ public class SilenceSkill : ISkillBehavior
 public class QuadFlurryBlindSkill : ISkillBehavior
 {
     private const int HitCount = 4;
+    private const float PerHitMul = 0.60f;   // 각 타격 60%
     private const float TotalWindowSec = 1.0f;    // 1초 안에 4타
     private const float Epsilon = 0.0001f; // 안전용
 
@@ -1083,10 +1084,11 @@ public class QuadFlurryBlindSkill : ISkillBehavior
             // 마지막 타격: 실명 부여
             if (i == HitCount - 1)
             {
+                float blindDur = (effect != null && effect.skillDuration > 0f) ? effect.skillDuration : 2f;
                 if (target.blind != null)
                 {
-                    target.blind.Apply(effect.skillDuration);
-                    Debug.Log($"[QuadFlurryBlind] {target.name} BLIND for {effect.skillDuration:F2}s");
+                    target.blind.Apply(blindDur);
+                    Debug.Log($"[QuadFlurryBlind] {target.name} BLIND for {blindDur:F2}s");
                 }
             }
 

@@ -1083,10 +1083,11 @@ public class QuadFlurryBlindSkill : ISkillBehavior
             // 마지막 타격: 실명 부여
             if (i == HitCount - 1)
             {
+                float blindDur = (effect != null && effect.skillDuration > 0f) ? effect.skillDuration : 2f;
                 if (target.blind != null)
                 {
-                    target.blind.Apply(effect.skillDuration);
-                    Debug.Log($"[QuadFlurryBlind] {target.name} BLIND for {effect.skillDuration:F2}s");
+                    target.blind.Apply(blindDur);
+                    Debug.Log($"[QuadFlurryBlind] {target.name} BLIND for {blindDur:F2}s");
                 }
             }
 
