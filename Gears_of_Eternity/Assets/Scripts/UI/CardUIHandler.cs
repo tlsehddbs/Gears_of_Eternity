@@ -8,15 +8,16 @@ public class CardUIHandler : MonoBehaviour
     public GameObject cardPrefab;
     public Transform handPanel;
     
-    public float radius = 300f;
-    public float angleRange = 20f; // 전체 호 각도
-    public float cardSpacingAngle = 10f;
+    //public float radius = 300f;
+    //public float angleRange = 20f; // 전체 호 각도
+    //public float cardSpacingAngle = 10f;
 
     public List<GameObject> cardInstances = new();
-
+    
+    // TODO: 로직별로 분류하여 필요한 부분만 소급 적용할 수 있도록 update 할 것
     public void RefreshHandUI(List<RuntimeUnitCard> hand)
     {
-        List<RuntimeUnitCard> newHand = hand;
+        // List<RuntimeUnitCard> newHand = hand;
         
         List<RuntimeUnitCard> currentCards = cardInstances
             .Select(card => card.GetComponent<CardSlotUI>().CardData)
@@ -25,14 +26,14 @@ public class CardUIHandler : MonoBehaviour
         // 제거된 카드 파악 및 제거
         for (int i = cardInstances.Count - 1; i >= 0; i--)
         {
-            var cardGO = cardInstances[i];
-            var cardData = cardGO.GetComponent<CardSlotUI>().CardData;
+            var cardIndex = cardInstances[i];
+            var cardData = cardIndex.GetComponent<CardSlotUI>().CardData;
             
             bool stillExists = hand.Any(c => c.uniqueId == cardData.uniqueId);
 
             if (!stillExists)
             {
-                Destroy(cardGO);
+                Destroy(cardIndex);
                 cardInstances.RemoveAt(i);
             }
         }
@@ -55,10 +56,10 @@ public class CardUIHandler : MonoBehaviour
         int count = cardInstances.Count;
 
         // 카드 개수에 따라 펼침 각도 조정
-        float spacingAngle = 15f; // 카드 사이 각도 간격
-        float angleRange = spacingAngle * (count - 1); // 전체 부채꼴 각도
+        float spacingAngle = 15f;                           // 카드 사이 각도 간격
+        float angleRange = spacingAngle * (count - 1);      // 전체 부채꼴 각도
         float startAngle = -angleRange / 2f;
-        float radius = Mathf.Lerp(300f, 500f, Mathf.InverseLerp(1f, 10f, count)); // 카드 수에 비례한 반지름
+        float radius = Mathf.Lerp(300f, 500f, Mathf.InverseLerp(1f, 10f, count));   // 반지름이 카드 수에 비례하도록  
 
         
         for (int i = 0; i < count; i++)
@@ -83,9 +84,9 @@ public class CardUIHandler : MonoBehaviour
             
             seq.AppendInterval(delay);
             seq.Append(card.transform.DOLocalMove(pos, 0.5f).SetEase(Ease.OutExpo));
-            seq.Join(card.transform.DOLocalRotate(Vector3.forward * limitedAngle, 0.5f).SetEase(Ease.OutQuad));
+            seq.Join(card.transform.DOLocalRotate(Vector3.forward * limitedAngle, 0.5f).SetEase(Ease.OutQuad));     // 각도 값을 변수로 저장해 파라미터로 넘길 수 있도록 수정
             
-            seq.OnComplete(() => cardHandler.UpdateOriginalTransform());
+            seq.OnComplete(() => cardHandler.UpdateOriginalTransform(pos));
             // card.transform.DOLocalMove(pos, 0.5f).SetEase(Ease.OutExpo);
             // card.transform.DOLocalRotate(Vector3.forward * limitedAngle, 0.5f).SetEase(Ease.OutQuad);
         }

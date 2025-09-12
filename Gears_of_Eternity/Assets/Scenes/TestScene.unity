@@ -226,6 +226,7 @@ MonoBehaviour:
   isDrawingCards: 0
   isDraggingCard: 0
   isHoveringCard: 0
+  isInteractable: 0
 --- !u!4 &174635832
 Transform:
   m_ObjectHideFlags: 0
@@ -1160,14 +1161,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1343686170}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8f0cc8ab795b943a6a1268c7fa777d30, type: 3}
+  m_Script: {fileID: 11500000, guid: ca36a06e606da0347a374d0bed259a59, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   cardPrefab: {fileID: 5956386748046458102, guid: a076b398882c24231b66ca716ba81181, type: 3}
-  handPanel: {fileID: 1343686171}
-  radius: 500
-  angleRange: 20
-  cardSpacingAngle: 10
+  handPanel: {fileID: 99358999}
   cardInstances: []
 --- !u!1 &1356918099
 GameObject:
@@ -1272,12 +1270,12 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1436266603}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: caca6f3d0ba6d4d199858bcbc00ebbfb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isBattleRunning: 0
+  isBattleRunning: 1
 --- !u!4 &1436266605
 Transform:
   m_ObjectHideFlags: 0

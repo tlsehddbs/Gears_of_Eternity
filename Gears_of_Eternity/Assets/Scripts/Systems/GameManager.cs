@@ -1,3 +1,5 @@
+using System;
+using NUnit.Framework.Constraints;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -7,6 +9,9 @@ public class GameManager : MonoBehaviour
     public bool isDrawingCards = false;
     public bool isDraggingCard = false;
     public bool isHoveringCard = false;
+    
+    public bool isInteractable = true;
+    
 
     void Awake()
     {
@@ -19,5 +24,10 @@ public class GameManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+    }
+
+    private void Start()
+    {
+        isInteractable = true;
     }
 }
