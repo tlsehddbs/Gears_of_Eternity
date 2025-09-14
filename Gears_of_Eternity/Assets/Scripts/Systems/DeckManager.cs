@@ -90,8 +90,6 @@ public class DeckManager : MonoBehaviour
 
     public void DrawCards(int count)
     {
-        GameManager.Instance.isDrawingCards = true;
-        
         // deck에 카드 부족 시 used에서 가져와 shuffle
         if (deck.Count < count)
         {
@@ -122,8 +120,7 @@ public class DeckManager : MonoBehaviour
         //     hand.Add(card);
         // }
         
-        cardUIHandler.RefreshHandUI(hand);
-        GameManager.Instance.isDrawingCards = false;
+        cardUIHandler.AddCards(hand);
     }
 
     public void UseCard(RuntimeUnitCard card)

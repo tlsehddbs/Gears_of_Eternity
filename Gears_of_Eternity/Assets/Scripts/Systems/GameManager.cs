@@ -6,9 +6,10 @@ public class GameManager : MonoBehaviour
 
     public bool isDrawingCards;
     public bool isDraggingCard;
-    public bool isHoveringCard;
     
     public bool isInteractable = true;
+    
+    public bool isPointerEventEnabled = true;
     
 
     void Awake()
@@ -24,8 +25,8 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void Start()
-    {
-        isInteractable = true;
-    }
+    // private void Start()
+    // {
+    //     isInteractable = true;
+    // }
 }

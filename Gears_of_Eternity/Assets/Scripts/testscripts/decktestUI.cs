@@ -22,9 +22,6 @@ public class DeckTestUI : MonoBehaviour
     // ReSharper disable Unity.PerformanceAnalysis
     private void OnDrawClick()
     {
-        GameManager.Instance.isDrawingCards = true;
-        
         DeckManager.Instance.DrawCards(testDrawCount);
-        cardUIHandler.AddCards(DeckManager.Instance.hand);
     }
 }

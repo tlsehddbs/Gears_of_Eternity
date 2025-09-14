@@ -16,22 +16,22 @@ public class CardUIHandler : MonoBehaviour
     
     
     // TODO: 로직별로 분류하여 필요한 부분만 소급 적용할 수 있도록 update 할 것
-    public void RefreshHandUI(List<RuntimeUnitCard> hand)
-    {
-        // List<RuntimeUnitCard> newHand = hand;
-        
-        // List<RuntimeUnitCard> currentCards = cardInstances
-        //     .Select(card => card.GetComponent<CardSlotUI>().CardData)
-        //     .ToList();
-
-        if (hand == null)
-        {
-            return;
-        }
-
-        RemoveCards(hand);
-        AddCards(hand);
-    }
+    // public void RefreshHandUI(List<RuntimeUnitCard> hand)
+    // {
+    //     // List<RuntimeUnitCard> newHand = hand;
+    //     
+    //     // List<RuntimeUnitCard> currentCards = cardInstances
+    //     //     .Select(card => card.GetComponent<CardSlotUI>().CardData)
+    //     //     .ToList();
+    //
+    //     if (hand == null)
+    //     {
+    //         return;
+    //     }
+    //
+    //     RemoveCards(hand);
+    //     AddCards(hand);
+    // }
     
     // 제거된 카드 파악 및 제거
     public void RemoveCards(IReadOnlyList<RuntimeUnitCard> hand)
@@ -70,6 +70,7 @@ public class CardUIHandler : MonoBehaviour
             }
         }
         
+        GameManager.Instance.isPointerEventEnabled = false;
         UpdateCardLayout();
     }
 
@@ -82,7 +83,6 @@ public class CardUIHandler : MonoBehaviour
         float angleRange = spacingAngle * (count - 1);      // 전체 부채꼴 각도
         float startAngle = -angleRange / 2f;
         float radius = Mathf.Lerp(300f, 500f, Mathf.InverseLerp(1f, 10f, count));   // 반지름이 카드 수에 비례하도록  
-
         
         for (int i = 0; i < count; i++)
         {
@@ -102,13 +102,18 @@ public class CardUIHandler : MonoBehaviour
             float angleScale = 0.4f; // 회전 강도 계수 (0.0 ~ 1.0)
             float limitedAngle = -angle * angleScale;
             
+            cardHandler.UpdateOriginalTransform(pos);
+            cardHandler.OnPointerExitAnimation(true);
+            
             Sequence seq = DOTween.Sequence();
-            
             seq.AppendInterval(delay);
-            seq.Append(card.transform.DOLocalMove(pos, 0.5f).SetEase(Ease.OutExpo));
+            seq.Join(card.transform.DOLocalMove(pos, 0.5f).SetEase(Ease.OutExpo));
             seq.Join(card.transform.DOLocalRotate(Vector3.forward * limitedAngle, 0.5f).SetEase(Ease.OutQuad));     // 각도 값을 변수로 저장해 파라미터로 넘길 수 있도록 수정
-            
-            seq.OnComplete(() => cardHandler.UpdateOriginalTransform(pos));
+
+            if (i == count - 1)
+            {
+                seq.OnComplete(() => GameManager.Instance.isPointerEventEnabled = true);
+            }
         }
     }
 }

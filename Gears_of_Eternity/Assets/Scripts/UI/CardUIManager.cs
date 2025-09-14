@@ -29,7 +29,10 @@ public class CardUIManager : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     public float hoverScale = 1.2f;
     public float hoverMoveY = 50f;
     
-
+    
+    // TODO: 카드가 하이라이팅이 되었는지 확인하는 boolean 변수를 만들고 하이라이팅이 되지 않은 상태에서 카드를 클릭했을 경우 등, 여러 상황에서도 동일하게 작동하는 것을 보장하기 위해 세부적으로 구현할 것
+    
+    
     void Awake()
     {
         _canvasGroup = GetComponent<CanvasGroup>();
@@ -49,11 +52,6 @@ public class CardUIManager : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     // Hover
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (!GameManager.Instance.isInteractable)
-        {
-            return;
-        }
-
         OnPointerEnterAnimation();
     }
 
@@ -66,6 +64,11 @@ public class CardUIManager : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         //     _canvas.sortingOrder = 100; // 다른 카드보다 위에 보이게
         // }
 
+        if (!GameManager.Instance.isPointerEventEnabled || GameManager.Instance.isDraggingCard)
+        {
+            return;
+        }
+        
         currentTween?.Kill();
         currentTween = DOTween.Sequence()
             .Join(transform.DOScale(hoverScale, 0.2f).SetEase(Ease.OutBack))
@@ -76,7 +79,7 @@ public class CardUIManager : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (!GameManager.Instance.isInteractable)
+        if (GameManager.Instance.isDraggingCard)
         {
             return;
         }
@@ -96,7 +99,7 @@ public class CardUIManager : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
         if (instantKillAnim)
         {
-            transform.localPosition = originalPosition;
+            //transform.localPosition = originalPosition;
             transform.localScale = originalScale;
         }
         else
@@ -107,7 +110,6 @@ public class CardUIManager : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
                 .SetUpdate(false)
                 .SetLink(gameObject, LinkBehaviour.KillOnDisable);
         }
-        
     }
 
     
@@ -117,7 +119,7 @@ public class CardUIManager : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         // TODO: 드래그 시 부모를 해제하고 다른 카드 밑으로 들어가지 않게 가장 위에 표시가 되게끔 변경
         
         GameManager.Instance.isDraggingCard = true;
-        GameManager.Instance.isInteractable = false;
+        // GameManager.Instance.isInteractable = false;
         
         //_originalParent = transform.parent;
         //transform.SetParent(_canvas.transform);   // UI 최상단으로 올림
@@ -127,12 +129,15 @@ public class CardUIManager : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     public void OnDrag(PointerEventData eventData)
     {
         _rectTransform.anchoredPosition += eventData.delta / _canvas.scaleFactor;
+#if UNITY_EDITOR
+        Debug.Log($"mouse position : {Input.mousePosition}   /   {_rectTransform.position} : rect position");
+#endif
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
         GameManager.Instance.isDraggingCard = false;
-        GameManager.Instance.isInteractable = true;
+        // GameManager.Instance.isInteractable = true;
         
         _canvasGroup.blocksRaycasts = true;
         //transform.SetParent(_originalParent);
@@ -151,8 +156,11 @@ public class CardUIManager : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             {
                 DeckManager.Instance.UseCard(cardData);
                 UnitSpawnManager.Instance.SpawnUnit(cardData, hit.point);
+                
+                cardUIHandler.RemoveCards(DeckManager.Instance.hand);
             }
-            cardUIHandler.RefreshHandUI(DeckManager.Instance.hand);
+            //cardUIHandler.RefreshHandUI(DeckManager.Instance.hand);
+            //cardUIHandler.UpdateCardLayout();
         }
     }
 
