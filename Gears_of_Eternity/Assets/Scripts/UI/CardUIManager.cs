@@ -6,7 +6,6 @@ public class CardUIManager : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 {
     private CanvasGroup _canvasGroup;
     private Canvas _canvas;
-    
     private RectTransform _rectTransform;
     private Transform _originalParent;
 
@@ -21,18 +20,15 @@ public class CardUIManager : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     private Vector3 _targetPosition;
 
     // 배치 실패시 원래의 Position으로 복귀를 위한 변수
-    [SerializeField]
-    private Vector3 _originalPosition;
+    private Vector3 originalPosition;
     private Quaternion _originalRotation;
     
-    [SerializeField]
-    private Vector3 _originalScale;
+    private Vector3 originalScale;
     private int _originalSortingOrder;
 
     public float hoverScale = 1.2f;
     public float hoverMoveY = 50f;
-
-    private bool _isDragging;
+    
 
     void Awake()
     {
@@ -45,17 +41,10 @@ public class CardUIManager : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
     public void UpdateOriginalTransform(Vector2 position)
     {
-        _originalPosition = position;
-        _originalScale = new Vector3(1, 1, 1);  // 고정값
+        originalPosition = position;
+        originalScale = new Vector3(1, 1, 1);  // 고정값
     }
     
-    //
-    //
-    // TODO: 유니티에서 제공하는 DragHandler나 Pointer를 대체할 수 있는 커스텀 hover check 시스템을 만들 것
-    //
-    // 1. Drag시 카드가 마우스 포인터를 따라갈 때 버벅이는 현상 있음
-    //
-    //
     
     // Hover
     public void OnPointerEnter(PointerEventData eventData)
@@ -80,7 +69,7 @@ public class CardUIManager : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         currentTween?.Kill();
         currentTween = DOTween.Sequence()
             .Join(transform.DOScale(hoverScale, 0.2f).SetEase(Ease.OutBack))
-            .Join(transform.DOLocalMoveY(_originalPosition.y + hoverMoveY, 0.2f).SetEase(Ease.OutCubic))
+            .Join(transform.DOLocalMoveY(originalPosition.y + hoverMoveY, 0.2f).SetEase(Ease.OutCubic))
             .SetUpdate(false)
             .SetLink(gameObject, LinkBehaviour.KillOnDisable);
     }
@@ -107,14 +96,14 @@ public class CardUIManager : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
         if (instantKillAnim)
         {
-            transform.localPosition = _originalPosition;
-            transform.localScale = _originalScale;
+            transform.localPosition = originalPosition;
+            transform.localScale = originalScale;
         }
         else
         {
             currentTween = DOTween.Sequence()
                 .Join(transform.DOScale(new Vector3(1, 1, 1), 0.2f).SetEase(Ease.OutQuad))
-                .Join(transform.DOLocalMove(_originalPosition, 0.2f).SetEase(Ease.OutCubic))
+                .Join(transform.DOLocalMove(originalPosition, 0.2f).SetEase(Ease.OutCubic))
                 .SetUpdate(false)
                 .SetLink(gameObject, LinkBehaviour.KillOnDisable);
         }
@@ -126,27 +115,22 @@ public class CardUIManager : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     public void OnBeginDrag(PointerEventData eventData)
     {
         // TODO: 드래그 시 부모를 해제하고 다른 카드 밑으로 들어가지 않게 가장 위에 표시가 되게끔 변경
-        // TODO: Drag시 DOTween의 transform.DOLocalMove 시퀀스를 중지해야 할 듯. 이것때문에 Drag할 때 원래의 자리를 유지하려는 것 처럼 보임. DOTween이 모두 완료된 이후에는 제자지를 찾으려는 움직임이 덜한 것으로 확인됨.
         
-        _isDragging = true;
         GameManager.Instance.isDraggingCard = true;
         GameManager.Instance.isInteractable = false;
         
         //_originalParent = transform.parent;
         //transform.SetParent(_canvas.transform);   // UI 최상단으로 올림
         _canvasGroup.blocksRaycasts = false;        // Raycast 차단, 드롭 감지 가능하게
-        
-        CardMove();
     }
     
     public void OnDrag(PointerEventData eventData)
     {
-        CardMove();
+        _rectTransform.anchoredPosition += eventData.delta / _canvas.scaleFactor;
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        _isDragging = false;
         GameManager.Instance.isDraggingCard = false;
         GameManager.Instance.isInteractable = true;
         
@@ -174,25 +158,11 @@ public class CardUIManager : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
     private void Update()
     {
-        if (_isDragging)
-        { 
-            // Lerp 사용시 OnBeginDrag에서 버벅이는? 현상이 있는듯. 해결 방법을 모르겠음.
-            // _rectTransform.position = Vector3.Lerp(_rectTransform.position, _targetPosition, Time.deltaTime * 40f);
-            _rectTransform.position = _targetPosition;
-        }
-    }
-
-    private void CardMove()
-    {
-        Vector2 localPoint = _rectTransform.localPosition;
-        
-        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                _canvas.transform as RectTransform,
-                Input.mousePosition,
-                _canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : _canvas.worldCamera,
-                out localPoint))
+#if UNITY_EDITOR
+        if (Input.GetKeyDown(KeyCode.X))
         {
-            _targetPosition = Input.mousePosition;
+            OnPointerExitAnimation(true);
         }
+#endif
     }
 }

@@ -1,14 +1,12 @@
-using System;
-using NUnit.Framework.Constraints;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
-    public bool isDrawingCards = false;
-    public bool isDraggingCard = false;
-    public bool isHoveringCard = false;
+    public bool isDrawingCards;
+    public bool isDraggingCard;
+    public bool isHoveringCard;
     
     public bool isInteractable = true;
     
