@@ -25,17 +25,6 @@ public class DeckTestUI : MonoBehaviour
         GameManager.Instance.isDrawingCards = true;
         
         DeckManager.Instance.DrawCards(testDrawCount);
-        cardUIHandler.RefreshHandUI(DeckManager.Instance.hand);
+        cardUIHandler.AddCards(DeckManager.Instance.hand);
     }
-
-    // private void OnUseClick()
-    // {
-    //     if (DeckManager.Instance.hand.Count > 0)
-    //     {
-    //         int testRandHand = Random.Range(0, DeckManager.Instance.hand.Count);
-    //         var card = DeckManager.Instance.hand[testRandHand];
-    //         DeckManager.Instance.UseCard(card);
-    //     }
-    //     handPanelManager.RefreshHandUI(DeckManager.Instance.hand);
-    // }
 }

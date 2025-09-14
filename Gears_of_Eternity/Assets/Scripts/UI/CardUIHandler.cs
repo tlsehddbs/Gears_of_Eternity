@@ -14,21 +14,33 @@ public class CardUIHandler : MonoBehaviour
 
     public List<GameObject> cardInstances = new();
     
+    
     // TODO: 로직별로 분류하여 필요한 부분만 소급 적용할 수 있도록 update 할 것
     public void RefreshHandUI(List<RuntimeUnitCard> hand)
     {
         // List<RuntimeUnitCard> newHand = hand;
         
-        List<RuntimeUnitCard> currentCards = cardInstances
-            .Select(card => card.GetComponent<CardSlotUI>().CardData)
-            .ToList();
-        
-        // 제거된 카드 파악 및 제거
+        // List<RuntimeUnitCard> currentCards = cardInstances
+        //     .Select(card => card.GetComponent<CardSlotUI>().CardData)
+        //     .ToList();
+
+        if (hand == null)
+        {
+            return;
+        }
+
+        RemoveCards(hand);
+        AddCards(hand);
+    }
+    
+    // 제거된 카드 파악 및 제거
+    public void RemoveCards(IReadOnlyList<RuntimeUnitCard> hand)
+    {
         for (int i = cardInstances.Count - 1; i >= 0; i--)
         {
             var cardIndex = cardInstances[i];
             var cardData = cardIndex.GetComponent<CardSlotUI>().CardData;
-            
+
             bool stillExists = hand.Any(c => c.uniqueId == cardData.uniqueId);
 
             if (!stillExists)
@@ -38,7 +50,12 @@ public class CardUIHandler : MonoBehaviour
             }
         }
         
-        // 새로 생긴 카드 파악 및 생성
+        UpdateCardLayout();
+    }
+
+    // 새로 생긴 카드 파악 및 생성
+    public void AddCards(IReadOnlyList<RuntimeUnitCard> hand)
+    {
         foreach (var newCard in hand)
         {
             bool alreadyExists = cardInstances.Any(go =>
@@ -52,7 +69,12 @@ public class CardUIHandler : MonoBehaviour
                 cardInstances.Add(go);
             }
         }
+        
+        UpdateCardLayout();
+    }
 
+    public void UpdateCardLayout()
+    {
         int count = cardInstances.Count;
 
         // 카드 개수에 따라 펼침 각도 조정
@@ -87,8 +109,6 @@ public class CardUIHandler : MonoBehaviour
             seq.Join(card.transform.DOLocalRotate(Vector3.forward * limitedAngle, 0.5f).SetEase(Ease.OutQuad));     // 각도 값을 변수로 저장해 파라미터로 넘길 수 있도록 수정
             
             seq.OnComplete(() => cardHandler.UpdateOriginalTransform(pos));
-            // card.transform.DOLocalMove(pos, 0.5f).SetEase(Ease.OutExpo);
-            // card.transform.DOLocalRotate(Vector3.forward * limitedAngle, 0.5f).SetEase(Ease.OutQuad);
         }
     }
 }
