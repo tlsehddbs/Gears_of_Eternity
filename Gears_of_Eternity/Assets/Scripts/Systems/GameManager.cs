@@ -2,15 +2,25 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        Debug.Log("Hello world!");
-    }
+    public static GameManager Instance { get; private set; }
 
-    // Update is called once per frame
-    void Update()
+    // TODO: 네이밍 수정할 것
+    public bool isDrawingCards;
+    public bool isDraggingCard;
+    
+    public bool isPointerEventEnabled = true;
+    
+
+    void Awake()
     {
-        
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 }
