@@ -60,7 +60,7 @@ public class DeckManager : MonoBehaviour
         // 덱 드로우를 위한 전체 유닛 카드 리스트화 및 세력별 필터링
         if (cardCollection.allAvailableCards == null || cardCollection.allAvailableCards.Count == 0)
         {
-            Debug.LogWarning("❗카드 목록이 비어 있음");
+            Debug.LogWarning("카드 목록이 비어 있음");
         } 
         else 
         {
@@ -71,7 +71,7 @@ public class DeckManager : MonoBehaviour
         
             if (filtered.Count == 0)
             {
-                Debug.LogWarning($"⚠️세력 '{filterFaction}'에 해당하는 카드가 없음");
+                Debug.LogWarning($"⚠세력 '{filterFaction}'에 해당하는 카드가 없음");
                 return;
             }
         

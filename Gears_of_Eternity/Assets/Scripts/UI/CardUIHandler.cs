@@ -15,7 +15,7 @@ public class CardUIHandler : MonoBehaviour
     public List<GameObject> cardInstances = new();
     
     
-    // TODO: 로직별로 분류하여 필요한 부분만 소급 적용할 수 있도록 update 할 것
+    // TODO: 로직별로 분류하여 부분적으로 적용할 수 있도록 수정
     // public void RefreshHandUI(List<RuntimeUnitCard> hand)
     // {
     //     // List<RuntimeUnitCard> newHand = hand;
@@ -70,12 +70,12 @@ public class CardUIHandler : MonoBehaviour
             }
         }
         
-        GameManager.Instance.isPointerEventEnabled = false;
         UpdateCardLayout();
     }
 
     public void UpdateCardLayout()
     {
+        GameManager.Instance.isPointerEventEnabled = false;
         int count = cardInstances.Count;
 
         // 카드 개수에 따라 펼침 각도 조정
@@ -89,30 +89,26 @@ public class CardUIHandler : MonoBehaviour
             float angle = startAngle + spacingAngle * i;
             float rad = Mathf.Deg2Rad * angle;
 
-            Vector2 pos = new Vector2(
-                Mathf.Sin(rad) * radius,
-                Mathf.Cos(rad) * radius * 0.3f
-            );
-
-            var card = cardInstances[i];
-            var cardHandler = card.GetComponent<CardUIManager>();
-
-            float delay = i * 0.02f;
+            Vector2 pos = new Vector2(Mathf.Sin(rad) * radius, Mathf.Cos(rad) * radius * 0.3f);
             
+            float delay = i * 0.02f;
             float angleScale = 0.4f; // 회전 강도 계수 (0.0 ~ 1.0)
             float limitedAngle = -angle * angleScale;
             
-            cardHandler.UpdateOriginalTransform(pos);
-            cardHandler.OnPointerExitAnimation(true);
+            var card = cardInstances[i];
+            var cardHandler = card.GetComponent<CardUIManager>();
             
-            Sequence seq = DOTween.Sequence();
-            seq.AppendInterval(delay);
-            seq.Join(card.transform.DOLocalMove(pos, 0.5f).SetEase(Ease.OutExpo));
-            seq.Join(card.transform.DOLocalRotate(Vector3.forward * limitedAngle, 0.5f).SetEase(Ease.OutQuad));     // 각도 값을 변수로 저장해 파라미터로 넘길 수 있도록 수정
+            cardHandler.UpdateOriginalTransform(pos);
+            cardHandler.OnPointerExitEffect(true);
+            
+            Tween s = DOTween.Sequence()
+                .AppendInterval(delay)
+                .Join(card.transform.DOLocalMove(pos, 0.5f).SetEase(Ease.OutExpo))
+                .Join(card.transform.DOLocalRotate(Vector3.forward * limitedAngle, 0.5f).SetEase(Ease.OutQuad));
 
             if (i == count - 1)
             {
-                seq.OnComplete(() => GameManager.Instance.isPointerEventEnabled = true);
+                s.OnComplete(() => GameManager.Instance.isPointerEventEnabled = true);
             }
         }
     }

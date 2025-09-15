@@ -4,10 +4,9 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
+    // TODO: 네이밍 수정할 것
     public bool isDrawingCards;
     public bool isDraggingCard;
-    
-    public bool isInteractable = true;
     
     public bool isPointerEventEnabled = true;
     
@@ -24,9 +23,4 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
-
-    // private void Start()
-    // {
-    //     isInteractable = true;
-    // }
 }
