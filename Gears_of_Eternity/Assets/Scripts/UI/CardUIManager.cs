@@ -154,6 +154,13 @@ public class CardUIManager : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
                 
                 cardUIHandler.RemoveCards(DeckManager.Instance.hand);
             }
+            else
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning("배치 실패");
+#endif
+                cardUIHandler.UpdateCardLayout();
+            }
         }
     }
 }

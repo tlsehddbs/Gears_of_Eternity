@@ -73,6 +73,7 @@ public class CardUIHandler : MonoBehaviour
         UpdateCardLayout();
     }
 
+    // TODO: 카드 레이아웃을 계산하는 부분과 UI에 실질 적용하는 두 개의 함수로 분리하여 적용할 것 (배치 실패 시 불필요한 계산을 줄이기 위함)
     public void UpdateCardLayout()
     {
         GameManager.Instance.isPointerEventEnabled = false;
