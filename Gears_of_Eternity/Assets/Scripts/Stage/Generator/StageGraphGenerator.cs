@@ -145,7 +145,7 @@ public static class StageGraphGenerator
                 continue;
 
             var fromLayer = g.nodes.Where(n => n.layerIndex == l).ToList();
-            var toLayer = g.nodes.Where(n => n.layerIndex == l + 2).ToList();
+            var toLayer = g.nodes.Where(n => n.layerIndex == l + 1).ToList();
             
             if (fromLayer.Count == 0 || toLayer.Count == 0)
                 continue;
@@ -154,7 +154,7 @@ public static class StageGraphGenerator
             var to = toLayer[rand.Next(toLayer.Count)];
 
             if (!CreatesCycle(g, from.nodeId, to.nodeId))
-                g.edges.Add(new RuntimeStageEdge { fromNodeId = from.nodeId, toNodeId = to.nodeId, isBridge = true});
+                g.edges.Add(new RuntimeStageEdge { fromNodeId = from.nodeId, toNodeId = to.nodeId, isBridge = /*true*/false});
         }
     }
 
@@ -202,6 +202,7 @@ public static class StageGraphGenerator
             }
 
             int roll = rand.Next(100);
+            
             if (roll < 60)  
                 n.type = StageTypes.StageNodeTypes.Combat;
             else if (roll < 75)  

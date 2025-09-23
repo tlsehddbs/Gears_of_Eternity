@@ -28,11 +28,17 @@ public class StageRunner : MonoBehaviour
     {
         var handle = Addressables.LoadSceneAsync(b.addressableKey, LoadSceneMode.Additive, activateOnLoad: false);
         await handle.Task;
-
+        
         var scene = handle.Result;
+        await handle.Task;
+
+        var activate = scene.ActivateAsync();
+        while (!activate.isDone)
+            await Task.Yield();
+        
         SceneManager.SetActiveScene(scene.Scene);
         scene.ActivateAsync();
-
+        
         _loaded = handle;
         // TODO: 스테이지 씬 내부의 Controller가 클리어 시, StageFlow.OnStageCleared() 호출하도록 연결
     }
@@ -42,7 +48,9 @@ public class StageRunner : MonoBehaviour
         if (_loaded.HasValue)
         {
             // 핸들을 넘김, 자동 Release
-            await Addressables.UnloadSceneAsync(_loaded.Value, true).Task;
+            var unload = Addressables.UnloadSceneAsync(_loaded.Value, true);
+            await unload.Task;
+            
             _loaded = null;
         }
     }

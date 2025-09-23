@@ -11,6 +11,7 @@ public class StageMapUI : MonoBehaviour
 
         var endingLayer = g.MaxLayer();
         var endingNode = g.nodes.FirstOrDefault(n => n.layerIndex == endingLayer);
+        
         if (endingNode != null)
             layout.ScrollToCurrent(endingNode.nodeId);
     }

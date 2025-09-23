@@ -44,6 +44,7 @@ public class StageMapLayout : MonoBehaviour
     {
         _scroll = GetComponentInParent<ScrollRect>();
         _canvas = GetComponentInParent<Canvas>();
+        
         if(_canvas == null)
             Debug.LogError("StageMapLayout: Canvas not found");
         
