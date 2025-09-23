@@ -4,8 +4,11 @@ public class StageTypes : MonoBehaviour
 {
     public enum StageNodeTypes
     {
+        None,
         Combat,
         Shop,
-        Rest
+        Rest,
+        Boss,
+        Event
     };
 }
