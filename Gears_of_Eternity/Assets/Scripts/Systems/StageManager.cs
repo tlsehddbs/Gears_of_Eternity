@@ -17,4 +17,9 @@ public class StageManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
+
+    void Start() {
+        StageFlow.Instance.GenerateNew(seed: 12345);
+        FindObjectOfType<StageMapLayout>()?.Bind(StageFlow.Instance.graph);
+    }
 }

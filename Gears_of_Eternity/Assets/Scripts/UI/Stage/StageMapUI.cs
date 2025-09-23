@@ -1,7 +1,5 @@
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class StageMapUI : MonoBehaviour
 {
@@ -11,16 +9,14 @@ public class StageMapUI : MonoBehaviour
     {
         layout.Bind(g);
 
-        var enddingLayer = g.MaxLayer();
-        var enddingNode = g.nodes.FirstOrDefault(n => n.layerIndex == enddingLayer);
-        if(enddingNode != null)
-            layout.ScrollToCurrent(enddingNode.nodeId);
+        var endingLayer = g.MaxLayer();
+        var endingNode = g.nodes.FirstOrDefault(n => n.layerIndex == endingLayer);
+        if (endingNode != null)
+            layout.ScrollToCurrent(endingNode.nodeId);
     }
 
     public void Refresh(RuntimeStageGraph g)
     {
         Bind(g);
     }
-    
-
 }
