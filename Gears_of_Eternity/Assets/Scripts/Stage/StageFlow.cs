@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public enum GamePhase { OnMap, LoadingStage, InStage, Reward, Transition }
@@ -49,24 +50,27 @@ public class StageFlow : MonoBehaviour
         phase = GamePhase.LoadingStage;
 
         var def = catalog.GetByType((next.type));
-        await StageRunner.Instance.RunStageAsync(def);
+        await StageRunner.Instance.EnterStageAsync(def);
         
         phase = GamePhase.InStage;
     }
 
-    public async void OnStageCleared()
+    public async Task OnStageCleared()
     {
         if (phase != GamePhase.InStage)
             return;
         
         // 보상
-        phase = GamePhase.Reward;
+        //phase = GamePhase.Reward;
         // TODO: 보상 연출 (코인 등) 반영
 
         await StageRunner.Instance.ExitStageAsync();
         
         // 다음 레이어 해금
         var cur = graph.FindNode(graph.currentNodeId);
+        
+        // 임시적으로 completed가 작동하는지 확인
+        cur.completed = true;
         
         foreach (var n in graph.nodes.Where(n => n.layerIndex == cur.layerIndex + 1))
         {

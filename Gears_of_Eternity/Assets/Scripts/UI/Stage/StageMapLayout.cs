@@ -209,8 +209,7 @@ public class StageMapLayout : MonoBehaviour
         if (_scroll == null)
             return;
 
-        float viewportWidth =
-            _scroll.viewport ? _scroll.viewport.rect.width : ((RectTransform)_scroll.transform).rect.width;
+        float viewportWidth = _scroll.viewport ? _scroll.viewport.rect.width : ((RectTransform)_scroll.transform).rect.width;
         float contentWidth = content.rect.width;
         float targetX = ColumnCenterX(logicalLayer);
 
