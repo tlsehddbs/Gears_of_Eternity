@@ -69,12 +69,28 @@ public class StageFlow : MonoBehaviour
         // 다음 레이어 해금
         var cur = graph.FindNode(graph.currentNodeId);
         
+        
         // 임시적으로 completed가 작동하는지 확인
+        // TODO: 추후 스테이지 클리어 판별 로직을 추가할 예정
         cur.completed = true;
         
-        foreach (var n in graph.nodes.Where(n => n.layerIndex == cur.layerIndex + 1))
+        
+        var connectedEdges = graph.edges.Where(e => e.fromNodeId == cur.nodeId);
+
+        foreach (var edge in connectedEdges)
         {
-            n.discovered = true;
+            var nextNode = graph.FindNode(edge.toNodeId);
+            if (nextNode != null && !nextNode.discovered)
+            {
+                nextNode.discovered = true;
+            }
+        }
+        
+        // 다음 노드 활성화
+        var layout = FindAnyObjectByType<StageMapLayout>();
+        if (layout != null)
+        {
+            layout.Refresh(graph);
         }
 
         phase = GamePhase.OnMap;

@@ -35,7 +35,7 @@ public static class StageGraphGenerator
                     nodeId = Guid.NewGuid().ToString("N"),
                     layerIndex = l,
                     type = StageTypes.StageNodeTypes.Combat,
-                    discovered = (l <= 1)
+                    discovered = (l < 1)            // 처음 시작시 첫 노드만 활성화 되게끔 변경
                 });
 #if UNITY_EDITOR
                 Debug.Log($"{l} 번 레이어의 {i} 번 노드 생성됨");
@@ -45,7 +45,7 @@ public static class StageGraphGenerator
             g.nodes.AddRange(layerNodes);
         }
         
-        // 노드 연결(기본)
+        // 노드 연결
         for (int l = 0; l < Rules.Layers - 1; l++)
         {
             var froms = layer[l];
@@ -85,7 +85,7 @@ public static class StageGraphGenerator
         g.currentNodeId = layer[0][layer[0].Count / 2].nodeId;
         BalanceChoices(g, Rules.MinChoices, Rules.MaxChoices);
         
-        // 브릿지 추가?
+        // 브릿지 추가(추후 적용할지 의논)
         AddBridges(g, Rules.BridgeProbability, rand);
         
         // 타입 대입

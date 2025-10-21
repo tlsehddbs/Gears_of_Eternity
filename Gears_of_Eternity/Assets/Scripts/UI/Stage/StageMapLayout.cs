@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Experimental.GraphView;
+using UnityEditor.Timeline;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -61,6 +63,7 @@ public class StageMapLayout : MonoBehaviour
         }
     }
 
+    // ======================= BIND =======================
     public void Bind(RuntimeStageGraph g)
     {
         _graph = g;
@@ -204,6 +207,47 @@ public class StageMapLayout : MonoBehaviour
         }
     }
 
+    // TODO: 보스 레이어에 대해서는 적용하지 않도록 변경
+    // ======================= REFRESH =======================
+    public void Refresh(RuntimeStageGraph g)
+    {
+        if (g == null)
+            return;
+
+        foreach (var node in _graph.nodes)
+        {
+            if (_nodesRectTransform.TryGetValue(node.nodeId, out var rt))
+            {
+                UpdateNodeInteract(rt, node);
+                UpdateNodeColor(rt, node);
+            }
+        } 
+    }
+
+    // TODO: 노드 레이어 중 다른 노드가 클리어 되거나 선택되었을 때 이전 노드의 선택권으로 주어졌던 다른 노드는 접근이 불가능 하게끔 변경
+    
+    public void Refresh() => Refresh(_graph);
+
+    public void UpdateNodeInteract(RectTransform rt, RuntimeStageNode node)
+    {
+        if (rt == null || node == null)
+            return;
+
+        var btn = rt.GetComponentInChildren<Button>(true);
+        if (btn != null)
+            btn.interactable = node.discovered && !node.completed;
+    }
+
+    // 완료한 스테이지에 대해서 노드 표식 업데이트
+    public void UpdateNodeColor(RectTransform rt, RuntimeStageNode node)
+    {
+        var img = rt.GetComponentInChildren<Image>(true);
+        if (img != null)
+            if (node.discovered && node.completed)
+                img.color = Color.yellow;
+    }
+
+    // ======================= SCROLL =======================
     public void ScrollToLayer(int logicalLayer)
     {
         if (_scroll == null)
