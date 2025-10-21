@@ -224,8 +224,6 @@ public class StageMapLayout : MonoBehaviour
         } 
     }
 
-    // TODO: 노드 레이어 중 다른 노드가 클리어 되거나 선택되었을 때 이전 노드의 선택권으로 주어졌던 다른 노드는 접근이 불가능 하게끔 변경
-    
     public void Refresh() => Refresh(_graph);
 
     public void UpdateNodeInteract(RectTransform rt, RuntimeStageNode node)
@@ -235,7 +233,9 @@ public class StageMapLayout : MonoBehaviour
 
         var btn = rt.GetComponentInChildren<Button>(true);
         if (btn != null)
-            btn.interactable = node.discovered && !node.completed;
+        {
+            btn.interactable = node.discovered && !node.completed && !node.locked;
+        }
     }
 
     // 완료한 스테이지에 대해서 노드 표식 업데이트

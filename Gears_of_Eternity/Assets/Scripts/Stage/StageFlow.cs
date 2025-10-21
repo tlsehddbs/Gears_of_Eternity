@@ -46,6 +46,11 @@ public class StageFlow : MonoBehaviour
         if (next == null)
             return;
 
+        // 선택 스테이지 이외의 같은 레이어에 있는 노드에 대한 접근 차단(lock)
+        foreach (var ln in graph.nodes)
+            if (ln.layerIndex == next.layerIndex && ln.nodeId != next.nodeId)
+                ln.locked = true;
+
         graph.currentNodeId = nextNodeId;
         phase = GamePhase.LoadingStage;
 

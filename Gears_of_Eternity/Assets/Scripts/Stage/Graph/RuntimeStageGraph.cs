@@ -10,6 +10,7 @@ public class RuntimeStageNode
     public StageTypes.StageNodeTypes type;
     public bool discovered;
     public bool completed;
+    public bool locked;
 }
 
 [Serializable]
