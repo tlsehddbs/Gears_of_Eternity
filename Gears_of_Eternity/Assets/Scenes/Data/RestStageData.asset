@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 
   type: 3
-  addressableKey: restTestScene
+  addressableKey: restScene
   difficultyCurve:
     serializedVersion: 2
     m_Curve: []

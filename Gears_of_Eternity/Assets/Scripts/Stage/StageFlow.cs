@@ -57,6 +57,10 @@ public class StageFlow : MonoBehaviour
         var def = catalog.GetByType((next.type));
         await StageRunner.Instance.EnterStageAsync(def);
         
+        // 다른 combat scene으로의 이동 시 deck의 꼬임 방지를 위함
+        // TODO: 추후 게임에 대해서 최적화 된 방법이 있는지 파악 후 개선할 것 
+        DeckManager.Instance.InitializeDeck();
+        
         phase = GamePhase.InStage;
     }
 
@@ -82,6 +86,7 @@ public class StageFlow : MonoBehaviour
         
         var connectedEdges = graph.edges.Where(e => e.fromNodeId == cur.nodeId);
 
+        // 클리어한 Stage(노드)에 연결된 다음 Stage만 Discovered가 true로 변경되도록 제한함.
         foreach (var edge in connectedEdges)
         {
             var nextNode = graph.FindNode(edge.toNodeId);
@@ -93,10 +98,8 @@ public class StageFlow : MonoBehaviour
         
         // 다음 노드 활성화
         var layout = FindAnyObjectByType<StageMapLayout>();
-        if (layout != null)
-        {
+        if (layout)
             layout.Refresh(graph);
-        }
 
         phase = GamePhase.OnMap;
     }

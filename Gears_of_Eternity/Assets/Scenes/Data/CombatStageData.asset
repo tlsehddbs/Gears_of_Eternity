@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 
   type: 1
-  addressableKey: TestScene
+  addressableKey: combatScene
   difficultyCurve:
     serializedVersion: 2
     m_Curve: []

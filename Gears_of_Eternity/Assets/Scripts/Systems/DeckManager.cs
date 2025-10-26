@@ -19,7 +19,6 @@ public class DeckManager : MonoBehaviour
     public List<RuntimeUnitCard> usedCards = new List<RuntimeUnitCard>();
 
     
-    // 중요 ! : DeckManager 가 게임 실행시 최초 씬에서 생성되게 하여야 함. 추후 Scene이 확장되고 난 이후 테스트를 진행해 볼 것.
     // TODO: 게임 최초 실행이 아닌 이어하는 경우를 대비하여 게임 실행시 DeckManager Instance를 생성할 때 저장된 값에서 불러와 적용할 수 있도록 할 것.
     void Awake()
     {
@@ -39,23 +38,16 @@ public class DeckManager : MonoBehaviour
     
     void Start()
     {
-        if (deck.Count == 0)
-        {
-            InitializeDeck();
-            //DrawCards(4);   // 초기 카드 draw (4장)
-        }
+        // if (deck.Count == 0)
+        // {
+        //     InitializeDeck();
+        //     //DrawCards(4);   // 초기 카드 draw (4장)
+        // }
     }
 
-    void InitializeDeck()
+    public void InitializeDeck()
     {
-        // cardCollection Null Check
-        if (cardCollection == null)
-        {
-            Debug.LogError("CardCollection 참조 없음");
-            return;
-        }
-        
-        //runtimeCards = cardCollection.allAvailableCards.Select(unitCard => new RuntimeUnitCard(unitCard)).ToList();
+        Reset();
         
         // 덱 드로우를 위한 전체 유닛 카드 리스트화 및 세력별 필터링
         if (cardCollection.allAvailableCards == null || cardCollection.allAvailableCards.Count == 0)
@@ -88,6 +80,27 @@ public class DeckManager : MonoBehaviour
         Shuffle(deck);
     }
 
+    /// <summary>
+    /// Scene 시작 시 CardCollection과 CarUIHandler가 Null일 경우 다시 찾도록 함.
+    /// Deck, Hand, UsedCard List를 초기화 함.
+    /// </summary>
+    void Reset()
+    {
+        if (cardCollection == null)
+            cardCollection = FindObjectOfType<CardCollection>(includeInactive: true);
+
+        if (cardUIHandler == null)
+            cardUIHandler = FindObjectOfType<CardUIHandler>(includeInactive: true);
+        
+        deck.Clear();
+        hand.Clear();
+        usedCards.Clear();
+    }
+
+    /// <summary>
+    /// card를 param의 값에 맞춰서 Draw 함.
+    /// </summary>
+    /// <param name="count">Draw할 Card의 수</param>
     public void DrawCards(int count)
     {
         // deck에 카드 부족 시 used에서 가져와 shuffle

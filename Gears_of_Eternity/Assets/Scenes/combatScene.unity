@@ -225,8 +225,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isDrawingCards: 0
   isDraggingCard: 0
-  isHoveringCard: 0
-  isInteractable: 0
+  isPointerEventEnabled: 1
 --- !u!4 &174635832
 Transform:
   m_ObjectHideFlags: 0
@@ -846,6 +845,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1061150878}
   - component: {fileID: 1061150880}
+  - component: {fileID: 1061150881}
   m_Layer: 0
   m_Name: test
   m_TagString: Untagged
@@ -882,6 +882,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   testDrawCount: 1
   cardUIHandler: {fileID: 1343686172}
+--- !u!114 &1061150881
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1061150876}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff4449feb76868f4995c54c49f933f55, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1138178307
 GameObject:
   m_ObjectHideFlags: 0

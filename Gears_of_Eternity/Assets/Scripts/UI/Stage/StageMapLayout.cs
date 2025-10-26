@@ -238,7 +238,8 @@ public class StageMapLayout : MonoBehaviour
         }
     }
 
-    // 완료한 스테이지에 대해서 노드 표식 업데이트
+    // 완료한 스테이지에 대해서 노드 색상 업데이트
+    // TODO: 노드의 이미지를 어떻게 변경할 것인지 논의한 후 결정할 것
     public void UpdateNodeColor(RectTransform rt, RuntimeStageNode node)
     {
         var img = rt.GetComponentInChildren<Image>(true);
