@@ -24,4 +24,7 @@ MonoBehaviour:
     skillValue: 0.9
     skillDuration: 0
     skillDelayTime: 0
+    skillMaxStack: 3
     isPercent: 1
+    skillRange: 10
+    skillAngle: 90

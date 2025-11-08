@@ -189,7 +189,7 @@ public class DashAttackAndGuardSkill : ISkillBehavior
             }
         }
 
-        caster.stats.guardCount += 3;
+        caster.stats.guardCount += effect.skillMaxStack;
     }
 
     public void Remove(UnitCombatFSM caster, SkillEffect effect) { }
@@ -227,16 +227,14 @@ public class ThrowSpearAttackSkill : ISkillBehavior
 //급속 파열기
 public class ConeTripleHitSkill : ISkillBehavior
 {
-    private const int hitCount = 3;
-    private const float hitDelay = 0.25f;
-    private const float Angle = 90f;
-    private const float RangeMultiplier = 10f;
+    // private const int hitCount = 3;
+    // private const float hitDelay = 0.25f;
+    // private const float Angle = 90;
+    // private const float RangeMultiplier = 10f;
 
     public bool ShouldTrigger(UnitCombatFSM caster, SkillEffect effect)
     {
-
-
-        var list = caster.FindEnemiesInCone(Angle, RangeMultiplier);
+        var list = caster.FindEnemiesInCone(effect.skillAngle, effect.skillRange);
         return list.Count > 0;
     }
 
@@ -255,6 +253,11 @@ public class ConeTripleHitSkill : ISkillBehavior
 
     private IEnumerator ExecuteTripleHit(UnitCombatFSM caster, SkillEffect effect)
     {
+
+        float hitCount = effect.skillMaxStack;
+        float hitDelay = 0.25f;
+        float Angle = effect.skillAngle;
+        float RangeMultiplier = effect.skillRange;
         //Debug.Log("[ConeTripleHit] 코루틴 시작됨");
 
         for (int i = 0; i < hitCount; i++)
@@ -756,11 +759,10 @@ public class HeavyStrikeAndSlowSkill : ISkillBehavior
     public void Remove(UnitCombatFSM caster, SkillEffect effect){}
 }
 
-// 맵 전역: 가장 먼 적에게 1초 간격 원형 AoE 2회(각 80%)
+// 맵 전역: 가장 먼 적에게 1초 간격 원형 AoE 2회(각 80%) // 연산 포격수
 public class FarthestDoubleAoeSkill : ISkillBehavior
 {
     //데미지는 SKillValue, 원형 범위는 SkillRange
-    private const float ShotInterval = 1.0f;     // 두 발 사이 간격(게임 시간 기준)
     private const float AoERadius = 8.0f;
     public bool ShouldTrigger(UnitCombatFSM caster, SkillEffect effect)
     {
@@ -787,9 +789,9 @@ public class FarthestDoubleAoeSkill : ISkillBehavior
 
     private IEnumerator DoDoubleAoe(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
     {
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < effect.skillMaxStack; i++)
         {
-            //가장 먼 적에게 2회 날림, 최초 타깃 기준 죽었으면 재탐색
+            //가장 먼 적에게 n회 날림, 최초 타깃 기준 죽었으면 재탐색
             var firstTarget = (target != null && target.IsAlive()) ? target : FindTarget(caster, effect);
 
             if (firstTarget == null) yield break;
@@ -800,7 +802,7 @@ public class FarthestDoubleAoeSkill : ISkillBehavior
 
             ApplyAoeDamage(caster, center, AoERadius, damage);
 
-            yield return new WaitForSeconds(ShotInterval);
+            yield return new WaitForSeconds(effect.skillDelayTime);
         }
     }
 
