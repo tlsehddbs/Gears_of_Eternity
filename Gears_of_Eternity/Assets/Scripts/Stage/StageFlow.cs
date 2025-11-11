@@ -97,7 +97,7 @@ public class StageFlow : MonoBehaviour
         }
         
         // 다음 노드 활성화
-        var layout = FindAnyObjectByType<StageMapLayout>();
+        var layout = FindAnyObjectByType<StageGraphLayout>();
         if (layout)
             layout.Refresh(graph);
 

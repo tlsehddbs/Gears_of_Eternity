@@ -6,7 +6,7 @@ using UnityEditor.Timeline;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class StageMapLayout : MonoBehaviour
+public class StageGraphLayout : MonoBehaviour
 {
     [Header("References")]
     public RectTransform content;
@@ -201,7 +201,7 @@ public class StageMapLayout : MonoBehaviour
             for (int i = 0; i < bezierSegments; i++)
             {
                 float t = i / (bezierSegments - 1f);
-                Vector3 p = (1 - t) * (1 - t) * p0 + 2 * (1 - t) * t * p1 + t * t * p2;
+                Vector3 p = (1 - t) * (1 - t) * p0 + 2 * (1 - t) * t * p1 + t * t * p2; // 어떻게 작동하는지 모름 ;;
                 edge.SetPosition(i, p);
             }
         }

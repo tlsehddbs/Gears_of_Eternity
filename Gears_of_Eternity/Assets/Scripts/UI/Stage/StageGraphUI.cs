@@ -1,9 +1,9 @@
 using System.Linq;
 using UnityEngine;
 
-public class StageMapUI : MonoBehaviour
+public class StageGraphUI : MonoBehaviour
 {
-    public StageMapLayout layout;
+    public StageGraphLayout layout;
     
     public void Bind(RuntimeStageGraph g)
     {

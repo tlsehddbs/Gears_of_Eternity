@@ -24,6 +24,6 @@ public class StageManager : MonoBehaviour
         // TODO: 세션이 시작될 때 seed 값이 자동으로 변환하게끔 하는 로직을 추가할 것
         StageFlow.Instance.GenerateNew(seed: 22222);
         
-        FindAnyObjectByType<StageMapLayout>()?.Bind(StageFlow.Instance.graph);
+        FindAnyObjectByType<StageGraphLayout>()?.Bind(StageFlow.Instance.graph);
     }
 }

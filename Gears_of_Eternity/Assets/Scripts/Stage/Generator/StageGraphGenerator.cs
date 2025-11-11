@@ -5,13 +5,14 @@ using UnityEngine;
 
 public static class StageGraphGenerator
 {
+    // 스테이지 생성에 관한 규칙
     public sealed class Rules
     {
-        public const int Layers = 12;
-        public Vector2Int NodeCountRange = new(2, 3);
+        public const int Layers = 15;                   // 최대 레이어 개수
+        public Vector2Int NodeCountRange = new(1, 3);   // 각 레이어마다 노드의 개수 범위를 지정
         public const float BridgeProbability = 0.35f;
-        public const int MinChoices = 2;
-        public const int MaxChoices = 3;
+        public const int MinChoices = 1;                // 노드의 최소 선택지 개수
+        public const int MaxChoices = 3;                // 노드의 최대 선택지 개수
     }
 
     public static RuntimeStageGraph Generate(int seed, Rules rules)
@@ -37,9 +38,6 @@ public static class StageGraphGenerator
                     type = StageTypes.StageNodeTypes.Combat,
                     discovered = (l < 1)            // 처음 시작시 첫 노드만 활성화 되게끔 변경
                 });
-#if UNITY_EDITOR
-                Debug.Log($"{l} 번 레이어의 {i} 번 노드 생성됨");
-#endif
             }
             layer.Add(layerNodes);
             g.nodes.AddRange(layerNodes);
