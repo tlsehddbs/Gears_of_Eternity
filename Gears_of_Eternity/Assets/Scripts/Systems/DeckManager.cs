@@ -56,6 +56,7 @@ public class DeckManager : MonoBehaviour
         } 
         else 
         {
+            // TODO: Unit 업그레이드를 고려하여 재설계 할 것 
             var filtered = cardCollection.allAvailableCards
                 .Where(card => card.faction == filterFaction)
                 .Where(card => card.level == 1)
