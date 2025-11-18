@@ -4,10 +4,13 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
-    // TODO: 네이밍 수정할 것
-    public bool isDrawingCards;
-    public bool isDraggingCard;
+    [Header("Player Data")] public IGetPlayerProgress PlayerProgress;
+
     
+    //public bool isDrawingCards;
+    [HideInInspector]
+    public bool isDraggingCard;
+    [HideInInspector]
     public bool isPointerEventEnabled = true;
     
 
@@ -17,6 +20,15 @@ public class GameManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            
+            if(PlayerProgress == null)
+                PlayerProgress = GetComponent<IGetPlayerProgress>();
+
+            var flow = FindAnyObjectByType<StageFlow>();
+            if (flow != null)
+            {
+                flow.playerProgress = PlayerProgress;
+            }
         }
         else
         {

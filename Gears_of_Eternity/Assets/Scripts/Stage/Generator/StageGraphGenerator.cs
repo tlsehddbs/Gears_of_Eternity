@@ -202,16 +202,18 @@ public static class StageGraphGenerator
             int roll = rand.Next(100);
             
             // TODO: None 타입은 제외하고 Boss 타입을 새로 생성할 것
-            if (roll < 60)  
+            if (roll < 65)  
                 n.type = StageTypes.StageNodeTypes.Combat;
-            else if (roll < 75)  
+            else if (roll < 80)  
                 n.type = StageTypes.StageNodeTypes.Shop;
-            else if (roll < 85)  
+            else if (roll < 92)  
                 n.type = StageTypes.StageNodeTypes.Rest;
-            else if (roll < 93)  
+            else if (roll <= 100)  
                 n.type = StageTypes.StageNodeTypes.Event;
             else 
                 n.type = StageTypes.StageNodeTypes.None;
         }
+
+        g.nodes[last].type = StageTypes.StageNodeTypes.Boss;
     }
 }

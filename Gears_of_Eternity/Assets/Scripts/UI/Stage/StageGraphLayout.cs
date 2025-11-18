@@ -244,8 +244,16 @@ public class StageGraphLayout : MonoBehaviour
     {
         var img = rt.GetComponentInChildren<Image>(true);
         if (img != null)
+        {
             if (node.discovered && node.completed)
+            {
                 img.color = Color.yellow;
+            }
+            else
+            {
+                img.color = Color.white;
+            }
+        }
     }
 
     // ======================= SCROLL =======================
@@ -264,14 +272,32 @@ public class StageGraphLayout : MonoBehaviour
 
     public void ScrollToCurrent(string nodeId, float offset = 0f)
     {
+        if (!isActiveAndEnabled)
+            return;
+
+        StartCoroutine(ScrollToCurrentDelayed(nodeId, offset));
+    }
+
+    private System.Collections.IEnumerator ScrollToCurrentDelayed(string nodeId, float offset)
+    {
+        yield return null;
+
         if (_scroll == null)
-            return;
+            yield break;
         if (!_nodesRectTransform.TryGetValue(nodeId, out var rt))
-            return;
+            yield break;
+        
+        Canvas.ForceUpdateCanvases();
         
         float viewportWidth = _scroll.viewport ? _scroll.viewport.rect.width : ((RectTransform)_scroll.transform).rect.width;
         float contentWidth = content.rect.width;
 
+        if (contentWidth <= viewportWidth)
+        {
+            _scroll.horizontalNormalizedPosition = 0f;
+            yield break;
+        }
+        
         Vector3 nodeLocal = content.InverseTransformPoint(rt.position);
         float target = nodeLocal.x + (-content.pivot.x * contentWidth) + offset;
 
