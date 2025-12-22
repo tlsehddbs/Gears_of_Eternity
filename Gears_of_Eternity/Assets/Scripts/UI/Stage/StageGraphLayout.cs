@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Timeline;
 using UnityEngine;
@@ -112,8 +113,18 @@ public class StageGraphLayout : MonoBehaviour
             {
                 var n = layerNodes[i];
                 var rt = Instantiate(nodePrefab, content);
-                rt.name = $"Node_{n.layerIndex}_{i}_{n.nodeId[..6]}";
+                rt.name = $"{n.type}Node_{n.layerIndex}-{i}({n.nodeId[..6]})";
                 rt.sizeDelta = new Vector2(rt.sizeDelta.x, nodeHeight);
+                
+                // 확인용 노드 text(추후 이미지로 변경 예정)
+                var nt = rt.GetComponentInChildren<TextMeshProUGUI>();
+                nt.text = $"{n.type}";
+                nt.enableAutoSizing = false;
+                nt.fontSize = 26;
+                nt.alignment = TextAlignmentOptions.Center;
+                
+                
+                
 
                 float y = -(topPadding + (i * (nodeHeight + nodeGap)) - (startY - nodeHeight * 0.5f));
                 rt.anchoredPosition = new Vector2(x, y);
