@@ -7,9 +7,12 @@ public enum GamePhase { OnMap, LoadingStage, InStage, Reward, Transition }
 public class StageFlow : MonoBehaviour
 {
     public static StageFlow Instance { get; private set; }
-
+    
     [Header("Assets")] 
     public BaseStageCatalog catalog;
+    
+    // (optional) 현재 진입한 스테이지 정의를 외부에서 조회할 수 있게
+    public BaseStageData CurrentStageDef { get; private set; }
 
     [Header("Runtime")] 
     public StageGraphGenerator.Rules rules = new();
@@ -17,7 +20,9 @@ public class StageFlow : MonoBehaviour
     public LoopController loopController = new LoopController();
     public GamePhase phase = GamePhase.OnMap;
 
-    public IGetPlayerProgress playerProgress;
+    [Header("Player")] 
+    [SerializeField] private PlayerState playerState;
+    private IPlayerProgress PlayerProgress => playerState != null ? playerState : PlayerState.Instance;
 
     private void Awake()
     {
@@ -30,39 +35,58 @@ public class StageFlow : MonoBehaviour
         {
             Destroy(gameObject);
         }
+
+        if (playerState == null)
+        {
+            playerState = PlayerState.Instance;
+        }
     }
 
     public void GenerateNew(int seed)
     {
         graph = StageGraphGenerator.Generate(seed, rules);
         phase = GamePhase.OnMap;
-        // TODO: Map UI에 graph 바인딩 및 그리기
     }
 
     public async void SelectStage(string nextNodeId)
     {
         if (phase != GamePhase.OnMap)
+        {
             return;
-        
+        }
+
+        if (graph == null)
+        {
+            return;
+        }
+
         var next = graph.FindNode(nextNodeId);
-        
         if (next == null)
+        {
             return;
+        }
 
         // 선택 스테이지 이외의 같은 레이어에 있는 노드에 대한 접근 차단(lock)
         foreach (var ln in graph.nodes)
+        {
             if (ln.layerIndex == next.layerIndex && ln.nodeId != next.nodeId)
+            {
                 ln.locked = true;
+            }
+        }
 
         graph.currentNodeId = nextNodeId;
         phase = GamePhase.LoadingStage;
 
         var def = catalog.GetByType((next.type));
+        CurrentStageDef = def;
+        StageContext.Set(def);
+        
         await StageRunner.Instance.EnterStageAsync(def);
         
         // 다른 combat scene으로의 이동 시 deck의 꼬임 방지를 위함
         // TODO: 추후 게임에 대해서 최적화 된 방법이 있는지 파악 후 개선할 것 
-        DeckManager.Instance.InitializeDeck();
+        //DeckManager.Instance.BuildDeckFromPlayerState(PlayerState.Instance);
         
         phase = GamePhase.InStage;
     }
@@ -70,7 +94,14 @@ public class StageFlow : MonoBehaviour
     public async Task OnStageCleared()
     {
         if (phase != GamePhase.InStage)
+        {
             return;
+        }
+
+        if (graph == null)
+        {
+            return;
+        }
         
         
         // TODO: 보상 연출 (코인 등) 반영
@@ -82,10 +113,11 @@ public class StageFlow : MonoBehaviour
         cur.completed = true;
         
         await StageRunner.Instance.ExitStageAsync();
-
-        bool loopTriggered = loopController != null && loopController.TryGetLoopStarted(graph, cur, playerProgress);
-
         
+        StageContext.Clear();
+        CurrentStageDef = null;
+
+        bool loopTriggered = loopController != null && loopController.TryGetLoopStarted(graph, cur, PlayerProgress);
         
         var connectedEdges = graph.edges.Where(e => e.fromNodeId == cur.nodeId);
 
@@ -105,10 +137,9 @@ public class StageFlow : MonoBehaviour
         {
             layout.Refresh(graph);
             
-            // TODO: 스크롤 버그 해결해야 함
-            //layout.ScrollToCurrent(graph.currentNodeId);
+            // 노드를 스크롤 중앙으로
+            layout.ScrollToCurrent(graph.currentNodeId);
         }
-
         phase = GamePhase.OnMap;
     }
 }

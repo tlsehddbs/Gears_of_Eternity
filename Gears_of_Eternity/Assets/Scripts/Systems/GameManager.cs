@@ -3,9 +3,6 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
-
-    [Header("Player Data")] public IGetPlayerProgress PlayerProgress;
-
     
     //public bool isDrawingCards;
     [HideInInspector]
@@ -20,19 +17,29 @@ public class GameManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            
-            if(PlayerProgress == null)
-                PlayerProgress = GetComponent<IGetPlayerProgress>();
 
-            var flow = FindAnyObjectByType<StageFlow>();
-            if (flow != null)
-            {
-                flow.playerProgress = PlayerProgress;
-            }
+            // if (PlayerProgress == null)
+            // {
+            //     PlayerProgress = GetComponent<IPlayerProgress>();
+            // }
+            //
+            // var flow = FindAnyObjectByType<StageFlow>();
+            // if (flow != null)
+            // {
+            //     flow.PlayerProgress = PlayerProgress;
+            // }
         }
         else
         {
             Destroy(gameObject);
+        }
+    }
+
+    private void Start()
+    {
+        if (PlayerState.Instance.DeckCards.Count == 0)
+        {
+            PlayerState.Instance.GenerateStarterDeck(CardCollection.Instance);
         }
     }
 }

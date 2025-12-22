@@ -8,7 +8,7 @@ public static class StageGraphGenerator
     // 스테이지 생성에 관한 규칙
     public sealed class Rules
     {
-        public const int Layers = 15;                   // 최대 레이어 개수
+        public const int Layers = 13;                   // 최대 레이어 개수
         public Vector2Int NodeCountRange = new(1, 3);   // 각 레이어마다 노드의 개수 범위를 지정
         public const float BridgeProbability = 0.35f;
         public const int MinChoices = 1;                // 노드의 최소 선택지 개수
@@ -74,7 +74,6 @@ public static class StageGraphGenerator
                 {
                     var f = froms[rand.Next(froms.Count)];
                     g.edges.Add(new RuntimeStageEdge { fromNodeId = f.nodeId, toNodeId = t.nodeId, isBridge = false });
-                    
                 }
             }
         }
@@ -108,7 +107,6 @@ public static class StageGraphGenerator
             int j = rand.Next(i, arr.Count);
             (arr[i], arr[j]) = (arr[j], arr[i]);
         }
-
         return arr.Take(Mathf.Clamp(k, 0, arr.Count));
     }
 
@@ -140,19 +138,25 @@ public static class StageGraphGenerator
         for (int l = 0; l <= last; l++)
         {
             if (rand.NextDouble() > prob)
+            {
                 continue;
+            }
 
             var fromLayer = g.nodes.Where(n => n.layerIndex == l).ToList();
             var toLayer = g.nodes.Where(n => n.layerIndex == l + 1).ToList();
-            
+
             if (fromLayer.Count == 0 || toLayer.Count == 0)
+            {
                 continue;
+            }
 
             var from = fromLayer[rand.Next(fromLayer.Count)];
             var to = toLayer[rand.Next(toLayer.Count)];
 
             if (!CreatesCycle(g, from.nodeId, to.nodeId))
+            {
                 g.edges.Add(new RuntimeStageEdge { fromNodeId = from.nodeId, toNodeId = to.nodeId, isBridge = /*true*/false});
+            }
         }
     }
 
@@ -165,19 +169,21 @@ public static class StageGraphGenerator
         while (stack.Count > 0)
         {
             var cur = stack.Pop();
-            
             if (cur == from)
+            {
                 return true;
+            }
 
             if (!visited.Add(cur))
+            {
                 continue;
+            }
 
             foreach (var e in g.edges.Where(e => e.fromNodeId == cur))
             {
                 stack.Push(e.toNodeId);
             }
         }
-        
         return false;
     }
 
@@ -187,12 +193,13 @@ public static class StageGraphGenerator
         
         foreach (var n in g.nodes)
         {
+            // 보스 노드 타입 대입(고정)
             if (n.layerIndex == last)
             {
                 n.type = StageTypes.StageNodeTypes.Boss;
                 continue;
             }
-
+            // 첫번째 combat 노드 타입 대입(고정)
             if (n.layerIndex == 0)
             {
                 n.type = StageTypes.StageNodeTypes.Combat;
@@ -200,20 +207,22 @@ public static class StageGraphGenerator
             }
 
             int roll = rand.Next(100);
-            
-            // TODO: None 타입은 제외하고 Boss 타입을 새로 생성할 것
-            if (roll < 65)  
+            if (roll < 65)
+            {
                 n.type = StageTypes.StageNodeTypes.Combat;
-            else if (roll < 80)  
+            }
+            else if (roll < 80)
+            {
                 n.type = StageTypes.StageNodeTypes.Shop;
-            else if (roll < 92)  
+            }
+            else if (roll < 92)
+            {
                 n.type = StageTypes.StageNodeTypes.Rest;
-            else if (roll <= 100)  
+            }
+            else
+            {
                 n.type = StageTypes.StageNodeTypes.Event;
-            else 
-                n.type = StageTypes.StageNodeTypes.None;
+            }
         }
-
-        g.nodes[last].type = StageTypes.StageNodeTypes.Boss;
     }
 }

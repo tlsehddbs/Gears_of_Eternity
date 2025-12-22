@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class LoopController
@@ -12,18 +11,24 @@ public class LoopController
         requiredItemCount = 5
     };
     
-    public bool TryGetLoopStarted(RuntimeStageGraph g, RuntimeStageNode rn, IGetPlayerProgress p)
+    public bool TryGetLoopStarted(RuntimeStageGraph g, RuntimeStageNode rn, IPlayerProgress p)
     {
-        if(!rule.enabled || g == null || rn == null)
+        if (!rule.enabled || g == null || rn == null)
+        {
             return false;
+        }
         
         // TODO: p가 현재 null인 상태로 IGetPlayerProgress를 구현후 문제를 수정할 것
-        if (/*p == null ||*/ string.IsNullOrEmpty(rule.requiredItemId) || rule.requiredItemCount <= 0)
+        if ( /*p == null ||*/ string.IsNullOrEmpty(rule.requiredItemId) || rule.requiredItemCount <= 0)
+        {
             return false;
+        }
         
         int preBossLayer = g.nodes.Max(n => n.layerIndex) - 1;
         if (rn.layerIndex != preBossLayer)
+        {
             return false;
+        }
 
         // int count = p.GetItemCount(rule.requiredItemId);
         // if (count >= rule.requiredItemCount)
@@ -40,7 +45,6 @@ public class LoopController
         
         // 구간 리셋
         ResetAndWrap(g, preBossLayer, returnNode);
-
         return true;
     }
 
@@ -54,15 +58,17 @@ public class LoopController
             .ToList();
 
         // TODO: 추후 적당한 부분으로 이동시키도록 변경 예정
-        if(singleCombatCandidates.Count != 0)
+        if (singleCombatCandidates.Count != 0)
+        {
             return singleCombatCandidates[UnityEngine.Random.Range(0, singleCombatCandidates.Count)];
+        }
 
         // 노드가 1개이면서 combat인 노드가 없을 경우 comabat인 다른 노드로 회귀하기 위한 fallback 구현부
         var fallbackNode = g.nodes.Where(n => n.type != StageTypes.StageNodeTypes.Boss).ToList();
-        
-        if(fallbackNode.Count > 0)
+        if (fallbackNode.Count > 0)
+        {
             return fallbackNode[UnityEngine.Random.Range(0, fallbackNode.Count)];
-
+        }
         // when fallback is fail, return to first Node
         return g.nodes.FirstOrDefault();
     }
@@ -75,7 +81,9 @@ public class LoopController
         foreach (var n in g.nodes)
         {
             if (n.layerIndex < fromLayer || n.layerIndex > toLayer)
+            {
                 continue;
+            }
 
             n.completed = false;
             n.discovered = false;
@@ -95,7 +103,6 @@ public class LoopController
                 m.locked = true;
             }
         }
-        
         g.currentNodeId = returnNode.nodeId;
     }
 }

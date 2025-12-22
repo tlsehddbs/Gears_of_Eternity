@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 using FactionTypes.Enums;
 using RarityTypes.Enums;
-using BattleTypes.Enums;
+using UnitRoleTypes.Enums;
 
 public class UnitCardScriptableGenerator : EditorWindow
 {
@@ -56,7 +56,7 @@ public class UnitCardScriptableGenerator : EditorWindow
             // card.description = row[1];
             // card.unitPrefab = row[1];
             card.rarity = (Rarity)Enum.Parse(typeof(Rarity), row[2]);
-            card.battleType = (BattleType)Enum.Parse(typeof(BattleType), row[3]);
+            card.roleType = (RoleTypes)Enum.Parse(typeof(RoleTypes), row[3]);
             
             card.health = float.Parse(row[4]);
             card.defense = float.Parse(row[5]);

@@ -1,18 +1,19 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-using BattleTypes.Enums;
+using UnitRoleTypes.Enums;
 //using UnitSkillTypes.Enums;
 
 
 [CreateAssetMenu(fileName = "NewUnitCard", menuName = "Card/UnitCard")]
 public class UnitCardData : BaseCardData
 {
-    [Space(10)]
-    [Header("Unit Card Info")]
+    [Space(10)] 
+    [Header("Unit Card Info")] 
+    //public string cardId;
     public string unitName;
     public string description;
-    public BattleType battleType;
+    public RoleTypes roleType;
     public GameObject unitPrefab;
     
     public float health;

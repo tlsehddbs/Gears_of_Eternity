@@ -1,16 +1,18 @@
 using System;
-using BattleTypes.Enums;
 using FactionTypes.Enums;
+using UnitRoleTypes.Enums;
 using UnityEngine;
 
 [Serializable]
 public class RuntimeUnitCard
 {
+    public string uniqueId;
+    
     public string unitName;
     public string unitDescription;
     
     public FactionType faction;
-    public BattleType battleType;
+    public RoleTypes roleTypes;
     public GameObject unitPrefab;
     
     public float health;
@@ -26,11 +28,6 @@ public class RuntimeUnitCard
     public int level;
     
     
-    
-    public string uniqueId;
-
-
-    
     public RuntimeUnitCard(UnitCardData data)
     {
         uniqueId = Guid.NewGuid().ToString();
@@ -41,7 +38,7 @@ public class RuntimeUnitCard
         
         faction = data.faction;
         
-        battleType = data.battleType;
+        roleTypes = data.roleType;
         unitPrefab = data.unitPrefab;
         
         health = data.health;

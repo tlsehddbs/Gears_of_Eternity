@@ -6,9 +6,11 @@ public class CardDrop : MonoBehaviour, IDropHandler
     public void OnDrop(PointerEventData eventData)
     {
         CardUIManager droppedCard = eventData.pointerDrag?.GetComponent<CardUIManager>();
-        
-        if (droppedCard == null) 
+
+        if (droppedCard == null)
+        {
             return;
+        }
 
         Debug.Log($"드롭 성공! 카드: {droppedCard.cardData.unitName}");
 
