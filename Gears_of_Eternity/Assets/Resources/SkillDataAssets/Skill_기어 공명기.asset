@@ -27,3 +27,4 @@ MonoBehaviour:
     skillMaxStack: 0
     isPercent: 1
     skillRange: 15
+    skillAngle: 0

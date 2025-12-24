@@ -1,4 +1,3 @@
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class AttackState : UnitState
@@ -7,6 +6,12 @@ public class AttackState : UnitState
 
     public override void Update()
     {
+        if (unit.IsStunned())
+        {
+            unit.ChangeState(new IdleState(unit)); // 즉시 공격 루프 탈출
+            return;
+        }        
+        
         unit.attackTimer += Time.deltaTime;
         // 기본 타겟이 없거나 죽었으면 Idle 
         if (unit.targetEnemy == null || !unit.targetEnemy.IsAlive())

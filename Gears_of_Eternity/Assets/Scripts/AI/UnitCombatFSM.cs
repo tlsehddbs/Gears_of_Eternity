@@ -27,6 +27,8 @@ public enum BuffStat
     CriticalChance,
 }
 
+
+
 public partial class UnitCombatFSM : MonoBehaviour
 {
     public UnitCardData unitData; // 원본 ScriptableObjcet
@@ -41,7 +43,8 @@ public partial class UnitCombatFSM : MonoBehaviour
     public SkillData skillData;
     public UnitCombatFSM targetAlly; //힐 버프 대상 
     public System.Action OnPostAttack;
-
+    public bool lastAttackWasCritical; // 직전 평타가 치명타였는지 표시
+    public bool movementLocked = false; //오라 유닛 이동 불가용
 
     public SkillExecutor skillExecutor = new SkillExecutor();
     private UnitState currentState;
@@ -58,6 +61,9 @@ public partial class UnitCombatFSM : MonoBehaviour
     public delegate void BeforeTakeDamageHandler(ref float damage, UnitCombatFSM attacker); //ref float damage: 실제 적용될 피해값을 수정할 수 있도록 참조 전달
     public event BeforeTakeDamageHandler OnBeforeTakeDamage;
 
+    public event System.Action<float, UnitCombatFSM> OnAfterTakeDamage; // (받은 실제 피해, 가해자)
+    public event System.Action<float, UnitCombatFSM> OnDealDamage;      // (내가 입힌 실제 피해, 피해자)
+    public event System.Action<UnitCombatFSM> OnKillEnemy;              // (내가 처치한 대상)
 
     void Awake()
     {
@@ -84,8 +90,11 @@ public partial class UnitCombatFSM : MonoBehaviour
     public void OnDeath()
     {
         RemovePassiveEffects(); // 패시브 해제
-        OnReflectDamage = null; // 💥 반사 효과도 제거
-        OnBeforeTakeDamage = null;
+        OnReflectDamage = null; // 반사 효과도 제거
+        OnBeforeTakeDamage = null; // 사전 딜 제거
+        OnAfterTakeDamage = null; // 사후 딜 제거
+        OnDealDamage = null;
+        OnKillEnemy = null;
 
         if (skillData != null && skillData.effects != null)
         {
@@ -174,6 +183,17 @@ public partial class UnitCombatFSM : MonoBehaviour
 
     public void ChangeState(UnitState newState)
     {
+        //이동 불가 상태면 State 전환 자체를 막음
+        if (movementLocked && newState is MoveState)
+        {
+            if (agent != null)
+            {
+                agent.ResetPath();
+                agent.isStopped = true;
+                agent.speed = 0f;
+            }
+            return;
+        }
         currentState?.Exit();
         currentState = newState;
         currentState.Enter();
@@ -185,6 +205,7 @@ public partial class UnitCombatFSM : MonoBehaviour
 
     public void Attack()
     {
+        if (IsStunned()) return;
         //평타 비활성화면 공격 로직X
         if (disableBasicAttack) return;
 
@@ -196,9 +217,12 @@ public partial class UnitCombatFSM : MonoBehaviour
         }
 
         if (targetEnemy == null || !targetEnemy.IsAlive()) return;
+
         float baseDamage = stats.attack;
+
         //치명타 판정 
         bool isCritical = UnityEngine.Random.value < stats.criticalChance;
+        lastAttackWasCritical = isCritical;
 
         if (isCritical)
         {
@@ -242,14 +266,32 @@ public partial class UnitCombatFSM : MonoBehaviour
         {
             currentHP -= effectiveDamage;
         }
-
+        
         Debug.Log($"[피격] {name} - 받은 데미지: {effectiveDamage:F1} / 남은 HP: {currentHP:F1}");
+
+        //가해자에게 실제 입힌 피해 알림 (피흡 같은 패시브는 이걸 사용) 
+        if (attacker != null && effectiveDamage > 0f)
+        {
+            attacker.OnDealDamage?.Invoke(effectiveDamage, this);
+        }
+
+        bool isDeadNow = currentHP <= 0f;
+
+        //가해자에게 처치 알림
+        if (attacker != null && isDeadNow)
+        {
+            attacker.OnKillEnemy?.Invoke(this);
+        }
 
         if (currentHP <= 0)
         {
             ChangeState(new DeadState(this));
         }
         
+        // 피해 이후 : HP에 실제 반영된 피해량 기준(>0일 때만)
+        if(effectiveDamage > 0)
+            OnAfterTakeDamage?.Invoke(effectiveDamage, attacker);
+    
         // 데미지 반사 처리
         if (attacker != null && OnReflectDamage != null)
         {
@@ -258,7 +300,7 @@ public partial class UnitCombatFSM : MonoBehaviour
         }
     }
 
-    // 급속 파열기 헬퍼 List
+    // ConeTripleHit 헬퍼 List
     public List<UnitCombatFSM> FindEnemiesInCone(float angleDeg, float rangeMultiplier)
     {
         List<UnitCombatFSM> targets = new();
@@ -510,6 +552,7 @@ public partial class UnitCombatFSM : MonoBehaviour
     //스킬 쿨타임 조건 확인 
     public bool CanUseSkill()
     {
+        if (IsStunned()) return false;
         return skillData != null && skillTimer >= skillData.skillCoolDown;
     }
 
@@ -560,7 +603,10 @@ public partial class UnitCombatFSM : MonoBehaviour
     // }
 
 
-    // ----- [조건부 버프 및 스킬 : 효과 적용/해제 함수맵] -----
+    private static readonly Dictionary<UnitCombatFSM, BeforeTakeDamageHandler> _splitHooks
+        = new Dictionary<UnitCombatFSM, BeforeTakeDamageHandler>(); 
+
+    // ----- [조건부 버프 및 스킬(패시브형 관련) : 효과 적용/해제 함수맵] -----
  
     private static readonly Dictionary<UnitSkillType, System.Action<UnitCombatFSM, SkillEffect>> applyEffectMap =
         new Dictionary<UnitSkillType, System.Action<UnitCombatFSM, SkillEffect>>()
@@ -603,7 +649,67 @@ public partial class UnitCombatFSM : MonoBehaviour
                 new PassiveAreaBuffSkill().Execute(unit, null, effect);
             }
         },
-        // 신규 효과는 여기만 추가
+        { UnitSkillType.PassiveRegenAndSplitDamage, (unit, effect) =>
+                {
+                    // 재생 시작
+                    var regen = unit.GetComponent<RegenStatus>();
+                    if (regen == null) regen = unit.gameObject.AddComponent<RegenStatus>();
+
+                    float interval   = (effect.skillDelayTime > 0f) ? effect.skillDelayTime : 2f;  // 기본 2초
+                    float amount     = (effect.skillValue     > 0f) ? effect.skillValue     : 0.05f;// 기본 5%
+                    bool  isPercent  = (effect.isPercent) ? true : true; // 기본 퍼센트 사용
+                    float duration   = 0f; // 패시브 무한
+
+                    regen.StartPulse(interval, amount, isPercent, duration);
+
+                    // 70/30 피해 분할 
+                    if (!_splitHooks.ContainsKey(unit))
+                    {
+                        var selfDot = unit.GetComponent<DeferredSelfDamageStatus>();
+                        if (selfDot == null) selfDot = unit.gameObject.AddComponent<DeferredSelfDamageStatus>();
+
+                        float ratio30   = (effect.skillMaxStack > 0f) ? effect.skillMaxStack : 0.30f; // 30%
+                        float dotDur    = (effect.skillRange     > 0f) ? effect.skillRange    : 3.0f; // 3초
+                        int   dotTicks  = 3; // 3틱 고정(원하면 별도 필드로 뺄 수 있음)
+
+                        BeforeTakeDamageHandler h = (ref float effDmg, UnitCombatFSM attacker) =>
+                        {
+                            // 내부 지연피해(attacker == null)는 다시 분할하면 무한루프 → 스킵
+                            if (attacker == null) return;
+
+                            float deferred = effDmg * ratio30; // 30%를 지연
+                            effDmg -= deferred;                // 즉시반영은 70%만
+
+                            // 남은 30%는 3초 동안 3틱으로 자기 자신에게 '추가 피해'
+                            selfDot.AddSplitDamage(deferred, dotTicks, dotDur);
+                        };
+
+                        unit.OnBeforeTakeDamage += h;  // 피해계산(방어/감뎀 후, 방어막 전) 단계에서 개입
+                        _splitHooks[unit] = h;
+                    }
+                }    
+            },
+            { UnitSkillType.BleedOnCritPassive, (unit, effect) =>
+                {
+                    new BleedOnCritPassiveSkill().Execute(unit, null, effect);
+                }
+            },
+            { UnitSkillType.LifeStealAndKillHealPassive, (unit, effect) =>
+                {
+                    new LifeStealAndKillHealPassiveSkill().Execute(unit, null, effect);
+                }
+            },
+            { UnitSkillType.StackingHasteThenExhaustPassive, (unit, effect) =>
+                {
+                    new StackingHasteThenExhaustPassiveSkill().Execute(unit, null, effect);
+                }
+            },
+            { UnitSkillType.ImmobileAuraBuff, (unit, effect) =>
+                {
+                    new ImmobileAuraBuffSkill().Execute(unit, null, effect);
+                }
+            },
+            // 신규 효과는 여기만 추가
 
         };
 
@@ -645,9 +751,44 @@ public partial class UnitCombatFSM : MonoBehaviour
                 new PassiveAreaBuffSkill().Execute(unit, null, effect);
             }
         },
-        
+
+        { UnitSkillType.PassiveRegenAndSplitDamage, (unit, effect) =>
+            {
+                var regen = unit.GetComponent<RegenStatus>();
+                if (regen != null) regen.ClearAll();
+
+                var selfDot = unit.GetComponent<DeferredSelfDamageStatus>();
+                if (selfDot != null) selfDot.ClearAll();
+
+                if (_splitHooks.TryGetValue(unit, out var h))
+                {
+                    unit.OnBeforeTakeDamage -= h; // 구독 해제
+                    _splitHooks.Remove(unit);
+                }
+            }
+        },
+        { UnitSkillType.BleedOnCritPassive, (unit, effect) =>
+            {
+                new BleedOnCritPassiveSkill().Remove(unit, effect);
+            }
+        },
+        { UnitSkillType.LifeStealAndKillHealPassive, (unit, effect) =>
+            {
+                new LifeStealAndKillHealPassiveSkill().Remove(unit, effect);
+            }
+        },
+        { UnitSkillType.StackingHasteThenExhaustPassive, (unit, effect) =>
+            {
+                new StackingHasteThenExhaustPassiveSkill().Remove(unit, effect);
+            }
+        },
+        { UnitSkillType.ImmobileAuraBuff, (unit, effect) =>
+            {
+                new ImmobileAuraBuffSkill().Remove(unit, effect);
+            }
+        },
         // 신규 효과는 여기만 추가 
-        };
+    };
 
     //지연 발동 버프관련 / 하이브리드 기병 
     private static IEnumerator DelayedBuffRoutine(UnitCombatFSM unit, SkillEffect effect) 
@@ -835,7 +976,100 @@ public partial class UnitCombatFSM : MonoBehaviour
         return results;
     }
 
+public static class UnitCombatFSM_DebuffRegistry
+{
+    public class DebuffRec
+    {
+        public UnitCombatFSM target;
+        public BuffStat stat;
+        public float appliedAmount;   // 실제 적용한 값(감소는 음수)
+        public bool isPercent;
+        public Coroutine routine;
+    }
 
+    private static readonly Dictionary<UnitCombatFSM, List<DebuffRec>> _map = new();
+
+    /// <summary>
+    /// 추적형 스탯 디버프 적용
+    /// - amount: '비율(0.15=15%)' 또는 '고정 수치' (isPercent로 구분)
+    /// - 감소는 음수로 적용, 해제 시 같은 값을 isRemove=true로 되돌림
+    /// </summary>
+    public static void ApplyStatDebuffTracked(UnitCombatFSM target, BuffStat stat, float amount, float duration, bool isPercent)
+    {
+        if (target == null || !target.IsAlive() || amount <= 0f || duration <= 0f) return;
+
+        // 감소 디버프이므로 '음수'로 변환
+        float applied = -Mathf.Abs(amount);
+
+        var rec = new DebuffRec
+        {
+            target = target,
+            stat = stat,
+            appliedAmount = applied,
+            isPercent = isPercent
+        };
+
+        rec.routine = target.StartCoroutine(CoApply(target, rec, duration));
+
+        if (!_map.TryGetValue(target, out var list))
+        {
+            list = new List<DebuffRec>();
+            _map[target] = list;
+        }
+        list.Add(rec);
+    }
+
+    private static IEnumerator CoApply(UnitCombatFSM t, DebuffRec r, float duration)
+    {
+        // 디버프 적용(감소: 음수, 증가 아님)
+        t.ModifyStat(r.stat, r.appliedAmount, r.isPercent, isRemove: false);
+
+        yield return new WaitForSeconds(duration);
+
+        // 디버프 해제(같은 값 + isRemove=true → 자연 복구)
+        t.ModifyStat(r.stat, r.appliedAmount, r.isPercent, isRemove: true);
+
+        if (_map.TryGetValue(t, out var list)) list.Remove(r);
+    }
+
+    /// <summary>정화: 진행 중인 추적형 스탯 디버프를 전부 해제</summary>
+    public static void CleanseAllStatDebuffs(UnitCombatFSM target)
+    {
+        if (target == null) return;
+        if (!_map.TryGetValue(target, out var list) || list.Count == 0) return;
+
+        foreach (var rec in list)
+        {
+            if (rec.routine != null) target.StopCoroutine(rec.routine);
+            // 같은 값 + isRemove=true 로 복구
+            target.ModifyStat(rec.stat, rec.appliedAmount, rec.isPercent, isRemove: true);
+        }
+        list.Clear();
+    }
+}
+
+public bool IsStunned()
+{
+    return TryGetComponent<StunSystem>(out var s) && s.IsStunned;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //---------------------------------------------------------------------------------------------------------------------
     //런타임 사거리 
     private LineRenderer rangeIndicator;
 

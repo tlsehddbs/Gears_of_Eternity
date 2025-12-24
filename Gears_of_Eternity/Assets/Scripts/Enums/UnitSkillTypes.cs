@@ -28,7 +28,7 @@ namespace UnitSkillTypes.Enums
 
         // 회복
         InstantHeal,               // 즉시 회복
-        HealOverTime,              // 지속 회복
+        HealOverTime,              // 지속 회복 //키메라 보조체
         Regen,                     // 재생 효과
         BarrierOnHpHalf,                   // 보호막 / 기동 중장기병 
 
@@ -75,6 +75,19 @@ namespace UnitSkillTypes.Enums
         FarthestDoubleAoe,         // 맵 전역: 가장 먼 적에게 1초 간격 원형 AoE 2회(각 160%)    //연산 포격수
         PassiveTurretBarrage,      // 고정 포탑: 3초마다 근접 적 AoE(280%) + 사망 시 자폭(400%) // 기어 포탑병
         QuadFlurryBlind,           // 4연속(각 60%), 4타 명중 시 2초 실명, 쿨타임 7초 //연속 발사기
+        HealingAuraDefenseBuff,    // 자기 중심 원형 HoT(3s, 0.2tick, 5%/tick) + 방어력 +20%(8s) //방호 조정사
+        EmpowerZoneHighestAttackAlly,  //가장 공격력이 높은 아군 유닛의 위치에 원형 범위의 버프지대 활성화 버프 안에 아군 유닛의 공격력 25%, 공격속도+15%, 이동속도 +15% 증가 버프지대는 7초간 지속 //증기 화력 관제사
+        CleanseAndShieldAoE,     //기어 방벽 조정사
+        RectStun_ArmorDown, // 가장 가까운 적 방향 직사각형: 기절+방깎 //EMP방출자
+        PassiveRegenAndSplitDamage,  // 재생+피해분할(70% 즉시 + 30% DoT 3틱) //ApplyEffectMap에서 패시브 효과 구현 ,지연피해, 재생은 상태효과로 구현 //재생 전투체 
+        BleedOnCritPassive, // 치명타 시 출혈 부여 패시브형 //ApplyEffectMap //광증 난도수 
+        LifeStealAndKillHealPassive, // 피해의 일부 피흡 + 처치 시 최대체력 비례 회복(패시브) //ApplyEffectMap //포식자
+        StackingHasteThenExhaustPassive, // 기본공격 적중마다 스택(공속/이속/받는 피해 증가) → 풀스택 2초 유지 후 초기화 + 공속 디버프 4초 //ApplyEffectMap //광기 절단자
+        TripleLayerThinShield, // 3겹 보호막(겹당 MaxHP 12% 1회 흡수) + 겹 파괴 시 1초 20% 피해감소, 8s, CD 16s //골격 강화체
+        ThrowSpearPoisonAttack, //원거리 공격 (공격력 1.5배) + 중독(최대 2중첩, 6틱/초, 초당 MaxHP의 5%) //맹독 침두체
+        ImmobileAuraBuff, // 이동 불가 + 주변 아군 오라(공격/방어/피감/공속) // 군체 공생체
+        RegenNearbyAllies, // 주위 아군 재생 부여 //재생 촉진체
+        TargetedAoeBlind, // 적에게 범위형으로 실명 부여 //신경 교란체
 
     }
 }

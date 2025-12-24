@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnitSkillTypes.Enums;
+using Unity.Android.Gradle.Manifest;
 using UnityEngine;
 
 public class SkillExecutor
@@ -27,6 +28,15 @@ public class SkillExecutor
         { UnitSkillType.FarthestDoubleAoe, new FarthestDoubleAoeSkill()},
         { UnitSkillType.PassiveTurretBarrage, new PassiveTurretBarrageSkill()},
         { UnitSkillType.QuadFlurryBlind, new QuadFlurryBlindSkill()},
+        { UnitSkillType.HealingAuraDefenseBuff, new HealingAuraDefenseBuffSKill()},
+        { UnitSkillType.EmpowerZoneHighestAttackAlly, new EmpowerZoneHighestAttackAllySkill()},
+        { UnitSkillType.CleanseAndShieldAoE, new CleanseAndShieldAoESkill()},
+        { UnitSkillType.RectStun_ArmorDown, new RectStunArmorDownSkill()},
+        { UnitSkillType.TripleLayerThinShield, new TripleLayerThinShieldSkill()},
+        { UnitSkillType.ThrowSpearPoisonAttack, new ThrowSpearPoisonAttackSkill()},
+        { UnitSkillType.HealOverTime, new HealOverTimeSkill()},
+        { UnitSkillType.RegenNearbyAllies, new RegenNearbyAlliesSkill()},
+        { UnitSkillType.TargetedAoeBlind, new TargetedAoeBlindSkill()},
         // 추가 스킬은 여기에 등록
     };
 
@@ -55,6 +65,8 @@ public class SkillExecutor
 
     public bool TryUseSkillIfPossible(UnitCombatFSM caster, SkillData skillData)
     {
+        if (caster.IsStunned()) return false;
+
         if (caster.isSilenced) return false;
 
         if (skillData == null || skillData.effects == null || !caster.CanUseSkill()) return false;
