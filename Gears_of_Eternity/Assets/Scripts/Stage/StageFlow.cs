@@ -15,9 +15,9 @@ public class StageFlow : MonoBehaviour
     public BaseStageData CurrentStageDef { get; private set; }
 
     [Header("Runtime")] 
-    public StageGraphGenerator.Rules rules = new();
+    private readonly StageGraphGenerator.Rules _rules = new();
     public RuntimeStageGraph graph;
-    public LoopController loopController = new LoopController();
+    private readonly LoopController _loopController = new LoopController();
     public GamePhase phase = GamePhase.OnMap;
 
     [Header("Player")] 
@@ -44,7 +44,7 @@ public class StageFlow : MonoBehaviour
 
     public void GenerateNew(int seed)
     {
-        graph = StageGraphGenerator.Generate(seed, rules);
+        graph = StageGraphGenerator.Generate(seed, _rules);
         phase = GamePhase.OnMap;
     }
 
@@ -91,6 +91,7 @@ public class StageFlow : MonoBehaviour
         phase = GamePhase.InStage;
     }
 
+    // ReSharper disable Unity.PerformanceAnalysis
     public async Task OnStageCleared()
     {
         if (phase != GamePhase.InStage)
@@ -117,7 +118,7 @@ public class StageFlow : MonoBehaviour
         StageContext.Clear();
         CurrentStageDef = null;
 
-        bool loopTriggered = loopController != null && loopController.TryGetLoopStarted(graph, cur, PlayerProgress);
+        bool loopTriggered = _loopController != null && _loopController.TryGetLoopStarted(graph, cur, PlayerProgress);
         
         var connectedEdges = graph.edges.Where(e => e.fromNodeId == cur.nodeId);
 

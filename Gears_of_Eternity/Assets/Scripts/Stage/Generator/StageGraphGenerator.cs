@@ -8,7 +8,7 @@ public static class StageGraphGenerator
     // 스테이지 생성에 관한 규칙
     public sealed class Rules
     {
-        public const int Layers = 13;                   // 최대 레이어 개수
+        public const int Layers = 15;                   // 최대 레이어 개수
         public Vector2Int NodeCountRange = new(1, 3);   // 각 레이어마다 노드의 개수 범위를 지정
         public const float BridgeProbability = 0.35f;
         public const int MinChoices = 1;                // 노드의 최소 선택지 개수

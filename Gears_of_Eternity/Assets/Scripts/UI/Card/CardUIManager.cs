@@ -131,25 +131,28 @@ public class CardUIManager : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         _canvasGroup.blocksRaycasts = true;
 
         // 드롭 위치에 콜라이더가 있는지 확인
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        
-        if (Physics.Raycast(ray, out RaycastHit hit, 100f))
+        if (Camera.main != null)
         {
-            CardDrop cardDrop = hit.collider.GetComponent<CardDrop>();
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        
+            if (Physics.Raycast(ray, out RaycastHit hit, 100f))
+            {
+                CardDrop cardDrop = hit.collider.GetComponent<CardDrop>();
             
-            if (cardDrop != null)
-            {
-                DeckManager.Instance.UseCard(cardData);
-                UnitSpawnManager.Instance.SpawnUnit(cardData, hit.point);
+                if (cardDrop != null)
+                {
+                    DeckManager.Instance.UseCard(cardData);
+                    UnitSpawnManager.Instance.SpawnUnit(cardData, hit.point);
                 
-                cardUIHandler.RemoveCards(DeckManager.Instance.hand);
-            }
-            else
-            {
+                    cardUIHandler.RemoveCards(DeckManager.Instance.hand);
+                }
+                else
+                {
 #if UNITY_EDITOR
-                Debug.LogWarning("배치 실패");
+                    Debug.LogWarning("배치 실패");
 #endif
-                cardUIHandler.UpdateCardLayout();
+                    cardUIHandler.UpdateCardLayout();
+                }
             }
         }
     }

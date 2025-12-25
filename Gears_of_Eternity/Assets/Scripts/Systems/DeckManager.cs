@@ -35,8 +35,8 @@ public class DeckManager : MonoBehaviour
         // }
         BuildDeckFromPlayerState(PlayerState.Instance);
     }
-    
-    public void BuildDeckFromPlayerState(PlayerState state)
+
+    private void BuildDeckFromPlayerState(PlayerState state)
     {
         ResetCombatDeck();
 
@@ -57,7 +57,7 @@ public class DeckManager : MonoBehaviour
         Shuffle(deck);
     }
 
-    public void ResetCombatDeck()
+    private void ResetCombatDeck()
     {
         deck.Clear();
         hand.Clear();

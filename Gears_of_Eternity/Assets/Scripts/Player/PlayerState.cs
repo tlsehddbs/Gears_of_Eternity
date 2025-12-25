@@ -12,11 +12,11 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
     
     // ========== HP ===========
     [Header("HP")] 
-    [SerializeField] private int maxHP = 100;
-    [SerializeField] private int currentHP = 100;
+    [SerializeField] private int maxHp = 100;
+    [SerializeField] private int currentHp = 100;
 
-    public int MaxHP => maxHP;
-    public int CurrentHP => currentHP;
+    public int MaxHp => maxHp;
+    public int CurrentHp => currentHp;
 
     public event Action<int, int> OnHpChanged; // (Current, Max)
     
@@ -58,7 +58,7 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
             Instance = this;
             DontDestroyOnLoad(gameObject);
             RefreshCaches();
-            ClampHP();
+            ClampHp();
         }
         else
         {
@@ -199,8 +199,8 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
             return;
         }
         
-        currentHP = Mathf.Max(0, currentHP - amount);
-        OnHpChanged?.Invoke(currentHP, maxHP);
+        currentHp = Mathf.Max(0, currentHp - amount);
+        OnHpChanged?.Invoke(currentHp, maxHp);
     }
 
     public void Heal(int amount)
@@ -210,8 +210,8 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
             return;
         }
         
-        currentHP = Mathf.Min(maxHP, currentHP + amount);
-        OnHpChanged?.Invoke(currentHP, maxHP);
+        currentHp = Mathf.Min(maxHp, currentHp + amount);
+        OnHpChanged?.Invoke(currentHp, maxHp);
     }
 
     // public void ResetHPToFull()
@@ -220,10 +220,10 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
     //     OnHpChanged?.Invoke(currentHP, maxHP);
     // }
 
-    private void ClampHP()
+    private void ClampHp()
     {
-        maxHP = Mathf.Max(1, maxHP);
-        currentHP = Mathf.Clamp(currentHP, 0, maxHP);
+        maxHp = Mathf.Max(1, maxHp);
+        currentHp = Mathf.Clamp(currentHp, 0, maxHp);
     }
     
     
@@ -280,12 +280,12 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
         }
         
         // TODO: 임시로 하나의 세력으로 고정함(나중에 세력을 선택 할 수 있게하는 등의 기능을 추가할 예정이라면 별도의 설정을 할 수 있는 창 도는 메인메뉴에서 설정이 가능하도록 수정할 것
-        var filteredfaction = pool
+        var filteredFaction = pool
             .Where(fc => fc.faction == FactionType.IronGearFederation)
             .Where(fc => fc.level == 1)
             .ToList();
         
-        if (filteredfaction.Count == 0)
+        if (filteredFaction.Count == 0)
         {
             Debug.LogWarning($"⚠ IronGearFederation 에 해당하는 카드가 없음");
             return;
@@ -293,7 +293,7 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
 
         for (int i = 0; i < count; i++)
         {
-            var card = filteredfaction[Random.Range(0, filteredfaction.Count)];
+            var card = filteredFaction[Random.Range(0, filteredFaction.Count)];
             var runtimeCardCopy = new RuntimeUnitCard(card);
             
             if (card != null)

@@ -4,22 +4,23 @@ using UnityEngine;
 
 public class LoopController
 {
-    public LoopRule rule = new LoopRule
+    private readonly LoopRule _rule = new LoopRule
     {
         enabled = true,                    // 가본 상태는 false, Loop가 시작되었을 때부터 enabled를 true로 변경
         requiredItemId = "GOE_AURA_CORE",   // 아이템 아이디는 임시로 작성해 둔 것임
         requiredItemCount = 5
     };
     
+    // ReSharper disable Unity.PerformanceAnalysis
     public bool TryGetLoopStarted(RuntimeStageGraph g, RuntimeStageNode rn, IPlayerProgress p)
     {
-        if (!rule.enabled || g == null || rn == null)
+        if (!_rule.enabled || g == null || rn == null)
         {
             return false;
         }
         
         // TODO: p가 현재 null인 상태로 IGetPlayerProgress를 구현후 문제를 수정할 것
-        if ( /*p == null ||*/ string.IsNullOrEmpty(rule.requiredItemId) || rule.requiredItemCount <= 0)
+        if ( /*p == null ||*/ string.IsNullOrEmpty(_rule.requiredItemId) || _rule.requiredItemCount <= 0)
         {
             return false;
         }
@@ -53,7 +54,7 @@ public class LoopController
         var singleCombatCandidates = g.nodes
             .GroupBy(n => n.layerIndex)
             .Select(gr => new { layer = gr.Key, nodes = gr.ToList() })
-            .Where(x => x.nodes.Count == 1 && x.nodes[0].type == StageTypes.StageNodeTypes.Combat)
+            .Where(x => x.nodes.Count == 1 && x.nodes[0].type == StageTypes.StageNodeTypes.Combat && x.layer != 0)
             .Select(x => x.nodes[0])
             .ToList();
 

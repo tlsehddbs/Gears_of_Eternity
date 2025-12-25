@@ -1,9 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
-using UnityEditor.Experimental.GraphView;
-using UnityEditor.Timeline;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -123,9 +120,6 @@ public class StageGraphLayout : MonoBehaviour
                 nt.fontSize = 26;
                 nt.alignment = TextAlignmentOptions.Center;
                 
-                
-                
-
                 float y = -(topPadding + (i * (nodeHeight + nodeGap)) - (startY - nodeHeight * 0.5f));
                 rt.anchoredPosition = new Vector2(x, y);
 
@@ -263,15 +257,15 @@ public class StageGraphLayout : MonoBehaviour
 
     public void Refresh() => Refresh(_graph);
 
-    public void UpdateNodeInteract(RectTransform rt, RuntimeStageNode node)
+    private void UpdateNodeInteract(RectTransform rt, RuntimeStageNode node)
     {
-        if (rt == null || node == null)
+        if (!rt || node == null)
         {
             return;
         }
 
         var btn = rt.GetComponentInChildren<Button>(true);
-        if (btn != null)
+        if (btn)
         {
             btn.interactable = node.discovered && !node.completed && !node.locked;
         }
@@ -279,10 +273,10 @@ public class StageGraphLayout : MonoBehaviour
 
     // 완료한 스테이지에 대해서 노드 색상 업데이트
     // TODO: 노드의 이미지를 어떻게 변경할 것인지 논의한 후 결정할 것
-    public void UpdateNodeColor(RectTransform rt, RuntimeStageNode node)
+    private void UpdateNodeColor(RectTransform rt, RuntimeStageNode node)
     {
         var img = rt.GetComponentInChildren<Image>(true);
-        if (img != null)
+        if (img)
         {
             if (node.discovered && node.completed)
             {
@@ -315,7 +309,7 @@ public class StageGraphLayout : MonoBehaviour
     
     public void ScrollToCurrent(string nodeId, float bias = 0.12f)
     {
-        if (_scroll == null)
+        if (!_scroll)
         {
             return;
         }
