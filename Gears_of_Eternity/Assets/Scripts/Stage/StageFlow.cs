@@ -104,7 +104,11 @@ public class StageFlow : MonoBehaviour
             return;
         }
         
-        
+        // 루프 테스트용 임시 아이템을 임의로 추가
+        if(graph.FindNode(graph.currentNodeId).type == StageTypes.StageNodeTypes.Combat)
+        {
+            PlayerState.Instance.AddItem("GOE_AURA_CORE", 1);
+        }
         // TODO: 보상 연출 (코인 등) 반영
 
         

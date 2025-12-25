@@ -6,9 +6,9 @@ public class LoopController
 {
     private readonly LoopRule _rule = new LoopRule
     {
-        enabled = true,                    // 가본 상태는 false, Loop가 시작되었을 때부터 enabled를 true로 변경
+        enabled = true,                    // 가본 상태는 true, Loop의 조건이 충족되었을 때부터 enabled를 false로 변경
         requiredItemId = "GOE_AURA_CORE",   // 아이템 아이디는 임시로 작성해 둔 것임
-        requiredItemCount = 5
+        requiredItemCount = 10
     };
     
     // ReSharper disable Unity.PerformanceAnalysis
@@ -20,7 +20,7 @@ public class LoopController
         }
         
         // TODO: p가 현재 null인 상태로 IGetPlayerProgress를 구현후 문제를 수정할 것
-        if ( /*p == null ||*/ string.IsNullOrEmpty(_rule.requiredItemId) || _rule.requiredItemCount <= 0)
+        if (p == null || string.IsNullOrEmpty(_rule.requiredItemId) || _rule.requiredItemCount <= 0)
         {
             return false;
         }
@@ -30,10 +30,14 @@ public class LoopController
         {
             return false;
         }
-
-        // int count = p.GetItemCount(rule.requiredItemId);
-        // if (count >= rule.requiredItemCount)
-        //     return false;
+        
+        // 아이템을 다 모았을 경우 루프 트리거 발동 x
+        if (p.GetItemCount(_rule.requiredItemId) >= _rule.requiredItemCount)
+        {
+            return false;
+        }
+        
+        Debug.Log($"[LoopController] Loop triggered: need {_rule.requiredItemCount} '{_rule.requiredItemId}', hove {p.GetItemCount(_rule.requiredItemId)}.");
 
         var returnNode = FindReturnNode(g, preBossLayer);
         if (returnNode == null)
@@ -65,7 +69,7 @@ public class LoopController
         }
 
         // 노드가 1개이면서 combat인 노드가 없을 경우 comabat인 다른 노드로 회귀하기 위한 fallback 구현부
-        var fallbackNode = g.nodes.Where(n => n.type != StageTypes.StageNodeTypes.Boss).ToList();
+        var fallbackNode = g.nodes.Where(n => (n.type != StageTypes.StageNodeTypes.Boss && n.type == StageTypes.StageNodeTypes.Combat)).ToList();
         if (fallbackNode.Count > 0)
         {
             return fallbackNode[UnityEngine.Random.Range(0, fallbackNode.Count)];
