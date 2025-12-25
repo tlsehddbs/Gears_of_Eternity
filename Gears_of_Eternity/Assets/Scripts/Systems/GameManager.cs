@@ -3,11 +3,11 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
-
-    // TODO: 네이밍 수정할 것
-    public bool isDrawingCards;
-    public bool isDraggingCard;
     
+    //public bool isDrawingCards;
+    [HideInInspector]
+    public bool isDraggingCard;
+    [HideInInspector]
     public bool isPointerEventEnabled = true;
     
 
@@ -17,10 +17,29 @@ public class GameManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+
+            // if (PlayerProgress == null)
+            // {
+            //     PlayerProgress = GetComponent<IPlayerProgress>();
+            // }
+            //
+            // var flow = FindAnyObjectByType<StageFlow>();
+            // if (flow != null)
+            // {
+            //     flow.PlayerProgress = PlayerProgress;
+            // }
         }
         else
         {
             Destroy(gameObject);
+        }
+    }
+
+    private void Start()
+    {
+        if (PlayerState.Instance.DeckCards.Count == 0)
+        {
+            PlayerState.Instance.GenerateStarterDeck(CardCollection.Instance);
         }
     }
 }

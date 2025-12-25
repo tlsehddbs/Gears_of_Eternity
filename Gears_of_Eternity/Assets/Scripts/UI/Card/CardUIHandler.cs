@@ -7,31 +7,9 @@ public class CardUIHandler : MonoBehaviour
 {
     public GameObject cardPrefab;
     public Transform handPanel;
-    
-    //public float radius = 300f;
-    //public float angleRange = 20f; // 전체 호 각도
-    //public float cardSpacingAngle = 10f;
 
     public List<GameObject> cardInstances = new();
     
-    
-    // TODO: 로직별로 분류하여 부분적으로 적용할 수 있도록 수정
-    // public void RefreshHandUI(List<RuntimeUnitCard> hand)
-    // {
-    //     // List<RuntimeUnitCard> newHand = hand;
-    //     
-    //     // List<RuntimeUnitCard> currentCards = cardInstances
-    //     //     .Select(card => card.GetComponent<CardSlotUI>().CardData)
-    //     //     .ToList();
-    //
-    //     if (hand == null)
-    //     {
-    //         return;
-    //     }
-    //
-    //     RemoveCards(hand);
-    //     AddCards(hand);
-    // }
     
     // 제거된 카드 파악 및 제거
     public void RemoveCards(IReadOnlyList<RuntimeUnitCard> hand)
@@ -49,7 +27,6 @@ public class CardUIHandler : MonoBehaviour
                 cardInstances.RemoveAt(i);
             }
         }
-        
         UpdateCardLayout();
     }
 
@@ -58,8 +35,7 @@ public class CardUIHandler : MonoBehaviour
     {
         foreach (var newCard in hand)
         {
-            bool alreadyExists = cardInstances.Any(go =>
-                go.GetComponent<CardSlotUI>().CardData.uniqueId == newCard.uniqueId);
+            bool alreadyExists = cardInstances.Any(go => go.GetComponent<CardSlotUI>().CardData.uniqueId == newCard.uniqueId);
 
             if (!alreadyExists)
             {
@@ -69,7 +45,6 @@ public class CardUIHandler : MonoBehaviour
                 cardInstances.Add(go);
             }
         }
-        
         UpdateCardLayout();
     }
 

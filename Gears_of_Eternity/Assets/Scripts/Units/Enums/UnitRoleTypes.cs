@@ -1,6 +1,6 @@
-namespace BattleTypes.Enums
+namespace UnitRoleTypes.Enums
 {
-    public enum BattleType
+    public enum RoleTypes
     {
         Melee,
         Ranged,

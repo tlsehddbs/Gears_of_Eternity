@@ -1,11 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 public static class StageGraphExtensions
 {
-    public static RuntimeStageNode FindNode(this RuntimeStageGraph g, string id)
-        => g.nodes.FirstOrDefault(n => n.nodeId == id);
+    public static RuntimeStageNode FindNode(this RuntimeStageGraph g, string id) => g.nodes.FirstOrDefault(n => n.nodeId == id);
 
     public static IEnumerable<RuntimeStageNode> NextNodes(this RuntimeStageGraph g, string id)
     {
@@ -17,6 +15,5 @@ public static class StageGraphExtensions
         }
     }
 
-    public static int MaxLayer(this RuntimeStageGraph g)
-        => g.nodes.Count == 0 ? 0 : g.nodes.Max(n => n.layerIndex);
+    public static int MaxLayer(this RuntimeStageGraph g) => g.nodes.Count == 0 ? 0 : g.nodes.Max(n => n.layerIndex);
 }

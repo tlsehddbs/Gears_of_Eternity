@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.AI;
-using BattleTypes.Enums;
+using UnitRoleTypes.Enums;
 
 
 public class UnitCombat : MonoBehaviour
@@ -33,15 +33,15 @@ public class UnitCombat : MonoBehaviour
             agent.stoppingDistance = unitData.attackDistance * 5;
         }
 
-        switch(unitData.battleType)
+        switch(unitData.roleType)
         {
-            case BattleType.Melee:
+            case RoleTypes.Melee:
                 criticalChance =0.1f;
                 break;
-            case BattleType.Ranged:
+            case RoleTypes.Ranged:
                 criticalChance = 0.3f;
                 break;
-            case BattleType.Support:
+            case RoleTypes.Support:
                 criticalChance = 0.1f;
                 break;
         }

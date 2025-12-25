@@ -1,12 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.Experimental.GraphView;
-using UnityEditor.Timeline;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class StageMapLayout : MonoBehaviour
+public class StageGraphLayout : MonoBehaviour
 {
     [Header("References")]
     public RectTransform content;
@@ -46,12 +44,16 @@ public class StageMapLayout : MonoBehaviour
     {
         _scroll = GetComponentInParent<ScrollRect>();
         _canvas = GetComponentInParent<Canvas>();
-        
-        if(_canvas == null)
+
+        if (_canvas == null)
+        {
             Debug.LogError("StageMapLayout: Canvas not found");
-        
-        if(_canvas && _canvas.renderMode != RenderMode.ScreenSpaceCamera)
+        }
+
+        if (_canvas && _canvas.renderMode != RenderMode.ScreenSpaceCamera)
+        {
             Debug.LogWarning("Canvas was not Screen Space - Camera");
+        }
         
         _uiCamera = _canvas ? _canvas.worldCamera : Camera.main;
 
@@ -68,7 +70,7 @@ public class StageMapLayout : MonoBehaviour
     {
         _graph = g;
         _maxLayer = (_graph.nodes.Count == 0) ? 0 : _graph.nodes.Max(n => n.layerIndex);
-
+        
         int columnCount = _maxLayer + 1;
         float totalWidth = leftPadding + rightPadding + columnCount * columnWidth + (columnCount - 1) * columnGap;
         
@@ -83,7 +85,9 @@ public class StageMapLayout : MonoBehaviour
         foreach (var k in _edges)
         {
             if (k.Value)
+            {
                 Destroy(k.Value.gameObject);
+            }
         }
         
         _nodesRectTransform.Clear();
@@ -93,7 +97,9 @@ public class StageMapLayout : MonoBehaviour
         {
             var layerNodes = _graph.nodes.Where(n => n.layerIndex == l).ToList();
             if (layerNodes.Count == 0)
+            {
                 continue;
+            }
 
             float x = ColumnCenterX(l);
             
@@ -104,9 +110,16 @@ public class StageMapLayout : MonoBehaviour
             {
                 var n = layerNodes[i];
                 var rt = Instantiate(nodePrefab, content);
-                rt.name = $"Node_{n.layerIndex}_{i}_{n.nodeId[..6]}";
+                rt.name = $"{n.type}Node_{n.layerIndex}-{i}({n.nodeId[..6]})";
                 rt.sizeDelta = new Vector2(rt.sizeDelta.x, nodeHeight);
-
+                
+                // 확인용 노드 text(추후 이미지로 변경 예정)
+                var nt = rt.GetComponentInChildren<TextMeshProUGUI>();
+                nt.text = $"{n.type}";
+                nt.enableAutoSizing = false;
+                nt.fontSize = 26;
+                nt.alignment = TextAlignmentOptions.Center;
+                
                 float y = -(topPadding + (i * (nodeHeight + nodeGap)) - (startY - nodeHeight * 0.5f));
                 rt.anchoredPosition = new Vector2(x, y);
 
@@ -117,7 +130,6 @@ public class StageMapLayout : MonoBehaviour
                     string nodeId = n.nodeId;
                     btn.onClick.AddListener(() => StageFlow.Instance.SelectStage(nodeId));
                 }
-                
                 _nodesRectTransform[n.nodeId] = rt;
             }
         }
@@ -127,13 +139,16 @@ public class StageMapLayout : MonoBehaviour
             CreateOrUpdateEdge(e.fromNodeId, e.toNodeId, e.isBridge);
         }
         
-        ScrollToLayer(0);
+        ScrollToCurrent(_graph.currentNodeId);
+        //ScrollToLayer(0);
     }
 
     private void LateUpdate()
     {
         if (_graph == null)
+        {
             return;
+        }
 
         foreach (var e in _graph.edges)
         {
@@ -151,9 +166,14 @@ public class StageMapLayout : MonoBehaviour
     void CreateOrUpdateEdge(string fromId, string toId, bool isBridge)
     {
         if (!_nodesRectTransform.TryGetValue(fromId, out var from))
+        {
             return;
+        }
+
         if (!_nodesRectTransform.TryGetValue(toId, out var to))
+        {
             return;
+        }
 
         if (!_edges.TryGetValue((fromId, toId), out var le))
         {
@@ -162,20 +182,29 @@ public class StageMapLayout : MonoBehaviour
             _edges[(fromId, toId)] = le;
 
             if (isBridge)
+            {
                 le.widthMultiplier *= 1.3f;
+            }
         }
-        
         UpdateEdgePosition(fromId, toId);
     }
 
     void UpdateEdgePosition(string fromNodeId, string toNodeId)
     {
         if (!_edges.TryGetValue((fromNodeId, toNodeId), out var edge))
+        {
             return;
+        }
+
         if (!_nodesRectTransform.TryGetValue(fromNodeId, out var from))
+        {
             return;
+        }
+
         if (!_nodesRectTransform.TryGetValue(toNodeId, out var to))
+        {
             return;
+        }
 
         Vector3 a = from.TransformPoint((Vector3.zero));
         Vector3 b = to.TransformPoint((Vector3.zero));
@@ -201,7 +230,7 @@ public class StageMapLayout : MonoBehaviour
             for (int i = 0; i < bezierSegments; i++)
             {
                 float t = i / (bezierSegments - 1f);
-                Vector3 p = (1 - t) * (1 - t) * p0 + 2 * (1 - t) * t * p1 + t * t * p2;
+                Vector3 p = (1 - t) * (1 - t) * p0 + 2 * (1 - t) * t * p1 + t * t * p2; // 어떻게 작동하는지 모름 ;;
                 edge.SetPosition(i, p);
             }
         }
@@ -212,7 +241,9 @@ public class StageMapLayout : MonoBehaviour
     public void Refresh(RuntimeStageGraph g)
     {
         if (g == null)
+        {
             return;
+        }
 
         foreach (var node in _graph.nodes)
         {
@@ -226,13 +257,15 @@ public class StageMapLayout : MonoBehaviour
 
     public void Refresh() => Refresh(_graph);
 
-    public void UpdateNodeInteract(RectTransform rt, RuntimeStageNode node)
+    private void UpdateNodeInteract(RectTransform rt, RuntimeStageNode node)
     {
-        if (rt == null || node == null)
+        if (!rt || node == null)
+        {
             return;
+        }
 
         var btn = rt.GetComponentInChildren<Button>(true);
-        if (btn != null)
+        if (btn)
         {
             btn.interactable = node.discovered && !node.completed && !node.locked;
         }
@@ -240,19 +273,29 @@ public class StageMapLayout : MonoBehaviour
 
     // 완료한 스테이지에 대해서 노드 색상 업데이트
     // TODO: 노드의 이미지를 어떻게 변경할 것인지 논의한 후 결정할 것
-    public void UpdateNodeColor(RectTransform rt, RuntimeStageNode node)
+    private void UpdateNodeColor(RectTransform rt, RuntimeStageNode node)
     {
         var img = rt.GetComponentInChildren<Image>(true);
-        if (img != null)
+        if (img)
+        {
             if (node.discovered && node.completed)
+            {
                 img.color = Color.yellow;
+            }
+            else
+            {
+                img.color = Color.white;
+            }
+        }
     }
 
     // ======================= SCROLL =======================
     public void ScrollToLayer(int logicalLayer)
     {
         if (_scroll == null)
+        {
             return;
+        }
 
         float viewportWidth = _scroll.viewport ? _scroll.viewport.rect.width : ((RectTransform)_scroll.transform).rect.width;
         float contentWidth = content.rect.width;
@@ -262,20 +305,36 @@ public class StageMapLayout : MonoBehaviour
         _scroll.horizontalNormalizedPosition = normalized;
     }
 
-    public void ScrollToCurrent(string nodeId, float offset = 0f)
+    // 실제 작동이 안되고 있음. StageGraph 또는 에디터 내 content의 위치 등 다른 외부 요인을 수정해야 할 것 같음
+    
+    public void ScrollToCurrent(string nodeId, float bias = 0.12f)
     {
-        if (_scroll == null)
+        if (!_scroll)
+        {
             return;
+        }
+
         if (!_nodesRectTransform.TryGetValue(nodeId, out var rt))
+        {
             return;
+        }
+        
+        Canvas.ForceUpdateCanvases();
         
         float viewportWidth = _scroll.viewport ? _scroll.viewport.rect.width : ((RectTransform)_scroll.transform).rect.width;
         float contentWidth = content.rect.width;
+        if (contentWidth <= viewportWidth)
+        {
+            return;
+        }
 
         Vector3 nodeLocal = content.InverseTransformPoint(rt.position);
-        float target = nodeLocal.x + (-content.pivot.x * contentWidth) + offset;
-
+        float target = nodeLocal.x + (-content.pivot.x * contentWidth);
+        
         float normalized = Mathf.Clamp01((target - viewportWidth * 0.5f) / (contentWidth - viewportWidth));
+
+        normalized = Mathf.Clamp01(normalized - bias);
+        
         _scroll.horizontalNormalizedPosition = normalized;
     }
 }
