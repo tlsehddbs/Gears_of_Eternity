@@ -13,10 +13,17 @@ MonoBehaviour:
   m_Name: "Skill_\uD63C\uB780 \uC870\uC900\uC790"
   m_EditorClassIdentifier: 
   faction: 3
-  unitName: "\uD63C\uB780 \uC870\uC900\uC790"
+  unitName: "EMP \uBC29\uCD9C\uC790"
   skillName: 
-  skillDescription: "\uCE58\uBA85\uD0C0 \uC2DC \uAD11\uC5ED \uD63C\uB780"
-  skillType: 0
-  skillValue: 0
-  skillDuration: 0
-  skillCoolDown: 10
+  skillDescription: 
+  skillCoolDown: 14
+  effects:
+  - skillType: 61
+    buffStat: 0
+    skillValue: 0.15
+    skillDuration: 4
+    skillDelayTime: 10
+    skillMaxStack: 10
+    isPercent: 0
+    skillRange: 20
+    skillAngle: 0

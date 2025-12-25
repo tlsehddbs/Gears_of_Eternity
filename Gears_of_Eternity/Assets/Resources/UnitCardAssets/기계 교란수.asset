@@ -18,7 +18,6 @@ MonoBehaviour:
   faction: 0
   rarity: 1
   cost: 3
-  level: 2
   unitName: "\uAE30\uACC4 \uAD50\uB780\uC218"
   battleType: 1
   unitPrefab: {fileID: 0}
@@ -29,9 +28,7 @@ MonoBehaviour:
   attackSpeed: 1.3
   attackRange: 2
   attackDistance: 4
-  skillName: 
-  skillCoolDown: 0
-  skillDescription: 
+  level: 2
   nextUpgrades:
   - {fileID: 11400000, guid: b22af2a12e38341408a9fc48a2f2a9bb, type: 2}
   - {fileID: 11400000, guid: 618c4b1482a504842ac034a18628c5fc, type: 2}

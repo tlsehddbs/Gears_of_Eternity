@@ -13,10 +13,17 @@ MonoBehaviour:
   m_Name: "Skill_\uD0DC\uC5FD \uAC80\uC0AC"
   m_EditorClassIdentifier: 
   faction: 2
-  unitName: "\uD0DC\uC5FD \uAC80\uC0AC"
+  unitName: "\uC2E0\uACBD \uAD50\uB780\uCCB4"
   skillName: 
   skillDescription: 
-  skillType: 0
-  skillValue: 0
-  skillDuration: 0
-  skillCoolDown: 0
+  skillCoolDown: 12
+  effects:
+  - skillType: 70
+    buffStat: 0
+    skillValue: 0
+    skillDuration: 3
+    skillDelayTime: 0
+    skillMaxStack: 0
+    isPercent: 0
+    skillRange: 25
+    skillAngle: 0
