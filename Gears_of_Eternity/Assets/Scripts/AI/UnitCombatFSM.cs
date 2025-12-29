@@ -115,7 +115,9 @@ public partial class UnitCombatFSM : MonoBehaviour
         {
             isProcessingSkill = true;
             agent.ResetPath();
-            ChangeState(new MoveState(this, true)); // true = 아군 타겟팅
+            //ChangeState(new MoveState(this, true)); // true = 아군 타겟팅
+            bool isAllyTarget = (targetAlly != null && targetEnemy == null);
+            ChangeState(new MoveState(this, isAllyTarget));
             return;
         }
 
