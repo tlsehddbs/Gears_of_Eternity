@@ -16,6 +16,7 @@ public class MoveState : UnitState
         // 타켓이 없거나 죽었으면 Idle로 
         if (target == null || !target.IsAlive())
         {
+             unit.isProcessingSkill = false;
             unit.ChangeState(new IdleState(unit));
             return;
         }

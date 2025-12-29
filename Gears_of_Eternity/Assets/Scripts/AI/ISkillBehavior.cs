@@ -2641,31 +2641,38 @@ public class TargetedAoeBlindSkill : ISkillBehavior
     // - effect.skillDuration  : 실명 지속시간(초) = 3
     // - effect.skillDelayTime : 투사체/발동 지연(선택, 0이면 즉시)
 
-   public bool ShouldTrigger(UnitCombatFSM caster, SkillEffect effect)
+    public bool ShouldTrigger(UnitCombatFSM caster, SkillEffect effect)
     {
-        if (caster == null || effect == null) return false;
+        //if (caster == null || effect == null) return false;
         if (!caster.CanUseSkill()) return false;
 
-        // 사거리/반경 미세팅이면 발동하지 않게 막아서 쿨만 도는 상황을 방지
-        if (effect.skillRange <= 0f) return false;
-        if (effect.skillMaxStack <= 0f) return false;
-        
-        return FindTarget(caster, effect) != null;
-    }
+        // 기존 타겟이 유효하면 그대로
+        // if (caster.targetEnemy != null && caster.targetEnemy.IsAlive() &&
+        //     caster.targetEnemy.unitData.faction != caster.unitData.faction)
+        // {
+        //     return true;
+        // }
 
+        // TargetingUtil로 가장 가까운 적을 가져와 캐시에 저장
+        caster.targetEnemy = TargetingUtil.FindNearestEnemyGlobal(caster);
+        return caster.targetEnemy != null;
+        
+    }
     public UnitCombatFSM FindTarget(UnitCombatFSM caster, SkillEffect effect)
     {
         if (caster == null) return null;
 
-        // 기존 타겟이 살아있으면 그대로 사용
-        if (caster.targetEnemy != null && caster.targetEnemy.IsAlive())
+        // ShouldTrigger에서 이미 targetEnemy를 확보해두는 구조
+        if (caster.targetEnemy != null && caster.targetEnemy.IsAlive() &&
+            caster.targetEnemy.unitData.faction != caster.unitData.faction)
+        {
             return caster.targetEnemy;
+        }
 
-        // 없으면 가장 가까운 적
-        caster.FindNewTarget();
-        return (caster.targetEnemy != null && caster.targetEnemy.IsAlive()) ? caster.targetEnemy : null;
+        // 안전하게 한 번 더(타겟이 바로 죽었을 수 있음)
+        caster.targetEnemy = TargetingUtil.FindNearestEnemyGlobal(caster);
+        return caster.targetEnemy;
     }
-
     public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
     {
         if (caster == null || effect == null) return;
@@ -2742,7 +2749,7 @@ public class TargetedAoeBlindSkill : ISkillBehavior
             applied++;
         }
 
-        Debug.Log($"[TargetedAoeBlind] {caster.name} -> center:{centerTarget.name}, applied:{applied}, r:{radius:F1}, dur:{duration:F1}");
+        //Debug.Log($"[TargetedAoeBlind] {caster.name} -> center:{centerTarget.name}, applied:{applied}, r:{radius:F1}, dur:{duration:F1}");
     }
 
     public void Remove(UnitCombatFSM caster, SkillEffect effect){}

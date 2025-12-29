@@ -65,6 +65,7 @@ public class SkillExecutor
 
     public bool TryUseSkillIfPossible(UnitCombatFSM caster, SkillData skillData)
     {
+        //Debug.Log($"[TryUseSkillIfPossible] enter unit={caster.name} stunned={caster.IsStunned()} silenced={caster.isSilenced} canUse={caster.CanUseSkill()}");
         if (caster.IsStunned()) return false;
 
         if (caster.isSilenced) return false;
@@ -92,9 +93,10 @@ public class SkillExecutor
 
             float dist = Vector3.Distance(caster.transform.position, target.transform.position);
             float range = effect.skillRange;
-
+            //Debug.Log($"[SkillFlow] type={effect.skillType} dist={dist:F2} range={range:F2}");
 
             // 사거리 밖이면 이동만 준비
+            //Debug.Log($"[SkillFlow] MOVE_ONLY -> target={(target!=null?target.name:"null")}");
             if (dist > range)
             {
                 if (target.unitData.faction == caster.unitData.faction)
