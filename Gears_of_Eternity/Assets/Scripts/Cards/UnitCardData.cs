@@ -18,9 +18,7 @@ public class UnitCardData : BaseCardData
     
     public float health;
     public float defense;
-    
     public float moveSpeed;
-    
     public float attack;
     public float attackSpeed;
     public float attackRange;

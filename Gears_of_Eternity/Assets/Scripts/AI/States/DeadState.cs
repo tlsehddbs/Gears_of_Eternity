@@ -6,6 +6,9 @@ public class DeadState : UnitState
 
     public override void Enter()
     {
+
+        unit.OnDeath();
+
         GameObject.Destroy(unit.gameObject);
     }
 }

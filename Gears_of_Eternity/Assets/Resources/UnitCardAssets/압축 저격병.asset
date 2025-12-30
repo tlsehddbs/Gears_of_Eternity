@@ -18,10 +18,9 @@ MonoBehaviour:
   faction: 0
   rarity: 0
   cost: 2
-  price: 0
   unitName: "\uC555\uCD95 \uC800\uACA9\uBCD1"
   battleType: 1
-  unitPrefab: {fileID: 8607255275307444273, guid: f6a064d5c83d6384f9a7b68808650019, type: 3}
+  unitPrefab: {fileID: 0}
   health: 85
   defense: 20
   moveSpeed: 2.8
