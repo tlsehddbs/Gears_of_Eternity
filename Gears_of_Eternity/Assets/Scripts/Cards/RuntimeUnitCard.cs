@@ -20,9 +20,9 @@ public class RuntimeUnitCard
     
     public float moveSpeed;
 
-    public float attack;
+    public string attackType;
+    public float attackValue;
     public float attackSpeed;
-    public float attackRange;
     public float attackDistance;
     
     public int level;
@@ -45,10 +45,10 @@ public class RuntimeUnitCard
         defense = data.defense;
         
         moveSpeed = data.moveSpeed;
-        
-        attack = data.attack;
+
+        attackType = data.attackType;
+        attackValue = data.attackValue;
         attackSpeed = data.attackSpeed;
-        attackRange = data.attackRange;
         attackDistance = data.attackDistance;
         
         level = data.level;

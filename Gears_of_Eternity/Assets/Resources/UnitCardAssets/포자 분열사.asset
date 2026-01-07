@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c269cbc48e3814f9c9c5466a9638f67c, type: 3}
+  m_Name: "\uD3EC\uC790 \uBD84\uC5F4\uC0AC"
+  m_EditorClassIdentifier: 
+  id: 
+  icon: {fileID: 0}
+  cardType: 0
+  faction: 1
+  rarity: 1
+  cost: 3
+  price: 0
+  unitName: "\uD3EC\uC790 \uBD84\uC5F4\uC0AC"
+  description: 
+  roleType: 1
+  unitPrefab: {fileID: 8607255275307444273, guid: f6a064d5c83d6384f9a7b68808650019, type: 3}
+  health: 972
+  defense: 33
+  moveSpeed: 3.4
+  attackType: "\uC6D0\uAC70\uB9AC"
+  attackValue: 181
+  attackSpeed: 1.5
+  attackDistance: 4
+  level: 2
+  nextUpgrades:
+  - {fileID: 11400000, guid: 195bb532c9a28fd4094a7ece47e929c0, type: 2}

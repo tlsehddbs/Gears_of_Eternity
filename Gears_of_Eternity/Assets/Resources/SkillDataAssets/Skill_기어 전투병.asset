@@ -14,9 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   faction: 0
   unitName: "\uAE30\uC5B4 \uC804\uD22C\uBCD1"
-  skillName: 
   skillDescription: 
-  skillType: 0
-  skillValue: 0
-  skillDuration: 0
   skillCoolDown: 0
+  effects: []
