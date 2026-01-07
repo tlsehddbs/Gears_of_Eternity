@@ -52,7 +52,7 @@ public class DeckManager : MonoBehaviour
             {
                 continue;
             }
-            deck.Add(def);     // 여기서 uniqueId 생성
+            deck.Add(def);
         }
         Shuffle(deck);
     }

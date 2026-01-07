@@ -46,7 +46,7 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
     [Tooltip("플레이어 덱 구성. 동일한 UnitCardData를 여러 장 넣을 수 있음. 런타임 고유 ID는 RuntimeUnitCard가 생성 시 부여함.")]
     [SerializeField] private List<RuntimeUnitCard> deckCards = new List<RuntimeUnitCard>();
     
-    public IReadOnlyList<RuntimeUnitCard> DeckCards => deckCards;
+    public List<RuntimeUnitCard> DeckCards => deckCards;
     
     public event Action OnDeckChanged;
     
@@ -304,6 +304,41 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
                 Debug.Log(runtimeCardCopy.uniqueId);
             }
         }
+    }
+
+    public bool TryGetRandomUpgradeableCard(out RuntimeUnitCard pickedCard)
+    {
+        List<RuntimeUnitCard> candidates = new();
+        
+        foreach (var c in DeckCards)
+        {
+            if (c == null)
+            {
+                pickedCard = null;
+                return false;
+            }
+            
+            if (c.level >= 3)
+            {
+                continue;
+            }
+
+            var upgrades = c.nextUpgradeUnits;
+            if (upgrades == null || upgrades.Count == 0)
+            {
+                continue;
+            }
+            candidates.Add(c);
+        }
+
+        if (candidates.Count == 0)
+        {
+            pickedCard = null;
+            return false;
+        }
+
+        pickedCard = candidates[Random.Range(0, candidates.Count)];
+        return true;
     }
 }
 

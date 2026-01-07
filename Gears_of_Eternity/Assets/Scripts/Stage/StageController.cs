@@ -15,11 +15,18 @@ public class StageController : MonoBehaviour
         await StageFlow.Instance.OnStageCleared();
     }
 
+#if UNITY_EDITOR
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.D))
         {
             OnStageCleared();
         }
+
+        if (Input.GetKeyDown(KeyCode.U))
+        {
+            PlayerState.Instance.TryGetRandomUpgradeableCard(out var card);
+        }
     }
+#endif
 }
