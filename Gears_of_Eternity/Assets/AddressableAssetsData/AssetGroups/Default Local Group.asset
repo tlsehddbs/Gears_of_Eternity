@@ -20,11 +20,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 7b93e595f940d4cfa92b6e0da9f1f5b3
-    m_Address: combatScene
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b932643459dfa475c98f3e455ee8319a
     m_Address: eventScene
     m_ReadOnly: 0
