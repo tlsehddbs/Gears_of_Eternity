@@ -287,7 +287,7 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
         
         if (filteredFaction.Count == 0)
         {
-            Debug.LogWarning($"⚠ IronGearFederation 에 해당하는 카드가 없음");
+            Debug.LogWarning($"[PlayerState] IronGearFederation 에 해당하는 카드가 없음");
             return;
         }
 

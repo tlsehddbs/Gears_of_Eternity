@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05abb4b0d0062134887d7bc067d992e7, type: 3}
+  m_Name: "Skill_\uACE8\uACA9 \uAC15\uD654\uCCB4"
+  m_EditorClassIdentifier: 
+  faction: 1
+  unitName: "\uACE8\uACA9 \uAC15\uD654\uCCB4"
+  skillDescription: "\uC8FC\uBCC0 \uC544\uAD70 \uBC29\uC5B4 +10%/ \uBC94\uC704 1\uCE78"
+  skillCoolDown: 16
+  effects: []

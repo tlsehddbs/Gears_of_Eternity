@@ -42,13 +42,6 @@ public class ItemCardScriptableObjectGenerator : EditorWindow
 
         foreach (var row in data)
         {
-            // 유효성 검사
-            if (row.Length < 6)
-            {
-                Debug.LogWarning("유효하지 않은 데이터(필드 부족)");
-                continue;
-            }
-            
             ItemCardData card = ScriptableObject.CreateInstance<ItemCardData>();
             
             card.cardType = CardType.Item;

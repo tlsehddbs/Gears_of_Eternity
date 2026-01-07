@@ -61,7 +61,7 @@ public class UnitCardScriptableGenerator : EditorWindow
             
             card.moveSpeed = float.Parse(row[6]);
 
-            card.attackType = float.Parse(row[7]);
+            card.attackType = row[7].Trim();
             card.attackValue = float.Parse(row[8]);
             card.attackSpeed = float.Parse(row[9]);
             card.attackDistance = float.Parse(row[10]);     // 공격 가능 범위

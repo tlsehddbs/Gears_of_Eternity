@@ -21,7 +21,7 @@ public class UnitCardData : BaseCardData
     
     public float moveSpeed;
     
-    public float attackType;
+    public string attackType;
     public float attackValue;
     public float attackSpeed;
     public float attackDistance;
