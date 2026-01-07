@@ -53,25 +53,23 @@ public class UnitCardScriptableGenerator : EditorWindow
             
             card.faction = (FactionType)Enum.Parse(typeof(FactionType), row[0]);
             card.unitName = row[1].Trim();
-            // card.description = row[1];
-            // card.unitPrefab = row[1];
             card.rarity = (Rarity)Enum.Parse(typeof(Rarity), row[2]);
             card.roleType = (RoleTypes)Enum.Parse(typeof(RoleTypes), row[3]);
             
             card.health = float.Parse(row[4]);
             card.defense = float.Parse(row[5]);
             
-            
             card.moveSpeed = float.Parse(row[6]);
 
-            card.attack = float.Parse(row[8]);
+            card.attackType = float.Parse(row[7]);
+            card.attackValue = float.Parse(row[8]);
             card.attackSpeed = float.Parse(row[9]);
-            card.attackRange = float.Parse(row[10]);        // 피해를 받는 범위
-            card.attackDistance = float.Parse(row[11]);     // 공격 가능 범위
+            card.attackDistance = float.Parse(row[10]);     // 공격 가능 범위
             
-            card.cost = int.Parse(row[12]);
+            card.cost = int.Parse(row[11]);
 
-            card.level = int.Parse(row[13]);
+            card.level = int.Parse(row[12]);
+            
             
             string assetPath = $"{outputFolder}/{card.unitName}.asset";
             

@@ -26,7 +26,7 @@ public class UnitSkillScriptableObjectGenerator : EditorWindow
     // ReSharper disable Unity.PerformanceAnalysis
     private void GenerateSkillData()
     {
-        string csvPath = "CSV/Unit_Skill_Data_Temp";
+        string csvPath = "CSV/UnitSkillData";
         List<string[]> data = CSVLoader.LoadCSV(csvPath);
 
         if (data == null || data.Count == 0)
@@ -70,6 +70,6 @@ public class UnitSkillScriptableObjectGenerator : EditorWindow
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-        Debug.Log("✅유닛 스킬 데이터 생성 완료");
+        Debug.Log("[UnitSkillScriptableObjectGenerator] 유닛 스킬 데이터 생성 완료");
     }
 }

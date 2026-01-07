@@ -24,7 +24,7 @@ public class ItemCardScriptableObjectGenerator : EditorWindow
     // ReSharper disable Unity.PerformanceAnalysis
     private void GenerateItemCards()
     {
-        string csvPath = "CSV/ItemCardData";
+        string csvPath = "CSV/ItemData";
         List<string[]> data = CSVLoader.LoadCSV(csvPath);
 
         if (data == null || data.Count == 0)
@@ -53,16 +53,8 @@ public class ItemCardScriptableObjectGenerator : EditorWindow
             
             card.cardType = CardType.Item;
             
-            card.faction = (FactionType)Enum.Parse(typeof(FactionType), row[0]);
-            card.itemName = row[1].Trim();
-            //card.itemDescription = row[1];
-            card.itemGroup = (ItemGroupType)Enum.Parse(typeof(ItemGroupType), row[2]);
-            card.effectType = (ItemEffectType)Enum.Parse(typeof(ItemEffectType), row[6]);
-            card.effectValue = float.Parse(row[7]);
-            card.effectDuration = float.Parse(row[8]);
-            
-            card.itemTriggerCondition = (ItemTriggerConditionType)Enum.Parse(typeof(ItemTriggerConditionType), row[9]);
-            card.itemTargetType = (ItemTargetType)Enum.Parse(typeof(ItemTargetType), row[10]);
+            card.itemName = row[0].Trim();
+            card.itemDescription = row[1];
             
             string assetPath = $"{outputFolder}/{card.itemName}.asset";
 
@@ -72,6 +64,6 @@ public class ItemCardScriptableObjectGenerator : EditorWindow
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-        Debug.Log("✅유닛 카드 생성 완료");
+        Debug.Log("[ItemCardScriptableObjectGenerator] 아이템 카드 생성 완료");
     }
 }
