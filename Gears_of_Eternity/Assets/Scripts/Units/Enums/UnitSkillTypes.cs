@@ -88,6 +88,8 @@ namespace UnitSkillTypes.Enums
         ImmobileAuraBuff, // 이동 불가 + 주변 아군 오라(공격/방어/피감/공속) // 군체 공생체
         RegenNearbyAllies, // 주위 아군 재생 부여 //재생 촉진체
         TargetedAoeBlind, // 적에게 범위형으로 실명 부여 //신경 교란체
+        RegenNearbyAlliesUpgrade,  // 근처 아군 3명: 재생(4s) + 해로운효과 제거 + 이속버프
+        NearestEnemyAoeStunThenBlind, // 가장 가까운 적 중심 AoE: Stun 2s -> Blind 4s
 
     }
 }

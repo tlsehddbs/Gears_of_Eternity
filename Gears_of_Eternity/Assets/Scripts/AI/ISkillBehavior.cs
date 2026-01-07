@@ -2269,9 +2269,10 @@ public class HealOverTimeSkill : ISkillBehavior
 // 이동 불가 + 주변 아군 오라 패시브
 // - 범위 내 아군: 공격력 +15%(퍼센트), 방어력 +15%(퍼센트),
 //               받피감 +10%(DamageReduction 가산),
-//               공속 +10%(주의: 이 프로젝트 attackSpeed는 '공격간격(초)'이므로 -10%로 적용)
+//               공속 +10%(주의: 이 프로젝트 attackSpeed는 공격간격(초)이므로 -10%로 적용)
 // - 본인: 이동 불가( MoveState 진입 차단 + NavMeshAgent 정지 )
 // - 항상 발동(패시브) / 쿨타임 없음
+// - 업그레이드형은 buffstat으로 처리 코드안 switch문 확인
 public class ImmobileAuraBuffSkill : ISkillBehavior
 {
     private class BuffPack
@@ -2286,25 +2287,36 @@ public class ImmobileAuraBuffSkill : ISkillBehavior
 
         // 캐스터 이동 봉인 복구용
         public float prevAgentSpeed;
-        public bool  prevAgentStopped;
-        public bool  prevMovementLocked;
+        public bool prevAgentStopped;
+        public bool prevMovementLocked;
 
-        // 대상별 버프 적용 여부(소스별로 분리되므로 오라 중첩도 가능)
+        // 대상별 버프 적용 여부
         public Dictionary<UnitCombatFSM, BuffPack> buffed = new();
 
+        // 링 표시
         public LineRenderer auraRangeIndicator;
+
+        // 설정 잠금: 첫 프레임 뒤(모든 effect 반영 후) lock
+        public bool locked = false;
+
+        // 버프 스펙(기본값)
+        public float atkPct = 0.15f;
+        public float defPct = 0.15f;
+        public float dmgReductionAdd = 0.10f;
+
+        // 이 프로젝트는 attackSpeed가 "공격간격(초)"로 쓰임
+        // 공속 +10% => 공격간격 10% 감소 => -0.10 저장
+        public float attackSpeedPct = -0.10f;
+
+        // 보호막 펄스(강화 옵션)
+        public bool enableBarrierPulse = false;
+        public float barrierInterval = 10f;  // 10초
+        public float barrierRatio = 0.20f;   // MaxHP의 20%
+        public float barrierDuration = 5f;   // 5초 유지
+        public float barrierTimer = 0f;
     }
 
     private static readonly Dictionary<UnitCombatFSM, Rec> _map = new();
-
-    // 고정 스펙(요구사항)
-    private const float AtkPct = 0.15f;
-    private const float DefPct = 0.15f;
-    private const float DmgReductionAdd = 0.10f;
-
-    // 이 프로젝트는 attackSpeed가 "공격 속도"가 아니라 "공격 간격(초)"로 쓰임
-    // 그래서 공속 +10% = 공격 간격 10% 감소 = -0.10으로 적용해야 더 빨라짐
-    private const float AttackSpeedPct = -0.10f;
 
     public bool ShouldTrigger(UnitCombatFSM caster, SkillEffect effect) => true;
     public UnitCombatFSM FindTarget(UnitCombatFSM caster, SkillEffect effect) => null;
@@ -2312,36 +2324,47 @@ public class ImmobileAuraBuffSkill : ISkillBehavior
     public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
     {
         if (caster == null) return;
-        if (_map.ContainsKey(caster)) return; // 중복 실행 방지
 
-        var rec = new Rec();
-
-        // 오라 범위: effect.skillRange를 우선 사용
-        rec.radius = (effect != null && effect.skillRange > 0f)
-            ? effect.skillRange
-            : caster.stats.attackDistance * 2f; // 기본값(없으면 대충)
-
-        //이동 봉인 적용
-        rec.prevMovementLocked = caster.movementLocked;
-        caster.movementLocked = true;
-
-        if (caster.agent != null)
+        // 컨트롤 레코드 확보(없으면 생성)
+        if (!_map.TryGetValue(caster, out var rec))
         {
-            rec.prevAgentSpeed = caster.agent.speed;
-            rec.prevAgentStopped = caster.agent.isStopped;
+            rec = new Rec();
 
-            caster.agent.ResetPath();
-            caster.agent.isStopped = true;
-            caster.agent.speed = 0f;
+            // 범위: effect.skillRange 우선, 없으면 기본값
+            rec.radius = (effect != null && effect.skillRange > 0f)
+                ? effect.skillRange
+                : caster.stats.attackDistance * 2f;
+
+            // 이동 봉인 적용
+            rec.prevMovementLocked = caster.movementLocked;
+            caster.movementLocked = true;
+
+            if (caster.agent != null)
+            {
+                rec.prevAgentSpeed = caster.agent.speed;
+                rec.prevAgentStopped = caster.agent.isStopped;
+
+                caster.agent.ResetPath();
+                caster.agent.isStopped = true;
+                caster.agent.speed = 0f;
+            }
+
+            // 링 표시(최초 1회)
+            rec.auraRangeIndicator = CreateAuraRangeIndicator(caster, rec.radius);
+
+            // 오라 루프 시작(첫 틱은 1프레임 뒤)
+            rec.loop = caster.StartCoroutine(AuraLoop(caster, rec));
+            _map[caster] = rec;
+
+            Debug.Log($"[ImmobileAuraBuff] {caster.name} 오라 시작 (radius={rec.radius:F1}) + 이동불가");
         }
 
-        rec.loop = caster.StartCoroutine(AuraLoop(caster, rec));
+        // effect가 여러 개면 Execute가 여러 번 호출되므로 설정 누적
+        ApplyEffectToRec(rec, caster, effect);
 
-        _map[caster] = rec;
-        Debug.Log($"[ImmobileAuraBuff] {caster.name} 오라 시작 (radius={rec.radius:F1}) + 이동불가");
-
-        //오라 범위 링 표시
-        rec.auraRangeIndicator = CreateAuraRangeIndicator(caster, rec.radius);
+        // 링 갱신
+        if (rec.auraRangeIndicator != null)
+            UpdateCircleWorld(rec.auraRangeIndicator, caster.transform.position, rec.radius);
     }
 
     public void Remove(UnitCombatFSM caster, SkillEffect effect)
@@ -2358,21 +2381,32 @@ public class ImmobileAuraBuffSkill : ISkillBehavior
         {
             var ally = kv.Key;
             if (ally == null) continue;
-            RemoveBuffsFromAlly(ally);
+            RemoveBuffsFromAlly(ally, rec);
         }
         rec.buffed.Clear();
 
-        // 이동 봉인 복구(사망 시엔 의미 없지만 안전하게)
+        // 이동 봉인 복구
         caster.movementLocked = rec.prevMovementLocked;
+
         if (caster.agent != null)
         {
-            caster.agent.isStopped = rec.prevAgentStopped;
-            caster.agent.speed = caster.movementLocked ? 0f : caster.stats.moveSpeed;
+            if (caster.movementLocked)
+            {
+                caster.agent.ResetPath();
+                caster.agent.isStopped = true;
+                caster.agent.speed = 0f;
+            }
+            else
+            {
+                caster.agent.isStopped = rec.prevAgentStopped;
+                caster.agent.speed = rec.prevAgentSpeed;
+            }
         }
 
         _map.Remove(caster);
         Debug.Log($"[ImmobileAuraBuff] {caster.name} 오라 종료/정리");
-        //오라 범위 링 제거
+
+        // 링 제거
         if (rec.auraRangeIndicator != null)
         {
             UnityEngine.Object.Destroy(rec.auraRangeIndicator.gameObject);
@@ -2380,9 +2414,61 @@ public class ImmobileAuraBuffSkill : ISkillBehavior
         }
     }
 
+    private static void ApplyEffectToRec(Rec rec, UnitCombatFSM caster, SkillEffect effect)
+    {
+        if (rec == null || caster == null || effect == null) return;
+
+        // 한번 lock 된 뒤에는 값 변경 금지(적용/해제 불일치 방지)
+        if (rec.locked) return;
+
+        // radius는 가장 큰 값 유지
+        if (effect.skillRange > 0f)
+            rec.radius = Mathf.Max(rec.radius, effect.skillRange);
+
+        switch (effect.buffStat)
+        {
+            case BuffStat.Attack:
+                if (effect.skillValue != 0f) rec.atkPct = effect.skillValue; // 예: 0.20
+                break;
+
+            case BuffStat.Defense:
+                if (effect.skillValue != 0f) rec.defPct = effect.skillValue; // 예: 0.25
+                break;
+
+            case BuffStat.DamageReduction:
+                if (effect.skillValue != 0f) rec.dmgReductionAdd = effect.skillValue; // 예: 0.15
+                break;
+
+            case BuffStat.AttackSpeed:
+                // 인스펙터에는 +0.15로 넣고, 실제는 공격간격 감소이므로 음수로 저장
+                if (effect.skillValue != 0f)
+                    rec.attackSpeedPct = -Mathf.Abs(effect.skillValue); // 예: -0.15
+                break;
+
+            case BuffStat.None:
+                // 보호막 펄스 설정:
+                // - interval: skillDelayTime
+                // - ratio   : skillValue
+                // - duration: skillMaxStack (skillDuration은 0이어야 패시브 적용됨)
+                if (effect.skillDelayTime > 0f && effect.skillValue > 0f && effect.skillMaxStack > 0f)
+                {
+                    rec.enableBarrierPulse = true;
+                    rec.barrierInterval = effect.skillDelayTime; // 10
+                    rec.barrierRatio = effect.skillValue;        // 0.20
+                    rec.barrierDuration = effect.skillMaxStack;  // 5
+                }
+                break;
+        }
+    }
+
     private static IEnumerator AuraLoop(UnitCombatFSM caster, Rec rec)
     {
-        // 너무 잦으면 부담, 너무 길면 반응 느림 → 0.25~0.5 권장
+        // 중요: 모든 effect Execute가 끝난 다음 프레임부터 적용 시작
+        yield return null;
+
+        // 이 시점의 설정값을 고정(적용/해제 불일치 방지)
+        rec.locked = true;
+
         const float interval = 0.25f;
 
         while (caster != null)
@@ -2394,7 +2480,7 @@ public class ImmobileAuraBuffSkill : ISkillBehavior
                 yield break;
             }
 
-            // 혹시 다른 코드가 풀어버렸으면 계속 고정
+            // 이동 봉인 유지
             if (caster.agent != null)
             {
                 caster.agent.isStopped = true;
@@ -2402,10 +2488,15 @@ public class ImmobileAuraBuffSkill : ISkillBehavior
             }
             caster.movementLocked = true;
 
+            // 링 중심/반경 갱신
+            if (rec.auraRangeIndicator != null)
+                UpdateCircleWorld(rec.auraRangeIndicator, caster.transform.position, rec.radius);
+
+            // 범위 내 아군 찾기
             var allies = GameObject.FindObjectsByType<UnitCombatFSM>(FindObjectsSortMode.None)
                 .Where(u => u != null && u.IsAlive()
                             && u.unitData.faction == caster.unitData.faction
-                            && u != caster); // 기본은 자기 자신 제외(원하면 포함 가능)
+                            && u != caster);
 
             HashSet<UnitCombatFSM> valid = new();
 
@@ -2418,48 +2509,57 @@ public class ImmobileAuraBuffSkill : ISkillBehavior
 
                     if (!rec.buffed.ContainsKey(ally))
                     {
-                        ApplyBuffsToAlly(ally);
+                        ApplyBuffsToAlly(ally, rec);
                         rec.buffed[ally] = new BuffPack { applied = true };
-                        // Debug.Log($"[ImmobileAuraBuff] {caster.name} → {ally.name} 버프 적용");
                     }
                 }
             }
 
-            // 범위 밖/사망 등으로 빠진 대상 버프 해제
+            // 범위 밖으로 나간 대상 버프 해제
             var toRemove = rec.buffed.Keys.Where(u => u == null || !valid.Contains(u)).ToList();
             foreach (var u in toRemove)
             {
                 if (u != null)
-                {
-                    RemoveBuffsFromAlly(u);
-                    // Debug.Log($"[ImmobileAuraBuff] {caster.name} → {u.name} 버프 해제");
-                }
+                    RemoveBuffsFromAlly(u, rec);
+
                 rec.buffed.Remove(u);
+            }
+
+            // 보호막 펄스(강화 옵션)
+            if (rec.enableBarrierPulse)
+            {
+                rec.barrierTimer += interval;
+                if (rec.barrierTimer >= rec.barrierInterval)
+                {
+                    rec.barrierTimer = 0f;
+
+                    float amount = caster.stats.health * rec.barrierRatio;
+                    foreach (var ally in valid)
+                    {
+                        if (ally == null || !ally.IsAlive()) continue;
+                        ally.ApplyBarrier(amount, rec.barrierDuration);
+                    }
+                }
             }
 
             yield return new WaitForSeconds(interval);
         }
     }
 
-    private static void ApplyBuffsToAlly(UnitCombatFSM ally)
+    private static void ApplyBuffsToAlly(UnitCombatFSM ally, Rec rec)
     {
-        // 공격/방어는 퍼센트(곱)
-        ally.ModifyStat(BuffStat.Attack,  AtkPct, true, false);
-        ally.ModifyStat(BuffStat.Defense, DefPct, true, false);
-
-        // 받는 피해 감소는 DamageReduction 가산(+0.10 => 10% 감소)
-        ally.ModifyStat(BuffStat.DamageReduction, DmgReductionAdd, false, false);
-
-        // 공속(공격간격) 10% 감소 => 더 빨라짐
-        ally.ModifyStat(BuffStat.AttackSpeed, AttackSpeedPct, true, false);
+        ally.ModifyStat(BuffStat.Attack, rec.atkPct, true, false);
+        ally.ModifyStat(BuffStat.Defense, rec.defPct, true, false);
+        ally.ModifyStat(BuffStat.DamageReduction, rec.dmgReductionAdd, false, false);
+        ally.ModifyStat(BuffStat.AttackSpeed, rec.attackSpeedPct, true, false);
     }
 
-    private static void RemoveBuffsFromAlly(UnitCombatFSM ally)
+    private static void RemoveBuffsFromAlly(UnitCombatFSM ally, Rec rec)
     {
-        ally.ModifyStat(BuffStat.Attack,  AtkPct, true, true);
-        ally.ModifyStat(BuffStat.Defense, DefPct, true, true);
-        ally.ModifyStat(BuffStat.DamageReduction, DmgReductionAdd, false, true);
-        ally.ModifyStat(BuffStat.AttackSpeed, AttackSpeedPct, true, true);
+        ally.ModifyStat(BuffStat.Attack, rec.atkPct, true, true);
+        ally.ModifyStat(BuffStat.Defense, rec.defPct, true, true);
+        ally.ModifyStat(BuffStat.DamageReduction, rec.dmgReductionAdd, false, true);
+        ally.ModifyStat(BuffStat.AttackSpeed, rec.attackSpeedPct, true, true);
     }
 
     private const int CircleSegments = 50;
@@ -2471,7 +2571,6 @@ public class ImmobileAuraBuffSkill : ISkillBehavior
     {
         GameObject obj = new GameObject("AuraRangeIndicator");
 
-        //스케일 영향 안 받게 부모에 안 붙임
         obj.transform.position = caster.transform.position;
         obj.transform.rotation = Quaternion.identity;
         obj.transform.localScale = Vector3.one;
@@ -2480,8 +2579,6 @@ public class ImmobileAuraBuffSkill : ISkillBehavior
         lr.positionCount = CircleSegments + 1;
         lr.loop = true;
         lr.widthMultiplier = RingWidth;
-
-        //월드 좌표로 그리기
         lr.useWorldSpace = true;
 
         if (s_RingMat == null)
@@ -2515,12 +2612,258 @@ public class ImmobileAuraBuffSkill : ISkillBehavior
     }
 }
 
+
+// public class ImmobileAuraBuffSkill : ISkillBehavior
+// {
+//     private class BuffPack
+//     {
+//         public bool applied;
+//     }
+
+//     private class Rec
+//     {
+//         public Coroutine loop;
+//         public float radius;
+
+//         // 캐스터 이동 봉인 복구용
+//         public float prevAgentSpeed;
+//         public bool  prevAgentStopped;
+//         public bool  prevMovementLocked;
+
+//         // 대상별 버프 적용 여부(소스별로 분리되므로 오라 중첩도 가능)
+//         public Dictionary<UnitCombatFSM, BuffPack> buffed = new();
+
+//         public LineRenderer auraRangeIndicator;
+//     }
+
+//     private static readonly Dictionary<UnitCombatFSM, Rec> _map = new();
+
+//     // 고정 스펙(요구사항)
+//     private const float atkPct = 0.15f;
+//     private const float defPct = 0.15f;
+//     private const float dmgReductionAdd = 0.10f;
+
+//     // 이 프로젝트는 attackSpeed가 "공격 속도"가 아니라 "공격 간격(초)"로 쓰임
+//     // 그래서 공속 +10% = 공격 간격 10% 감소 = -0.10으로 적용해야 더 빨라짐
+//     private const float attackSpeedPct = -0.10f;
+
+//     public bool ShouldTrigger(UnitCombatFSM caster, SkillEffect effect) => true;
+//     public UnitCombatFSM FindTarget(UnitCombatFSM caster, SkillEffect effect) => null;
+
+//     public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
+//     {
+//         if (caster == null) return;
+//         if (_map.ContainsKey(caster)) return; // 중복 실행 방지
+
+//         var rec = new Rec();
+
+//         // 오라 범위: effect.skillRange를 우선 사용
+//         rec.radius = (effect != null && effect.skillRange > 0f)
+//             ? effect.skillRange
+//             : caster.stats.attackDistance * 2f; // 기본값(없으면 대충)
+
+//         //이동 봉인 적용
+//         rec.prevMovementLocked = caster.movementLocked;
+//         caster.movementLocked = true;
+
+//         if (caster.agent != null)
+//         {
+//             rec.prevAgentSpeed = caster.agent.speed;
+//             rec.prevAgentStopped = caster.agent.isStopped;
+
+//             caster.agent.ResetPath();
+//             caster.agent.isStopped = true;
+//             caster.agent.speed = 0f;
+//         }
+
+//         rec.loop = caster.StartCoroutine(AuraLoop(caster, rec));
+
+//         _map[caster] = rec;
+//         Debug.Log($"[ImmobileAuraBuff] {caster.name} 오라 시작 (radius={rec.radius:F1}) + 이동불가");
+
+//         //오라 범위 링 표시
+//         rec.auraRangeIndicator = CreateAuraRangeIndicator(caster, rec.radius);
+//     }
+
+//     public void Remove(UnitCombatFSM caster, SkillEffect effect)
+//     {
+//         if (caster == null) return;
+//         if (!_map.TryGetValue(caster, out var rec)) return;
+
+//         // 코루틴 종료
+//         if (rec.loop != null)
+//             caster.StopCoroutine(rec.loop);
+
+//         // 남아있는 버프 전부 해제
+//         foreach (var kv in rec.buffed.ToList())
+//         {
+//             var ally = kv.Key;
+//             if (ally == null) continue;
+//             RemoveBuffsFromAlly(ally);
+//         }
+//         rec.buffed.Clear();
+
+//         // 이동 봉인 복구(사망 시엔 의미 없지만 안전하게)
+//         caster.movementLocked = rec.prevMovementLocked;
+//         if (caster.agent != null)
+//         {
+//             caster.agent.isStopped = rec.prevAgentStopped;
+//             caster.agent.speed = caster.movementLocked ? 0f : caster.stats.moveSpeed;
+//         }
+
+//         _map.Remove(caster);
+//         Debug.Log($"[ImmobileAuraBuff] {caster.name} 오라 종료/정리");
+//         //오라 범위 링 제거
+//         if (rec.auraRangeIndicator != null)
+//         {
+//             UnityEngine.Object.Destroy(rec.auraRangeIndicator.gameObject);
+//             rec.auraRangeIndicator = null;
+//         }
+//     }
+
+//     private static IEnumerator AuraLoop(UnitCombatFSM caster, Rec rec)
+//     {
+//         // 너무 잦으면 부담, 너무 길면 반응 느림 → 0.25~0.5 권장
+//         const float interval = 0.25f;
+
+//         while (caster != null)
+//         {
+//             if (!caster.IsAlive())
+//             {
+//                 // 캐스터 사망 시 정리
+//                 new ImmobileAuraBuffSkill().Remove(caster, null);
+//                 yield break;
+//             }
+
+//             // 혹시 다른 코드가 풀어버렸으면 계속 고정
+//             if (caster.agent != null)
+//             {
+//                 caster.agent.isStopped = true;
+//                 caster.agent.speed = 0f;
+//             }
+//             caster.movementLocked = true;
+
+//             var allies = GameObject.FindObjectsByType<UnitCombatFSM>(FindObjectsSortMode.None)
+//                 .Where(u => u != null && u.IsAlive()
+//                             && u.unitData.faction == caster.unitData.faction
+//                             && u != caster); // 기본은 자기 자신 제외(원하면 포함 가능)
+
+//             HashSet<UnitCombatFSM> valid = new();
+
+//             foreach (var ally in allies)
+//             {
+//                 float dist = Vector3.Distance(caster.transform.position, ally.transform.position);
+//                 if (dist <= rec.radius)
+//                 {
+//                     valid.Add(ally);
+
+//                     if (!rec.buffed.ContainsKey(ally))
+//                     {
+//                         ApplyBuffsToAlly(ally);
+//                         rec.buffed[ally] = new BuffPack { applied = true };
+//                         // Debug.Log($"[ImmobileAuraBuff] {caster.name} → {ally.name} 버프 적용");
+//                     }
+//                 }
+//             }
+
+//             // 범위 밖/사망 등으로 빠진 대상 버프 해제
+//             var toRemove = rec.buffed.Keys.Where(u => u == null || !valid.Contains(u)).ToList();
+//             foreach (var u in toRemove)
+//             {
+//                 if (u != null)
+//                 {
+//                     RemoveBuffsFromAlly(u);
+//                     // Debug.Log($"[ImmobileAuraBuff] {caster.name} → {u.name} 버프 해제");
+//                 }
+//                 rec.buffed.Remove(u);
+//             }
+
+//             yield return new WaitForSeconds(interval);
+//         }
+//     }
+
+//     private static void ApplyBuffsToAlly(UnitCombatFSM ally)
+//     {
+//         // 공격/방어는 퍼센트(곱)
+//         ally.ModifyStat(BuffStat.Attack,  atkPct, true, false);
+//         ally.ModifyStat(BuffStat.Defense, defPct, true, false);
+
+//         // 받는 피해 감소는 DamageReduction 가산(+0.10 => 10% 감소)
+//         ally.ModifyStat(BuffStat.DamageReduction, dmgReductionAdd, false, false);
+
+//         // 공속(공격간격) 10% 감소 => 더 빨라짐
+//         ally.ModifyStat(BuffStat.AttackSpeed, attackSpeedPct, true, false);
+//     }
+
+//     private static void RemoveBuffsFromAlly(UnitCombatFSM ally)
+//     {
+//         ally.ModifyStat(BuffStat.Attack,  atkPct, true, true);
+//         ally.ModifyStat(BuffStat.Defense, defPct, true, true);
+//         ally.ModifyStat(BuffStat.DamageReduction, dmgReductionAdd, false, true);
+//         ally.ModifyStat(BuffStat.AttackSpeed, attackSpeedPct, true, true);
+//     }
+
+//     private const int CircleSegments = 50;
+//     private const float RingHeight = 0.05f;
+//     private const float RingWidth = 0.05f;
+//     private static Material s_RingMat;
+
+//     private static LineRenderer CreateAuraRangeIndicator(UnitCombatFSM caster, float radius)
+//     {
+//         GameObject obj = new GameObject("AuraRangeIndicator");
+
+//         //스케일 영향 안 받게 부모에 안 붙임
+//         obj.transform.position = caster.transform.position;
+//         obj.transform.rotation = Quaternion.identity;
+//         obj.transform.localScale = Vector3.one;
+
+//         var lr = obj.AddComponent<LineRenderer>();
+//         lr.positionCount = CircleSegments + 1;
+//         lr.loop = true;
+//         lr.widthMultiplier = RingWidth;
+
+//         //월드 좌표로 그리기
+//         lr.useWorldSpace = true;
+
+//         if (s_RingMat == null)
+//             s_RingMat = new Material(Shader.Find("Sprites/Default"));
+
+//         lr.material = s_RingMat;
+//         lr.startColor = Color.green;
+//         lr.endColor = Color.green;
+
+//         UpdateCircleWorld(lr, caster.transform.position, radius);
+//         return lr;
+//     }
+
+//     private static void UpdateCircleWorld(LineRenderer lr, Vector3 center, float radius)
+//     {
+//         if (lr == null) return;
+
+//         for (int i = 0; i <= CircleSegments; i++)
+//         {
+//             float t = (float)i / CircleSegments;
+//             float angle = t * Mathf.PI * 2f;
+
+//             Vector3 pos = center + new Vector3(
+//                 Mathf.Cos(angle) * radius,
+//                 RingHeight,
+//                 Mathf.Sin(angle) * radius
+//             );
+
+//             lr.SetPosition(i, pos);
+//         }
+//     }
+// }
+
+
+
 /// <summary>
 /// 근처 아군 3명에게 재생상태효과를 부여하는 스킬
 ///
 /// SkillEffect 매핑(권장)
 /// - skillType      : UnitSkillType.Regen
-/// - skillRange     : "근처" 판정 반경(필수 권장)
+/// - skillRange     : 판정 반경(필수 권장)
 /// - skillValue     : 회복량(퍼센트면 0.10 = 10%)
 /// - isPercent      : true면 MaxHP * skillValue, false면 절대값
 /// - skillDuration  : 재생 지속시간(초) (요구사항: 4초로 세팅)
@@ -2756,9 +3099,298 @@ public class TargetedAoeBlindSkill : ISkillBehavior
 }
 
 
+public class RegenNearbyAlliesUpgradeSkill : ISkillBehavior
+{
+    private const int DefaultMaxAllies = 3;
 
+    private const float DefaultRegenDuration = 4f;     // 4초
+    private const float DefaultRegenTick = 1f;         // 초당
+    private const float DefaultRegenPctPerTick = 0.15f; // 최대체력의 15%/sec
 
+    private const float MoveSpeedPct = 0.20f;          // 이속 20%
+    private const float MoveSpeedDuration = 5f;        // 5초
 
+    private struct Candidate
+    {
+        public UnitCombatFSM unit;
+        public float d2;
+    }
+
+    public bool ShouldTrigger(UnitCombatFSM caster, SkillEffect effect)
+    {
+        if (caster == null || effect == null) return false;
+        if (!caster.CanUseSkill()) return false;
+
+        float radius = effect.skillRange;
+        if (radius <= 0f) return false;
+
+        int maxAllies = (effect.skillMaxStack > 0f) ? Mathf.RoundToInt(effect.skillMaxStack) : DefaultMaxAllies;
+        if (maxAllies <= 0) maxAllies = DefaultMaxAllies;
+
+        var allies = CollectNearestAllies(caster, radius, maxAllies);
+        if (allies.Count == 0) return false;
+
+        // 낭비 방지: "회복 필요" 또는 "눈에 보이는 해로운 상태"가 있으면 발동
+        for (int i = 0; i < allies.Count; i++)
+        {
+            var a = allies[i];
+            if (a == null || !a.IsAlive()) continue;
+
+            if (a.currentHP < a.stats.health) return true;
+            if (a.IsStunned()) return true;
+            if (a.isSilenced) return true;
+            if (a.blind != null && a.blind.IsBlinded) return true;
+
+            // 출혈/중독은 현재 코드에서 "걸려있는지"를 빠르게 조회하는 public API가 없어서
+            // 여기서는 트리거 조건에 포함하지 않음(Execute에서는 정화 시도함).
+        }
+
+        return false;
+    }
+
+    public UnitCombatFSM FindTarget(UnitCombatFSM caster, SkillEffect effect)
+    {
+        // 자기 주변 스킬이므로 caster 반환 (SkillExecutor의 이동 유도 방지)
+        return caster;
+    }
+
+    public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
+    {
+        if (caster == null || effect == null) return;
+
+        float radius = effect.skillRange;
+        if (radius <= 0f) return;
+
+        int maxAllies = (effect.skillMaxStack > 0f) ? Mathf.RoundToInt(effect.skillMaxStack) : DefaultMaxAllies;
+        if (maxAllies <= 0) maxAllies = DefaultMaxAllies;
+
+        float regenDuration = (effect.skillDuration > 0f) ? effect.skillDuration : DefaultRegenDuration;
+        float tickInterval  = (effect.skillDelayTime > 0f) ? effect.skillDelayTime : DefaultRegenTick;
+        float healPctTick   = (effect.skillValue > 0f) ? effect.skillValue : DefaultRegenPctPerTick;
+
+        var allies = CollectNearestAllies(caster, radius, maxAllies);
+
+        for (int i = 0; i < allies.Count; i++)
+        {
+            var ally = allies[i];
+            if (ally == null || !ally.IsAlive()) continue;
+
+            // 1) 정화: 기절/침묵/실명/출혈/중독 + (가능한 경우) 추적형 스탯감소 디버프 제거
+            StatusCleanseUtil.CleanseHarmful(
+                ally,
+                clearStun: true,
+                clearSilence: true,
+                clearBlind: true,
+                clearBleed: true,
+                clearPoison: true,
+                clearStatDebuffs: true
+            );
+
+            // 2) 재생 부여(4초 동안 초당 최대체력의 15%)
+            var regen = ally.GetComponent<RegenStatus>();
+            if (regen == null) regen = ally.gameObject.AddComponent<RegenStatus>();
+            regen.StartPulse(tickInterval, healPctTick, isPercent: true, duration: regenDuration);
+
+            // 3) 이속 버프(기절 해제 이후에 적용해야 StunSystem 복구 로직에 안 덮임)
+            ally.ApplyBuff(BuffStat.MoveSpeed, MoveSpeedPct, MoveSpeedDuration, isPercent: true);
+        }
+
+        // SkillExecutor에서도 reset하지만, 다른 경로 호출 가능성까지 고려해 안전하게 유지
+        caster.skillTimer = 0f;
+    }
+
+    public void Remove(UnitCombatFSM caster, SkillEffect effect) { }
+
+    private static List<UnitCombatFSM> CollectNearestAllies(UnitCombatFSM caster, float radius, int maxCount)
+    {
+        var result = new List<UnitCombatFSM>(maxCount);
+
+        if (caster == null || radius <= 0f || maxCount <= 0)
+            return result;
+
+        var all = GameObject.FindObjectsByType<UnitCombatFSM>(FindObjectsSortMode.None);
+        if (all == null || all.Length == 0)
+            return result;
+
+        float r2 = radius * radius;
+        Vector3 cpos = caster.transform.position;
+
+        var temp = new List<Candidate>(16);
+
+        for (int i = 0; i < all.Length; i++)
+        {
+            var u = all[i];
+            if (u == null) continue;
+            if (u == caster) continue;
+            if (!u.IsAlive()) continue;
+            if (u.unitData == null || caster.unitData == null) continue;
+            if (u.unitData.faction != caster.unitData.faction) continue;
+
+            Vector3 upos = u.transform.position;
+
+            float dx = upos.x - cpos.x;
+            float dz = upos.z - cpos.z;
+            float d2 = dx * dx + dz * dz;
+
+            if (d2 > r2) continue;
+
+            temp.Add(new Candidate { unit = u, d2 = d2 });
+        }
+
+        if (temp.Count == 0)
+            return result;
+
+        temp.Sort((a, b) => a.d2.CompareTo(b.d2));
+
+        int take = Mathf.Min(maxCount, temp.Count);
+        for (int i = 0; i < take; i++)
+            result.Add(temp[i].unit);
+
+        return result;
+    }
+}
+
+public class NearestEnemyAoeStunThenBlindSkill : ISkillBehavior
+{
+    // 기본값(에셋 세팅이 비어 있어도 동작하도록)
+    private const float DefaultStunSec = 2f;
+    private const float DefaultBlindSec = 4f;
+    private const float DefaultAoeRadius = 4f;
+
+    // 동일 타겟에 대해 2초 후 실명 코루틴이 중복으로 쌓이는 것 방지
+    private static readonly Dictionary<UnitCombatFSM, Coroutine> _pendingBlind = new();
+
+    public bool ShouldTrigger(UnitCombatFSM caster, SkillEffect effect)
+    {
+        if (caster == null || effect == null) return false;
+        if (!caster.CanUseSkill()) return false;
+
+        // 시전 사거리 미세팅이면 발동 자체를 막아 쿨만 도는/이동만 하는 상황 방지
+        if (effect.skillRange <= 0f) return false;
+
+        return FindTarget(caster, effect) != null;
+    }
+
+    public UnitCombatFSM FindTarget(UnitCombatFSM caster, SkillEffect effect)
+    {
+        if (caster == null) return null;
+
+        // 가장 가까운 적
+        return TargetingUtil.FindNearestEnemyGlobal(caster, aliveOnly: true, xzOnly: true);
+    }
+
+    public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
+    {
+        if (caster == null || effect == null) return;
+        if (target == null || !target.IsAlive()) return;
+
+        float aoeRadius = (effect.skillMaxStack > 0f) ? effect.skillMaxStack : DefaultAoeRadius;
+        float stunSec = (effect.skillValue > 0f) ? effect.skillValue : DefaultStunSec;
+        float blindSec = (effect.skillDuration > 0f) ? effect.skillDuration : DefaultBlindSec;
+
+        Vector3 center = target.transform.position;
+
+        // AoE 범위 내 적 수집
+        var victims = CollectEnemiesInCircle(caster, center, aoeRadius);
+
+        if (victims.Count == 0)
+            return;
+
+        // 1) 즉시 기절 적용
+        for (int i = 0; i < victims.Count; i++)
+        {
+            var v = victims[i];
+            if (v == null || !v.IsAlive()) continue;
+
+            StunSystem.Apply(v, stunSec);
+
+            // 2) 2초 후(=기절 이후) 실명 부여
+            StartOrRestartDelayedBlind(v, stunSec, blindSec);
+        }
+    }
+
+    public void Remove(UnitCombatFSM caster, SkillEffect effect) { }
+
+    private static List<UnitCombatFSM> CollectEnemiesInCircle(UnitCombatFSM caster, Vector3 center, float radius)
+    {
+        var result = new List<UnitCombatFSM>(16);
+        if (caster == null || radius <= 0f) return result;
+
+        float r2 = radius * radius;
+
+        // 프로젝트 내 다른 AoE 스킬(FarthestDoubleAoeSkill 등)과 동일하게 OverlapSphere 사용
+        var cols = Physics.OverlapSphere(center, radius, ~0);
+        if (cols == null || cols.Length == 0) return result;
+
+        var hit = new HashSet<UnitCombatFSM>();
+
+        for (int i = 0; i < cols.Length; i++)
+        {
+            var col = cols[i];
+            if (col == null) continue;
+
+            var u = col.GetComponentInParent<UnitCombatFSM>();
+            if (u == null) continue;
+            if (!u.IsAlive()) continue;
+            if (u.unitData == null || caster.unitData == null) continue;
+
+            // 적만
+            if (u.unitData.faction == caster.unitData.faction) continue;
+
+            // XZ 평면 기준 원형 판정(높이 차이 무시)
+            if (SqrDistXZ(u.transform.position, center) > r2) continue;
+
+            if (hit.Add(u))
+                result.Add(u);
+        }
+
+        return result;
+    }
+
+    private static float SqrDistXZ(Vector3 a, Vector3 b)
+    {
+        float dx = a.x - b.x;
+        float dz = a.z - b.z;
+        return dx * dx + dz * dz;
+    }
+
+    private static void StartOrRestartDelayedBlind(UnitCombatFSM victim, float delay, float blindSec)
+    {
+        if (victim == null) return;
+
+        if (_pendingBlind.TryGetValue(victim, out var running) && running != null)
+        {
+            victim.StopCoroutine(running);
+        }
+
+        var co = victim.StartCoroutine(CoApplyBlindAfterDelay(victim, delay, blindSec));
+        _pendingBlind[victim] = co;
+    }
+
+    private static IEnumerator CoApplyBlindAfterDelay(UnitCombatFSM victim, float delay, float blindSec)
+    {
+        if (victim == null) yield break;
+
+        yield return new WaitForSeconds(delay);
+
+        if (victim != null && victim.IsAlive())
+        {
+            if (victim.blind != null)
+            {
+                victim.blind.Apply(blindSec);
+            }
+        }
+
+        // 정리
+        if (victim != null)
+        {
+            if (_pendingBlind.TryGetValue(victim, out var co) && co == null)
+                _pendingBlind.Remove(victim);
+            else
+                _pendingBlind.Remove(victim);
+        }
+    }
+}
 
 
 
@@ -2819,7 +3451,11 @@ public static class BleedSystem
                 if (!target.IsAlive()) yield break;
 
                 float bleedDmg = target.currentHP * percentPerSec;
-                target.TakeDamage(bleedDmg);
+                //target.TakeDamage(bleedDmg);
+                // 출혈 DOT로 분류해서 UI가 상태이상 피해로 표시 가능
+                // 기존 동작(공격자 없음) 유지: attacker = null
+                target.TakeDamage(new DamagePayload(bleedDmg, null, DamageKind.Dot_Bleed));
+
                 Debug.Log($"[출혈] {target.name} → {bleedDmg:F1} 출혈 피해 ({status.stack}중첩)");
                 yield return new WaitForSeconds(tickTime);
                 totalTime += tickTime;
@@ -3241,9 +3877,9 @@ public static class PoisonSystem
 
             if (dmgThisTick > 0f)
             {
-                // 여기를 source로 넘기면,'피흡(가한 피해의 20%)' 같은 패시브가
+                // 여기를 source로 넘기면,피흡(가한 피해의 20%)같은 패시브가
                 //     독 틱에도 반응할 수 있음(원하지 않으면 null로 바꿔야 함).
-                target.TakeDamage(dmgThisTick, status.source);
+                target.TakeDamage(new DamagePayload(dmgThisTick, status.source, DamageKind.Dot_Poison));
                 // target.TakeDamage(dmgThisTick, null);
             }
 
@@ -3270,7 +3906,48 @@ public static class PoisonSystem
 }
 
 
+public static class StatusCleanseUtil
+{
+    /// <summary>
+    /// 해로운 상태이상/디버프 정화
+    /// - 스탯감소 디버프는 UnitCombatFSM_DebuffRegistry.ApplyStatDebuffTracked로 적용된 것만 정화 가능
+    /// </summary>
+    public static void CleanseHarmful(
+        UnitCombatFSM u,
+        bool clearStun,
+        bool clearSilence,
+        bool clearBlind,
+        bool clearBleed,
+        bool clearPoison,
+        bool clearStatDebuffs)
+    {
+        if (u == null || !u.IsAlive()) return;
 
+        // 침묵
+        if (clearSilence)
+            u.isSilenced = false;
+
+        // 기절
+        if (clearStun && u.TryGetComponent<StunSystem>(out var stun))
+            stun.ForceClear();
+
+        // 실명
+        if (clearBlind && u.blind != null)
+            u.blind.Clear();
+
+        // 출혈
+        if (clearBleed)
+            BleedSystem.RemoveBleed(u);
+
+        // 중독
+        if (clearPoison)
+            PoisonSystem.RemovePoison(u);
+
+        // 스탯 감소 디버프(추적형)
+        if (clearStatDebuffs)
+            UnitCombatFSM.UnitCombatFSM_DebuffRegistry.CleanseAllStatDebuffs(u);
+    }
+}
 
 
 

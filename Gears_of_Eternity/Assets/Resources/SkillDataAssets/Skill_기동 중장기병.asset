@@ -19,9 +19,12 @@ MonoBehaviour:
     \uBC29\uC5B4\uB9C9 \uC0DD\uC131/ 15\uCD08"
   skillCoolDown: 15
   effects:
-  - skillType: 18
+  - skillType: 22
     buffStat: 0
     skillValue: 0.25
     skillDuration: 8
     skillDelayTime: 0
+    skillMaxStack: 0
     isPercent: 1
+    skillRange: 0
+    skillAngle: 0

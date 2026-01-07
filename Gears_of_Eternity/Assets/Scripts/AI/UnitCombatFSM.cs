@@ -65,6 +65,11 @@ public partial class UnitCombatFSM : MonoBehaviour
     public event System.Action<float, UnitCombatFSM> OnDealDamage;      // (내가 입힌 실제 피해, 피해자)
     public event System.Action<UnitCombatFSM> OnKillEnemy;              // (내가 처치한 대상)
 
+    // UI/로그/리플레이 등 외부 시스템이 표준 데이터로 받는 이벤트
+    public event Action<HpSnapshot> OnHpChanged;
+    public event Action<DamageResult> OnDamageApplied;
+    public event Action<HealResult> OnHealed;
+
     void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -80,6 +85,7 @@ public partial class UnitCombatFSM : MonoBehaviour
         agent.speed = stats.moveSpeed;
         agent.stoppingDistance = stats.attackDistance * 5;
 
+        PublishHpSnapshot();
         ChangeState(new IdleState(this));
 
         // 패시브 스킬 
@@ -87,24 +93,6 @@ public partial class UnitCombatFSM : MonoBehaviour
 
     }
 
-    public void OnDeath()
-    {
-        RemovePassiveEffects(); // 패시브 해제
-        OnReflectDamage = null; // 반사 효과도 제거
-        OnBeforeTakeDamage = null; // 사전 딜 제거
-        OnAfterTakeDamage = null; // 사후 딜 제거
-        OnDealDamage = null;
-        OnKillEnemy = null;
-
-        if (skillData != null && skillData.effects != null)
-        {
-            foreach (var effect in skillData.effects)
-            {
-                var behavior = SkillExecutor.GetSkillBehavior(effect.skillType);
-                behavior?.Remove(this, effect);
-            }
-        }
-    }
 
     void Update()
     {
@@ -152,7 +140,26 @@ public partial class UnitCombatFSM : MonoBehaviour
         }  
     }
 
-    
+    public void OnDeath()
+    {
+        RemovePassiveEffects(); // 패시브 해제
+        OnReflectDamage = null; // 반사 효과도 제거
+        OnBeforeTakeDamage = null; // 사전 딜 제거
+        OnAfterTakeDamage = null; // 사후 딜 제거
+        OnDealDamage = null;
+        OnKillEnemy = null;
+
+        if (skillData != null && skillData.effects != null)
+        {
+            foreach (var effect in skillData.effects)
+            {
+                var behavior = SkillExecutor.GetSkillBehavior(effect.skillType);
+                behavior?.Remove(this, effect);
+            }
+        }
+    }
+
+
 
     public bool TryUseSkill() // 기존 FSM 상태에서 이 메서드만 호출하면 됨
     {
@@ -232,75 +239,187 @@ public partial class UnitCombatFSM : MonoBehaviour
             Debug.Log($"[Critical] {gameObject.name} → 치명타!");
         }
 
-        targetEnemy.TakeDamage(baseDamage, this); // 공격자 자신 전달
+        //payload로 전달
+        DamageKind kind = isCritical ? DamageKind.Critical : DamageKind.Normal;
+        targetEnemy.TakeDamage(new DamagePayload(baseDamage, this, kind));
         
         //후처리용 이벤트 :추가 타격, 버프, 출혈 등 모든 후처리를 이곳에서 수행 가능 
         OnPostAttack?.Invoke();
     }
 
-    public void TakeDamage(float damage, UnitCombatFSM attacker = null)
-    {
-        if (stats.guardCount > 0)
-        {
-            stats.guardCount--;
-            Debug.Log($"[가드] {gameObject.name} -> 피격 방어 남은 가드: {stats.guardCount}");
-            return;
-        }
+    // public void TakeDamage(float damage, UnitCombatFSM attacker = null)
+    // {
+    //     if (stats.guardCount > 0)
+    //     {
+    //         stats.guardCount--;
+    //         Debug.Log($"[가드] {gameObject.name} -> 피격 방어 남은 가드: {stats.guardCount}");
+    //         return;
+    //     }
 
-        //Clamp 처리: damageReduction이 1.0 이상이면 최소 0, 음수면 최대 1
-        float reductionFactor = Mathf.Clamp01(1.0f - stats.damageReduction);
-        float effectiveDamage = damage * (100f / (100f + stats.defense));
-        effectiveDamage *= reductionFactor;
+    //     //Clamp 처리: damageReduction이 1.0 이상이면 최소 0, 음수면 최대 1
+    //     float reductionFactor = Mathf.Clamp01(1.0f - stats.damageReduction);
+    //     float effectiveDamage = damage * (100f / (100f + stats.defense));
+    //     effectiveDamage *= reductionFactor;
 
-        //받는 피해 수정 훅 (표식 등)
-        OnBeforeTakeDamage?.Invoke(ref effectiveDamage, attacker);
+    //     //받는 피해 수정 훅 (표식 등)
+    //     OnBeforeTakeDamage?.Invoke(ref effectiveDamage, attacker);
 
 
-        // 방어막 우선 차감 
-        if (stats.barrier > 0f)
-        {
-            float shieldAbsorb = Math.Min(stats.barrier, effectiveDamage);
-            stats.barrier -= shieldAbsorb;
-            effectiveDamage -= shieldAbsorb;
-            Debug.Log($"[방어막 차감] {gameObject.name}: {shieldAbsorb}만큼 흡수, 남은 방어막: {stats.barrier}");
-        }
-        if (effectiveDamage > 0)
-        {
-            currentHP -= effectiveDamage;
-        }
+    //     // 방어막 우선 차감 
+    //     if (stats.barrier > 0f)
+    //     {
+    //         float shieldAbsorb = Math.Min(stats.barrier, effectiveDamage);
+    //         stats.barrier -= shieldAbsorb;
+    //         effectiveDamage -= shieldAbsorb;
+    //         Debug.Log($"[방어막 차감] {gameObject.name}: {shieldAbsorb}만큼 흡수, 남은 방어막: {stats.barrier}");
+    //     }
+    //     if (effectiveDamage > 0)
+    //     {
+    //         currentHP -= effectiveDamage;
+    //     }
         
-        Debug.Log($"[피격] {name} - 받은 데미지: {effectiveDamage:F1} / 남은 HP: {currentHP:F1}");
+    //     Debug.Log($"[피격] {name} - 받은 데미지: {effectiveDamage:F1} / 남은 HP: {currentHP:F1}");
 
-        //가해자에게 실제 입힌 피해 알림 (피흡 같은 패시브는 이걸 사용) 
-        if (attacker != null && effectiveDamage > 0f)
-        {
-            attacker.OnDealDamage?.Invoke(effectiveDamage, this);
-        }
+    //     //가해자에게 실제 입힌 피해 알림 (피흡 같은 패시브는 이걸 사용) 
+    //     if (attacker != null && effectiveDamage > 0f)
+    //     {
+    //         attacker.OnDealDamage?.Invoke(effectiveDamage, this);
+    //     }
 
-        bool isDeadNow = currentHP <= 0f;
+    //     bool isDeadNow = currentHP <= 0f;
 
-        //가해자에게 처치 알림
-        if (attacker != null && isDeadNow)
-        {
-            attacker.OnKillEnemy?.Invoke(this);
-        }
+    //     //가해자에게 처치 알림
+    //     if (attacker != null && isDeadNow)
+    //     {
+    //         attacker.OnKillEnemy?.Invoke(this);
+    //     }
 
-        if (currentHP <= 0)
-        {
-            ChangeState(new DeadState(this));
-        }
+    //     if (currentHP <= 0)
+    //     {
+    //         ChangeState(new DeadState(this));
+    //     }
         
-        // 피해 이후 : HP에 실제 반영된 피해량 기준(>0일 때만)
-        if(effectiveDamage > 0)
-            OnAfterTakeDamage?.Invoke(effectiveDamage, attacker);
+    //     // 피해 이후 : HP에 실제 반영된 피해량 기준(>0일 때만)
+    //     if(effectiveDamage > 0)
+    //         OnAfterTakeDamage?.Invoke(effectiveDamage, attacker);
     
-        // 데미지 반사 처리
-        if (attacker != null && OnReflectDamage != null)
-        {
-            Debug.Log($"[Reflect] 반사 발동 - {this.name} ← {attacker.name}");
-            OnReflectDamage.Invoke(effectiveDamage, attacker);
-        }
+    //     // 데미지 반사 처리
+    //     if (attacker != null && OnReflectDamage != null)
+    //     {
+    //         Debug.Log($"[Reflect] 반사 발동 - {this.name} ← {attacker.name}");
+    //         OnReflectDamage.Invoke(effectiveDamage, attacker);
+    //     }
+    // }
+
+public void TakeDamage(float damage, UnitCombatFSM attacker = null)
+{
+    TakeDamage(DamagePayload.FromLegacy(damage, attacker));
+}
+
+// 신규 표준 진입점(앞으로 치명타/도트 구분은 여기 Kind로 들어오게 됨)
+public void TakeDamage(DamagePayload payload)
+{
+    ApplyDamageInternal(payload);
+}
+
+private void ApplyDamageInternal(DamagePayload payload)
+{
+    if (stats.guardCount > 0)
+    {
+        stats.guardCount--;
+        Debug.Log($"[가드] {gameObject.name} -> 피격 방어 남은 가드: {stats.guardCount}");
+        return;
     }
+
+    float rawDamage = payload.RawDamage;
+    UnitCombatFSM attacker = payload.Attacker;
+
+    // 1) 방어/피해감소 적용
+    float reductionFactor = Mathf.Clamp01(1.0f - stats.damageReduction);
+    float mitigatedDamage = rawDamage * (100f / (100f + stats.defense));
+    mitigatedDamage *= reductionFactor;
+
+    // 2) 받는 피해 수정 훅(표식 등)
+    OnBeforeTakeDamage?.Invoke(ref mitigatedDamage, attacker);
+
+    // 3) 방어막 우선 차감
+    float barrierAbsorbed = 0f;
+    float hpDamage = mitigatedDamage;
+
+    if (stats.barrier > 0f && hpDamage > 0f)
+    {
+        float shieldAbsorb = Math.Min(stats.barrier, hpDamage);
+        stats.barrier -= shieldAbsorb;
+        barrierAbsorbed = shieldAbsorb;
+        hpDamage -= shieldAbsorb;
+
+        Debug.Log($"[방어막 차감] {gameObject.name}: {shieldAbsorb}만큼 흡수, 남은 방어막: {stats.barrier}");
+    }
+
+    // 4) HP 차감
+    if (hpDamage > 0f)
+    {
+        currentHP -= hpDamage;
+    }
+
+    Debug.Log($"[피격] {name} - 받은 데미지: {hpDamage:F1} / 남은 HP: {currentHP:F1}");
+
+    // HP 또는 방어막이 변했으면 체력바 갱신 이벤트
+    if (hpDamage > 0f || barrierAbsorbed > 0f)
+    {
+        NotifyHpChanged();
+    }
+
+    // 5) 가해자에게 실제 입힌 피해 알림(피흡 등)
+    if (attacker != null && hpDamage > 0f)
+    {
+        attacker.OnDealDamage?.Invoke(hpDamage, this);
+    }
+
+    bool isDeadNow = currentHP <= 0f;
+
+    // 6) 처치 이벤트
+    if (attacker != null && isDeadNow)
+    {
+        attacker.OnKillEnemy?.Invoke(this);
+    }
+
+    if (isDeadNow)
+    {
+        ChangeState(new DeadState(this));
+    }
+
+    // 7) 기존 사후 피격 이벤트(HP 반영된 피해 기준)
+    if (hpDamage > 0f)
+    {
+        OnAfterTakeDamage?.Invoke(hpDamage, attacker);
+    }
+
+    // 8) 신규 표준 결과 이벤트(UI는 이걸 주로 쓰게 됨)
+    if (mitigatedDamage > 0f)
+    {
+        var result = new DamageResult(
+            target: this,
+            attacker: attacker,
+            kind: payload.Kind,
+            rawDamage: rawDamage,
+            mitigatedDamage: mitigatedDamage,
+            barrierAbsorbed: barrierAbsorbed,
+            hpDamage: hpDamage,
+            isKilled: isDeadNow
+        );
+
+        OnDamageApplied?.Invoke(result);
+    }
+
+    // 9) 데미지 반사 처리(기존 로직 유지)
+    if (attacker != null && OnReflectDamage != null)
+    {
+        Debug.Log($"[Reflect] 반사 발동 - {this.name} ← {attacker.name}");
+        OnReflectDamage.Invoke(hpDamage, attacker);
+    }
+}
+
 
     // ConeTripleHit 헬퍼 List
     public List<UnitCombatFSM> FindEnemiesInCone(float angleDeg, float rangeMultiplier)
@@ -372,25 +491,6 @@ public partial class UnitCombatFSM : MonoBehaviour
 
     }
 
-    //이전 치명타 배율 
-    // private void AssignCriticalChance()
-    // {
-    //     switch (unitData.battleType)
-    //     {
-    //         case BattleType.Melee:
-    //             criticalChance = 0.1f;
-    //             break;
-    //         case BattleType.Ranged:
-    //             criticalChance = 0.3f;
-    //             break;
-    //         case BattleType.Support:
-    //             criticalChance = 0.05f;
-    //             break;
-    //         default:
-    //             criticalChance = 0.1f;
-    //             break;
-    //     }
-    // }
 
     public UnitCombatFSM FindNearestEnemy()
     {
@@ -454,14 +554,50 @@ public partial class UnitCombatFSM : MonoBehaviour
         return result;
     }
 
+    // public void ReceiveHealing(float amount)
+    // {
+    //     currentHP += amount;
+
+    //     if (currentHP > stats.health) currentHP = stats.health;
+    //     Debug.Log($"[회복] {gameObject.name} → {amount} 회복 / 현재 HP: {currentHP:F1}");
+    // }
+
     public void ReceiveHealing(float amount)
     {
-        currentHP += amount;
-
-        if (currentHP > stats.health) currentHP = stats.health;
-        Debug.Log($"[회복] {gameObject.name} → {amount} 회복 / 현재 HP: {currentHP:F1}");
+        ReceiveHealing(HealPayload.FromLegacy(amount));
     }
 
+    public void ReceiveHealing(HealPayload payload)
+    {
+        if (stats == null) return;
+
+        float before = currentHP;
+
+        currentHP += payload.RawAmount;
+        if (currentHP > stats.health) currentHP = stats.health;
+
+        float applied = currentHP - before;
+        float overheal = payload.RawAmount - applied;
+        if (overheal < 0f) overheal = 0f;
+
+        Debug.Log($"[회복] {gameObject.name} → {payload.RawAmount} 회복 / 현재 HP: {currentHP:F1}");
+
+        if (applied > 0f)
+        {
+            NotifyHpChanged();
+        }
+
+        var result = new HealResult(
+            target: this,
+            healer: payload.Healer,
+            kind: payload.Kind,
+            rawAmount: payload.RawAmount,
+            appliedAmount: applied,
+            overheal: overheal
+        );
+
+        OnHealed?.Invoke(result);
+    }
     public void ApplyBuff(BuffStat stat, float amount, float duration, bool isPercent = false)
     {
         StartCoroutine(BuffRoutine(stat, amount, duration, isPercent));
@@ -490,119 +626,13 @@ public partial class UnitCombatFSM : MonoBehaviour
         yield return new WaitForSeconds(duration);
         ModifyStat(stat, amount); // 스탯 복구
     }
-
-    // private void ModifyStat(BuffStat stat, float value)
-    // {
-    //     switch (stat)
-    //     {
-    //         case BuffStat.Attack:
-    //             stats.attack += value;
-    //             break;
-    //         case BuffStat.Defense:
-    //             stats.defense += value;
-    //             break;
-    //         case BuffStat.MoveSpeed:
-    //             stats.moveSpeed += value;
-    //             agent.speed = stats.moveSpeed; //NavMeshAgent에도 적용 
-    //             break;
-    //         case BuffStat.AttackSpeed:
-    //             stats.attackSpeed += value;
-    //             break;
-    //     }
-    // }
-
-
-    //-------------------------------------------스킬-----------------------------------------------
-    // public void TryUseSkill()
-    // {
-    //     if (!CanUseSkill() || skillData == null || skillData.effects == null) return;
-        
-    //     foreach (var effect in skillData.effects)
-    //     {
-    //         UnitCombatFSM skillTarget = null;
-    //         switch (effect.skillType)
-    //         {
-    //             case UnitSkillType.InstantHeal:
-    //                 skillTarget = FindLowestHpAlly();
-    //                 break;
-    //             case UnitSkillType.IncreaseAttack:
-    //                 skillTarget = FindNearestAlly();
-    //                 break;
-    //             case UnitSkillType.AttackDown:
-    //                 skillTarget = FindNearestEnemy();
-    //                 break;
-    //             case UnitSkillType.MultiHit:
-    //                 skillTarget = FindNearestEnemy();
-    //                 break;
-    //             case UnitSkillType.BarrierOnHpHalf:
-    //                 skillTarget = this; // 자기 자신 적용 
-    //                 isProcessingSkill = false;
-    //                 break;
-    //             case UnitSkillType.DashAttackAndGuard:
-    //                 skillTarget = FindNearestEnemy();
-    //                 break;
-    //             case UnitSkillType.ThrowSpearAttack:
-    //                 skillTarget = FindNearestEnemy();
-    //                 break;
-    //                 // 기타 스킬타입 분기 추가
-    //         }
-    //         skillExecutor.ExecuteSkill(skillData, this, skillTarget);
-    //     }
-    //     skillTimer = 0f;
-    // }
-    
+ 
     //스킬 쿨타임 조건 확인 
     public bool CanUseSkill()
     {
         if (IsStunned()) return false;
         return skillData != null && skillTimer >= skillData.skillCoolDown;
     }
-
-    //스킬 조건 진입 (ShouldUseSKill → TryUseSkill)
-    // public bool ShouldUseSkill()
-    // {
-    //     if (!CanUseSkill() || skillData == null || skillData.effects == null || skillData.effects.Count == 0)
-    //         return false;
-
-    //     // 단일 효과만 있다고 가정
-    //     var effect = skillData.effects[0];
-
-    //     switch (effect.skillType)
-    //     {
-    //         case UnitSkillType.InstantHeal:
-    //             targetAlly = FindLowestHpAlly();
-    //             return targetAlly != null && targetAlly.currentHP < targetAlly.stats.health;
-    //         case UnitSkillType.IncreaseAttack:
-    //             targetAlly = FindNearestAlly();
-    //             return targetAlly != null;
-    //         case UnitSkillType.AttackDown:
-    //             targetEnemy = FindNearestEnemy();
-    //             return targetEnemy != null;
-    //         case UnitSkillType.MultiHit:
-    //             targetEnemy = FindNearestEnemy();
-    //             return targetEnemy != null;
-    //         case UnitSkillType.BarrierOnHpHalf:
-    //             //50% 이하 및 방어막 없을 때 발동 
-    //             return currentHP / stats.health <= 0.5f && stats.barrier <= 0.01f;
-    //         case UnitSkillType.DashAttackAndGuard:
-    //             targetEnemy = FindNearestEnemy();
-    //             return targetEnemy != null;
-    //         case UnitSkillType.ThrowSpearAttack:
-    //             targetEnemy = FindNearestEnemy();
-    //             if (targetEnemy != null)
-    //             {
-    //                 float distance = Vector3.Distance(transform.position, targetEnemy.transform.position);
-    //                 float maxRange = stats.attackDistance * 6f;
-    //                  Debug.Log($"[창투척 조건] 타겟: {targetEnemy.name}, 거리: {distance:F2}, 허용범위: {maxRange:F2}");
-    //                 return distance <= maxRange;
-    //             }
-    //             Debug.LogWarning("[창투척 조건] 타겟 없음");
-
-    //             return false;
-    //         default:
-    //             return false;
-    //     }
-    // }
 
 
     private static readonly Dictionary<UnitCombatFSM, BeforeTakeDamageHandler> _splitHooks
@@ -993,7 +1023,7 @@ public static class UnitCombatFSM_DebuffRegistry
 
     /// <summary>
     /// 추적형 스탯 디버프 적용
-    /// - amount: '비율(0.15=15%)' 또는 '고정 수치' (isPercent로 구분)
+    /// - amount: 비율(0.15=15%) 또는 고정 수치 (isPercent로 구분)
     /// - 감소는 음수로 적용, 해제 시 같은 값을 isRemove=true로 되돌림
     /// </summary>
     public static void ApplyStatDebuffTracked(UnitCombatFSM target, BuffStat stat, float amount, float duration, bool isPercent)
@@ -1057,7 +1087,27 @@ public bool IsStunned()
 
 
 
+public HpSnapshot GetHpSnapshot()
+{
+    if (stats == null)
+        return new HpSnapshot(currentHP, 0f, 0f);
 
+    return new HpSnapshot(currentHP, stats.health, stats.barrier);
+}
+
+// UI 바인더가 구독 직후 한 번 호출해서 초기값 동기화할 수 있게 제공
+public void PublishHpSnapshot()
+{
+    OnHpChanged?.Invoke(GetHpSnapshot());
+}
+
+private void NotifyHpChanged()
+{
+    // stats가 아직 준비되지 않은 타이밍(예: Awake/초기화 전) 보호
+    if (stats == null) return;
+
+    OnHpChanged?.Invoke(new HpSnapshot(currentHP, stats.health, stats.barrier));
+}
 
 
 

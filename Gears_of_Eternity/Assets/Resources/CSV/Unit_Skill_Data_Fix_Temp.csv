@@ -1,0 +1,43 @@
+Faction,Unit_Name,SkillDescription,SkillCoolTime
+IronGearFederation,기어 전투병,,0
+IronGearFederation,증기 돌격병,직선 돌진 공격(공격력의 130%) 후 피격 방어 3회 / 가드쿨타임 8초,10
+IronGearFederation,터빈 절삭자,연속으로 3타 공격(공격력의 60%),9
+IronGearFederation,기동 중장기병,체력 50% 이하 시 체력의 25%만큼의 방어막 생성/ 15초,15
+IronGearFederation,증기 돌격장군,DashAttackAndGuard 상향(돌진 피해/가드↑),10
+IronGearFederation,절삭 기어혼,"최대 8회(0.25초 간격) 1회당 공격력40% + 고정 피해 20% 맞은 적 출혈, 시전 중 자신은 방어력 0",15
+IronGearFederation,기동 철벽기병,5초 동안 자신에게 피해를 준 적에게 자신의 받는 피해의 60%를 반사,10
+IronGearFederation,압축 저격병,,0
+IronGearFederation,정밀 기어저격수,치명타 확률 +15% / 사거리 +50%,0
+IronGearFederation,연산 포격수,"가장 멀리있는 적에게 연속(공격 간격은 1초)으로 원형 범위의 공격을 2회 날림, 한 발당 공격력의 80%",8
+IronGearFederation,자동 발사기,공격속도 +20% 증가버프 8초,14
+IronGearFederation,초정밀 저격수,지정 적에게 치명타공격 (+공격력 60%) / 쿨타임 12초,12
+IronGearFederation,기어 로켓런처,"가장 멀리있는 적에게 연속(공격 간격은 0.2초)으로 원형 범위의 공격을 5회 날림, 한 발당 공격력의 70%",10
+IronGearFederation,연속 발사기,4연속 연사 / 4타 명중 시 적 실명(2초),7
+IronGearFederation,정비 분석관,아군 1명 체력의 35% 회복 ,12
+IronGearFederation,화력 관제사,"체력이 가장 높은 적 유닛 1명에게 6초간 '열반응 표식' 부여 표식 중인 적은 모든 공격에 대해 받는 피해 +15% 표식 종료 시, 공격력의 100% 고정 피해 폭발 발생 폭발 시 주변 1.5칸 내 적도 50% 피해 받음",14
+IronGearFederation,방호 조정사,자신을 주위로 범위 힐 3초(0.2초당 아군 체력의 5% 회복) 및 방어력 +20% 증가 8초지속,15
+IronGearFederation,기계 교란수,사거리 안에 적에게 침묵 3초,10
+IronGearFederation,증기 화력 관제사,"가장 공격력이 높은 아군 유닛의 위치에 원형 범위의 버프지대 활성화 버프 안에 아군 유닛의 공격력 25%, 공격속도+15%, 이동속도 +15% 증가 버프지대는 7초간 지속",18
+IronGearFederation,기어 방벽 조정사,자신 주위의 아군 유닛의 해로운 효과 제거 및 6초간 아군 보호막 생성 (자신 최대 체력의 12%),16
+IronGearFederation,EMP 방출자,범위 내 대상 기절(4초) / 방어력 감소 15% 7초,14
+BrassChimera,키메라 근접체,,0
+BrassChimera,재생 전투체,받는 피해 10% 감소,0
+BrassChimera,광증 난도수,치명타 확률 15% 증가,0
+BrassChimera,뼈갑 전위체,3초마다 체력 5 회복,12
+BrassChimera,포식자,방어 +10%/ 중첩 2회,0
+BrassChimera,광기 절단자,돌진 후 넉백 + 기절(1초),0
+BrassChimera,골격 강화체,주변 아군 방어 +10%/ 범위 1칸,16
+BrassChimera,키메라 사격체,치명타 시 출혈 부여 (5초),0
+BrassChimera,맹독 침두체,사망 시 주변 감염 확산,7
+BrassChimera,포자 분열사,방어 무시 공격 (25%),9
+BrassChimera,분비 연사체,피격 시 3초간 체력 회복(총 50),15
+BrassChimera,독성 첨두군주,처치 시 체력 15% 회복,0
+BrassChimera,포자 폭연왕,사망 시 분열된 유닛 생성,12
+BrassChimera,군체 연사핵,,15
+BrassChimera,키메라 보조체,명중 시 확률로 적 공격속도 감소,8
+BrassChimera,군체 공생체,방어력 10% 감소 디버프 부여,0
+BrassChimera,재생 촉진체,공격 시 감염 확률 30%,10
+BrassChimera,신경 교란체,적 공격속도 -20%/ 지속 5초,12
+BrassChimera,군체 공생핵,명중률 50% 감소/ 쿨타임 10초,0
+BrassChimera,극재생 촉진체,지속 피해(독성) 20/s × 3초,16
+BrassChimera,신경 봉쇄자,방어 -20%/ 지속 5초,15
