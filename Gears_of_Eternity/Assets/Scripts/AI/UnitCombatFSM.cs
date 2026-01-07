@@ -70,6 +70,11 @@ public partial class UnitCombatFSM : MonoBehaviour
     public event Action<DamageResult> OnDamageApplied;
     public event Action<HealResult> OnHealed;
 
+    [SerializeField]
+    private float attackDistanceWorldScale = 5f; // 기존 로직(stats.attackDistance * 5)을 유지하기 위한 스케일
+
+    private const float minstoppingdistance = 1f;
+
     void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -83,7 +88,8 @@ public partial class UnitCombatFSM : MonoBehaviour
         CloneStats(); // 스탯 복사 
         currentHP = stats.health;
         agent.speed = stats.moveSpeed;
-        agent.stoppingDistance = stats.attackDistance * 5;
+        //agent.stoppingDistance = stats.attackDistance * 5;
+        SyncAttackRangeToAgent();
 
         PublishHpSnapshot();
         ChangeState(new IdleState(this));
@@ -986,6 +992,12 @@ private void ApplyDamageInternal(DamagePayload payload)
         // 부가처리: 이동속도 등
         if (stat == BuffStat.MoveSpeed)
             agent.speed = stats.moveSpeed;
+
+        // 부가처리: 사거리
+        if (stat == BuffStat.AttackDistance)
+        {
+            SyncAttackRangeToAgent();
+        }
     }
 
     //특정 범위 내 적 유닛 탐색 리스트 반환 
@@ -1110,7 +1122,21 @@ private void NotifyHpChanged()
 }
 
 
+// stats.attackDistance(스탯 단위)를 NavMeshAgent가 쓰는 월드 단위로 변환한 값
+public float GetAttackRangeWorld()
+{
+    if (stats == null) return agent != null ? agent.stoppingDistance : 0f;
+    return Mathf.Max(minstoppingdistance, stats.attackDistance * attackDistanceWorldScale);
+}
 
+// stats.attackDistance 변경을 실제 교전 거리(agent.stoppingDistance)에 반영
+private void SyncAttackRangeToAgent()
+{
+    if (agent == null) return;
+
+    float desired = GetAttackRangeWorld();
+    agent.stoppingDistance = desired;
+}
 
 
 

@@ -14,6 +14,55 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   faction: 1
   unitName: "\uAD70\uCCB4 \uACF5\uC0DD\uD575"
-  skillDescription: "\uBA85\uC911\uB960 50% \uAC10\uC18C/ \uCFE8\uD0C0\uC784 10\uCD08"
+  skillDescription: "\uC774\uB3D9\uBD88\uAC00, \uAD11\uC5ED\uBC84\uD504 \uBC94\uC704
+    \uC548\uC5D0 \uC788\uB294 \uC544\uAD70 \uC720\uB2DB \uACF5\uACA9\uB82520%,\uBC29\uC5B4\uB82525%,
+    \uBC1B\uB294\uD53C\uD574\uAC10\uC18C 15%, \uACF5\uACA9\uC18D\uB3C4 15%\uC99D\uAC00
+    10\uCD08\uB9C8\uB2E4 \uAD70\uCCB4 \uACF5\uC0DD\uD575\uC758 \uCD5C\uB300 \uCCB4\uB825\uC758
+    20% \uBC29\uC5B4\uB9C9"
   skillCoolDown: 0
-  effects: []
+  effects:
+  - skillType: 36
+    buffStat: 0
+    skillValue: 0.2
+    skillDuration: 0
+    skillDelayTime: 10
+    skillMaxStack: 5
+    isPercent: 0
+    skillRange: 0
+    skillAngle: 0
+  - skillType: 36
+    buffStat: 1
+    skillValue: 0.2
+    skillDuration: 0
+    skillDelayTime: 0
+    skillMaxStack: 0
+    isPercent: 0
+    skillRange: 0
+    skillAngle: 0
+  - skillType: 36
+    buffStat: 2
+    skillValue: 0.25
+    skillDuration: 0
+    skillDelayTime: 0
+    skillMaxStack: 0
+    isPercent: 0
+    skillRange: 0
+    skillAngle: 0
+  - skillType: 36
+    buffStat: 7
+    skillValue: 0.15
+    skillDuration: 0
+    skillDelayTime: 0
+    skillMaxStack: 0
+    isPercent: 0
+    skillRange: 0
+    skillAngle: 0
+  - skillType: 36
+    buffStat: 4
+    skillValue: 0.15
+    skillDuration: 0
+    skillDelayTime: 0
+    skillMaxStack: 0
+    isPercent: 0
+    skillRange: 0
+    skillAngle: 0

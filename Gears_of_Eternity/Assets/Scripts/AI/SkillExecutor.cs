@@ -31,14 +31,15 @@ public class SkillExecutor
         { UnitSkillType.HealingAuraDefenseBuff, new HealingAuraDefenseBuffSKill()},
         { UnitSkillType.EmpowerZoneHighestAttackAlly, new EmpowerZoneHighestAttackAllySkill()},
         { UnitSkillType.CleanseAndShieldAoE, new CleanseAndShieldAoESkill()},
-        { UnitSkillType.RectStun_ArmorDown, new RectStunArmorDownSkill()},
+        { UnitSkillType.RectStunArmorDown, new RectStunArmorDownSkill()},
         { UnitSkillType.TripleLayerThinShield, new TripleLayerThinShieldSkill()},
         { UnitSkillType.ThrowSpearPoisonAttack, new ThrowSpearPoisonAttackSkill()},
         { UnitSkillType.HealOverTime, new HealOverTimeSkill()},
         { UnitSkillType.RegenNearbyAllies, new RegenNearbyAlliesSkill()},
         { UnitSkillType.TargetedAoeBlind, new TargetedAoeBlindSkill()},
-        { UnitSkillType.RegenNearbyAlliesUpgrade, new RegenNearbyAlliesUpgradeSkill() },
-        { UnitSkillType.NearestEnemyAoeStunThenBlind, new NearestEnemyAoeStunThenBlindSkill() },
+        { UnitSkillType.RegenNearbyAlliesUpgrade, new RegenNearbyAlliesUpgradeSkill()},
+        { UnitSkillType.NearestEnemyAoeStunThenBlind, new NearestEnemyAoeStunThenBlindSkill()},
+        { UnitSkillType.DefenseAndDamageReductionSelfBuff, new DefenseAndDamageReductionSelfBuffSkill()},
         // 추가 스킬은 여기에 등록
     };
 

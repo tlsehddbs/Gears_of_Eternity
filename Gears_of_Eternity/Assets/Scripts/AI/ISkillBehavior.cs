@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using System;
 using UnityEngine.AI;
+using System.Security;
 
 public interface ISkillBehavior
 {
@@ -32,9 +33,11 @@ public class InstantHealSkill : ISkillBehavior
 
     public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
     {
+        float healAmount = target.stats.health * effect.skillValue;
+
         if (target == null || !target.IsAlive()) return;        
-        target.ReceiveHealing(effect.skillValue);
-        Debug.Log($"[InstantHeal] {caster.name} → {target.name} : {effect.skillValue:F1} 회복");
+        target.ReceiveHealing(healAmount);
+        Debug.Log($"[InstantHeal] {caster.name} → {target.name} : {healAmount:F1} 회복");
     }
     public void Remove(UnitCombatFSM caster, SkillEffect effect) { }
 }
@@ -649,7 +652,7 @@ public class CriticalStrikeSkill : ISkillBehavior
     public void Remove(UnitCombatFSM caster, SkillEffect effect) { }
 }
 
-// 체력 최상위 적에 표식 → 폭발 // 열선 추적자
+// 체력 최상위 적에 표식 → 폭발 // 화력 관제사
 public class HeatReactiveMarkSkill : ISkillBehavior
 {
     private const float MarkDuration = 6f;
@@ -1462,7 +1465,7 @@ public class CleanseAndShieldAoESkill : ISkillBehavior
 }
 
 /// <summary>
-/// RectStun_ArmorDown
+/// RectStunArmorDown
 /// - "가장 가까운 적" 방향으로 직사각형 범위 생성(캐스터 기준 전방 길이 L, 폭 W)
 /// - 범위 내 모든 적: 기절 4초 + 방어력 15% 감소 7초
 /// - 쿨타임: 14초
@@ -3392,7 +3395,32 @@ public class NearestEnemyAoeStunThenBlindSkill : ISkillBehavior
     }
 }
 
+//뼈갑 전위체
+public class DefenseAndDamageReductionSelfBuffSkill  : ISkillBehavior
+{
+    public bool ShouldTrigger(UnitCombatFSM caster, SkillEffect effect)
+    {
+        if (caster == null) return false;
+        return caster.CanUseSkill();
+    }
 
+    public UnitCombatFSM FindTarget(UnitCombatFSM caster, SkillEffect effect)
+    {
+        return caster;
+    }
+
+    public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
+    {
+        float defenseUpPercent = effect.skillValue;         //방어력
+        float damageReductionAdd = effect.skillMaxStack;    //받는 데미지 감소
+        float duration = effect.skillDuration;              //지속시간  
+
+        caster.ApplyBuff(BuffStat.Defense, defenseUpPercent, duration, isPercent: true);
+        caster.ApplyBuff(BuffStat.DamageReduction, damageReductionAdd, duration, isPercent: false);
+    }
+
+    public void Remove(UnitCombatFSM caster, SkillEffect effect) { }
+}
 
 
 

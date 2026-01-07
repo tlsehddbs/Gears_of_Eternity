@@ -14,6 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   faction: 1
   unitName: "\uB3C5\uC131 \uCCA8\uB450\uAD70\uC8FC"
-  skillDescription: "\uCC98\uCE58 \uC2DC \uCCB4\uB825 15% \uD68C\uBCF5"
+  skillDescription: "\uC804\uC7A5 \uACE0\uC815 \uBC30\uCE58 / \uC790\uB3D9 \uC0AC\uACA9
+    / \uC720\uB2DB\uC774 \uC0AC\uB9DD\uD558\uBA74 \uC790\uD3ED"
   skillCoolDown: 0
-  effects: []
+  effects:
+  - skillType: 24
+    buffStat: 0
+    skillValue: 1.8
+    skillDuration: 0
+    skillDelayTime: 0
+    skillMaxStack: 0
+    isPercent: 0
+    skillRange: 0
+    skillAngle: 0
