@@ -476,7 +476,7 @@ private void ApplyDamageInternal(DamagePayload payload)
         {
             health = unitData.health,
             moveSpeed = unitData.moveSpeed,
-            attack = unitData.attack,
+            attack = unitData.attackValue,
             defense = unitData.defense,
             attackSpeed = unitData.attackSpeed,
             attackDistance = unitData.attackDistance,

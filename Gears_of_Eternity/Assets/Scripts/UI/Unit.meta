@@ -1,7 +1,12 @@
 fileFormatVersion: 2
-guid: 2d69f2c3e2616b744ba0c8e4470c1355
+<<<<<<<< HEAD:Gears_of_Eternity/Assets/Scripts/UI/Unit.meta
+guid: 03e5d44ae90796e48bc2a4a9601e42dc
 folderAsset: yes
 DefaultImporter:
+========
+guid: 2b8709e5268cd8044ab3582c354e1633
+TextScriptImporter:
+>>>>>>>> backup_develop:Gears_of_Eternity/Assets/Resources/CSV/UnitSkillData.csv.meta
   externalObjects: {}
   userData: 
   assetBundleName: 

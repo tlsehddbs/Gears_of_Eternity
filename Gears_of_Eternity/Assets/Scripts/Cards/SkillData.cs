@@ -22,7 +22,6 @@ public class SkillData : ScriptableObject
     [Header("Unit Skill Info")]
     public FactionType faction;
     public string unitName;
-    public string skillName;
     public string skillDescription;
     public float skillCoolDown;
     
