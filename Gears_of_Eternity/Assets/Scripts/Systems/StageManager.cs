@@ -8,7 +8,7 @@ public class StageManager : MonoBehaviour
     
     void Start() 
     {
-        int seed = useRandomSeed ? Random.Range(0, 10000) : fixedSeed;
+        int seed = useRandomSeed ? Random.Range(1000, 2500) : fixedSeed;
         StageFlow.Instance.GenerateNew(seed);
         
         // Map UI Bind

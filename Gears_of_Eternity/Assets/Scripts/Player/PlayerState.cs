@@ -57,6 +57,7 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            
             RefreshCaches();
             ClampHp();
         }
@@ -299,6 +300,8 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
             if (card != null)
             {
                 deckCards.Add(runtimeCardCopy);
+                
+                Debug.Log(runtimeCardCopy.uniqueId);
             }
         }
     }

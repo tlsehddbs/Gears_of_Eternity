@@ -64,6 +64,7 @@ public class DeckManager : MonoBehaviour
         usedCards.Clear();
     }
 
+    
     public void DrawCards(int count)
     {
         // TODO: 카드 로테이션을 구체화 한 다음 관련 로직을 적용할 것

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using FactionTypes.Enums;
 using UnitRoleTypes.Enums;
 using UnityEngine;
@@ -26,6 +27,8 @@ public class RuntimeUnitCard
     public float attackDistance;
     
     public int level;
+
+    public List<UnitCardData> nextUpgradeUnits;
     
     
     public RuntimeUnitCard(UnitCardData data)
@@ -52,7 +55,7 @@ public class RuntimeUnitCard
         attackDistance = data.attackDistance;
         
         level = data.level;
-        
-        // Skill ~~
+
+        nextUpgradeUnits = data.nextUpgrades;
     }
 }

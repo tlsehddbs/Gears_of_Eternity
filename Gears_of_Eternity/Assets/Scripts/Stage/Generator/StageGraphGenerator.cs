@@ -207,21 +207,17 @@ public static class StageGraphGenerator
             }
 
             int roll = rand.Next(100);
-            if (roll < 65)
+            if (roll < 70)
             {
                 n.type = StageTypes.StageNodeTypes.Combat;
             }
-            else if (roll < 80)
+            else if (roll < 87)
             {
                 n.type = StageTypes.StageNodeTypes.Shop;
             }
-            else if (roll < 92)
+            else 
             {
                 n.type = StageTypes.StageNodeTypes.Rest;
-            }
-            else
-            {
-                n.type = StageTypes.StageNodeTypes.Event;
             }
         }
     }
