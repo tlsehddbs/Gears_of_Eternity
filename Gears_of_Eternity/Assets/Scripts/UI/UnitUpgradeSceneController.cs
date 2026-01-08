@@ -34,14 +34,7 @@ public class UnitUpgradeSceneController : MonoBehaviour
     
     private RuntimeUnitCard _current;
     private SelectUnitUpgradeHandler _selected;
-
-    private GameObject _currentCardGO;
-    private GameObject _opt0GO;
-    private GameObject _opt1GO;
-    private GameObject _opt2GO;
-
-
-
+    
 
     private void Awake()
     {
@@ -94,11 +87,10 @@ public class UnitUpgradeSceneController : MonoBehaviour
         }
         
         // 현재 카드 표시
-        _currentCardGO = Instantiate(unitCardPrefab, currentContainer);
-        ResetToContainer(_currentCardGO);
-        
-        _currentCardGO.GetComponent<CardSlotUI>().Initialize(_current);
-        //CardBindUtil.BindCardToPrefab(_currentCardGO, _current);        // ?????????
+        var currentCardGO = Instantiate(unitCardPrefab, currentContainer);
+        ResetToContainer(currentCardGO);
+        currentCardGO.GetComponent<RuntimeUnitCardRef>().SetCard(_current);
+        currentCardGO.GetComponent<CardSlotUI>().Apply(_current);
 
         var list = _current.nextUpgradeUnits;
 
@@ -133,7 +125,8 @@ public class UnitUpgradeSceneController : MonoBehaviour
 
         var go = Instantiate(unitCardPrefab, container);
         ResetToContainer(go);
-        go.GetComponent<CardSlotUI>().Initialize(toRuntimeData);
+        go.GetComponent<RuntimeUnitCardRef>().SetCard(toRuntimeData);
+        go.GetComponent<CardSlotUI>().Apply(toRuntimeData);
 
         var selectable = go.GetComponent<SelectUnitUpgradeHandler>();
         if (selectable == null)

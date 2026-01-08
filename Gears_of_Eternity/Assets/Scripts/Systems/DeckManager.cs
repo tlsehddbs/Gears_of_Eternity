@@ -7,7 +7,7 @@ public class DeckManager : MonoBehaviour
     public static DeckManager Instance { get; private set; }
     
     [SerializeField] public CardCollection cardCollection;
-    [SerializeField] public CardUIHandler cardUIHandler;
+    [SerializeField] public CardUIManager cardUIManager;
 
     [Header("세력 필터링")] 
     public FactionType filterFaction = FactionType.IronGearFederation;
@@ -23,7 +23,7 @@ public class DeckManager : MonoBehaviour
         Instance = this;
         
         cardCollection = GameObject.Find("CardCollection").GetComponent<CardCollection>();
-        cardUIHandler = GameObject.Find("CardUIHandler").GetComponent<CardUIHandler>();
+        cardUIManager = GameObject.Find("CardUIManager").GetComponent<CardUIManager>();
     }
     
     void Start()
@@ -89,7 +89,7 @@ public class DeckManager : MonoBehaviour
             hand.Add(card);
         }
         
-        cardUIHandler.AddCards(hand);
+        cardUIManager.AddCards(hand);
     }
 
     public void UseCard(RuntimeUnitCard card)
