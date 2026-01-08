@@ -88,6 +88,7 @@ public class StageFlow : MonoBehaviour
         // TODO: 추후 게임에 대해서 최적화 된 방법이 있는지 파악 후 개선할 것 
         //DeckManager.Instance.BuildDeckFromPlayerState(PlayerState.Instance);
         
+        Debug.Log($"현재 스테이지 타입 : {CurrentStageDef.type}");
         phase = GamePhase.InStage;
     }
 

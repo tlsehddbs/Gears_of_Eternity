@@ -91,8 +91,6 @@ public class StageRunner : MonoBehaviour
 
         _hasStage = true;
         Debug.Log($"[StageRunner] Stage '{_stageInstance.Scene.name}' loaded (additive)");
-
-        // TODO: 스테이지 씬 내부의 Controller가 클리어 시, StageFlow.OnStageCleared() 호출하도록 연결
     }
 
     public async Task ExitStageAsync()

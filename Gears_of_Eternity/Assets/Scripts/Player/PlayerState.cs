@@ -268,6 +268,13 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
         AddRandomCards(collection, RoleTypes.Ranged, rangedCount);
         AddRandomCards(collection, RoleTypes.Support, supportCount);
         
+        // Fisher-Yates
+        for (int i = 0; i < deckCards.Count - 1; i++)
+        {
+            int randomIndex = Random.Range(0, deckCards.Count);
+            (deckCards[i], deckCards[randomIndex]) = (deckCards[randomIndex], deckCards[i]);
+        }
+        
         OnDeckChanged?.Invoke();
     }
 
