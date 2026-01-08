@@ -92,7 +92,7 @@ public class StageFlow : MonoBehaviour
     }
 
     // ReSharper disable Unity.PerformanceAnalysis
-    public async Task OnStageCleared()
+    public async Task OnStageEnd()
     {
         if (phase != GamePhase.InStage)
         {
@@ -105,6 +105,7 @@ public class StageFlow : MonoBehaviour
         }
         
         // 루프 테스트용 임시 아이템을 임의로 추가
+        // TODO: 나중에 별도로 분리, 다른 스테이지 유형에 유연하게 대응하기 위함
         if(graph.FindNode(graph.currentNodeId).type == StageTypes.StageNodeTypes.Combat)
         {
             PlayerState.Instance.AddItem("GOE_AURA_CORE", 1);

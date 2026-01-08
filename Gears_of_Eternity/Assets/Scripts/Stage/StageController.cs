@@ -10,9 +10,9 @@ public static class StageContext
 
 public class StageController : MonoBehaviour
 {
-    public async void OnStageCleared()
+    public async void OnStageEnd()
     {
-        await StageFlow.Instance.OnStageCleared();
+        await StageFlow.Instance.OnStageEnd();
     }
 
 #if UNITY_EDITOR
@@ -20,7 +20,7 @@ public class StageController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.D))
         {
-            OnStageCleared();
+            OnStageEnd();
         }
 
         if (Input.GetKeyDown(KeyCode.U))

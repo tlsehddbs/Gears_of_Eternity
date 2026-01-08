@@ -314,8 +314,7 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
         {
             if (c == null)
             {
-                pickedCard = null;
-                return false;
+                continue;
             }
             
             if (c.level >= 3)
@@ -339,6 +338,101 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
 
         pickedCard = candidates[Random.Range(0, candidates.Count)];
         return true;
+    }
+
+    public bool TryOverwriteDeckCardKeepingUniqueId(string uniqueId, RuntimeUnitCard upgradeOptionRuntime)
+    {
+        if (string.IsNullOrEmpty(uniqueId) || upgradeOptionRuntime == null)
+        {
+            return false;
+        }
+        
+        // deckCard 실제 원소를 찾아서 그 객체를 덮어 씀
+        RuntimeUnitCard cur = null;
+        for (int i = 0; i < deckCards.Count; i++)
+        {
+            var c = deckCards[i];
+            if (c == null)
+            {
+                continue;
+            }
+
+            if (c.uniqueId == uniqueId)
+            {
+                cur = c;
+                break;
+            }
+        }
+
+        if (cur == null)
+        {
+            Debug.LogWarning("[TryoverwriteDeckCardKeppingUniqueId] 업그레이드 대상 유닛을 찾지 못함");
+            return false;
+        }
+        
+        // 오염 방지
+        // - upgradeOptionRuntime은 건드리지 않음
+        // - uniqueId는 cur의 것을 유지
+        string keepUniqueId = cur.uniqueId;
+        
+        cur.uniqueId = keepUniqueId;
+        cur.unitName = upgradeOptionRuntime.unitName;
+        cur.unitDescription = upgradeOptionRuntime.unitDescription;
+        cur.roleTypes = upgradeOptionRuntime.roleTypes;
+        cur.unitPrefab = upgradeOptionRuntime.unitPrefab;
+        cur.health = upgradeOptionRuntime.health;
+        cur.defense = upgradeOptionRuntime.defense;
+        cur.moveSpeed = upgradeOptionRuntime.moveSpeed;
+        cur.attackType = upgradeOptionRuntime.attackType;
+        cur.attackValue = upgradeOptionRuntime.attackValue;
+        cur.attackSpeed = upgradeOptionRuntime.attackSpeed;
+        cur.attackDistance = upgradeOptionRuntime.attackDistance;
+        cur.level = upgradeOptionRuntime.level;
+
+        if (cur.nextUpgradeUnits == null)
+        {
+            cur.nextUpgradeUnits = new List<UnitCardData>();
+        }
+        else
+        {
+            cur.nextUpgradeUnits.Clear();
+        }
+        
+        if (upgradeOptionRuntime.nextUpgradeUnits != null)
+        {
+            cur.nextUpgradeUnits.AddRange(upgradeOptionRuntime.nextUpgradeUnits);
+        }
+        
+        OnDeckChanged?.Invoke();
+        return true;
+
+        //
+        // int idx = -1;
+        // for (int i = 0; i < deckCards.Count; i++)
+        // {
+        //     var c = deckCards[i];
+        //     if (c == null)
+        //     {
+        //         continue;
+        //     }
+        //
+        //     if (c.uniqueId == uniqueId)
+        //     {
+        //         idx = i;
+        //         break;
+        //     }
+        // }
+        //
+        // if (idx < 0)
+        // {
+        //     return false;
+        // }
+        //
+        // var old = deckCards[idx];
+        // string keepId = old.uniqueId;
+        //
+        // // 새 RuntimeUnitCard 생성
+        // var upgraded = new RuntimeUnitCard(upgradeOptionRuntime);
     }
 }
 

@@ -56,6 +56,6 @@ public class RuntimeUnitCard
         
         level = data.level;
 
-        nextUpgradeUnits = data.nextUpgrades;
+        nextUpgradeUnits = new List<UnitCardData>(data.nextUpgrades);
     }
 }
