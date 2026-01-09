@@ -101,7 +101,7 @@ public class UnitUpgradePopupPresenter : MonoBehaviour
             ClosePopupAndEndStage();
         }
     }
-
+    
     private void ClosePopup()
     {
         if (_closing)
@@ -131,6 +131,8 @@ public class UnitUpgradePopupPresenter : MonoBehaviour
             EndStage();
             return;
         }
+        
+        PlayerState.Instance.ResetUpgradeCount();
         
         popupAnimator.Hide(EndStage);
     }

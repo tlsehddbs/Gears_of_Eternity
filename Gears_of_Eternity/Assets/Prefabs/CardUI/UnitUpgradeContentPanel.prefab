@@ -332,6 +332,7 @@ GameObject:
   - component: {fileID: 6086939316780428144}
   - component: {fileID: 519938426770205361}
   - component: {fileID: 2292068910552020966}
+  - component: {fileID: 7386710457386945086}
   m_Layer: 5
   m_Name: UnitUpgradeContentPanel
   m_TagString: Untagged
@@ -425,10 +426,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   panel: {fileID: 8450491535360680505}
   group: {fileID: 823049431035355233}
-  showDuration: 1.4
+  showDuration: 0.28
   showFormYOffset: -240
   showEase: 9
-  hideDuration: 1
+  hideDuration: 0.2
   hideToYOffset: -120
   hideEase: 8
   useUnscaledTime: 1
@@ -452,6 +453,22 @@ MonoBehaviour:
   optionSlotEmptyOverlay: {fileID: 0}
   closeButton: {fileID: 5043445214201620631}
   unitCardPrefab: {fileID: 2119945691252397610, guid: 66ce7d6640daec649ab94e28fe072993, type: 3}
+--- !u!114 &7386710457386945086
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5549776082611335643}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b394f1dbc06363c4381262462298c038, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  selectedFx: {fileID: 0}
+  disabledOverlay: {fileID: 2119945691252397610, guid: 09d2552d04045fa42ad8dbc7669caa89, type: 3}
+  disabledAlpha: 0.45
+  canvasGroup: {fileID: 5400564699406507932, guid: 66ce7d6640daec649ab94e28fe072993, type: 3}
 --- !u!1 &7487226736804104386
 GameObject:
   m_ObjectHideFlags: 0

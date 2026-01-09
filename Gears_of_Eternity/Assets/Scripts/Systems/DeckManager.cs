@@ -127,11 +127,6 @@ public class DeckManager : MonoBehaviour
         // Fisher-Yates
         for (int i = 0; i < list.Count - 1; i++)
         {
-            // var temp = list[i];
-            // int randomIndex = Random.Range(i, list.Count);
-            // list[i] = list[randomIndex];
-            // list[randomIndex] = temp;
-            
             int randomIndex = Random.Range(0, list.Count);
             (list[i], list[randomIndex]) = (list[randomIndex], list[i]);
         }

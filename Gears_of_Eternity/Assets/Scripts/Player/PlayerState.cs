@@ -10,15 +10,18 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
 {
     public static PlayerState Instance { get; private set; }
     
-    // ========== HP ===========
-    [Header("HP")] 
-    [SerializeField] private int maxHp = 100;
-    [SerializeField] private int currentHp = 100;
+    // Life
+    
+    // Gold
+    [Header("Gold")] 
+    [SerializeField] private int gold = 50;
+    public int Gold => gold;
 
-    public int MaxHp => maxHp;
-    public int CurrentHp => currentHp;
+    public event Action<int> OnGoldChanged;
 
-    public event Action<int, int> OnHpChanged; // (Current, Max)
+    [Header("Run Economy")] 
+    [SerializeField] private int upgradeCount = 0;
+    public int UpgradeCount => upgradeCount;
     
     
     // ========== Inventory ===========
@@ -59,7 +62,6 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
             DontDestroyOnLoad(gameObject);
             
             RefreshCaches();
-            ClampHp();
         }
         else
         {
@@ -100,6 +102,66 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
         return _inventory.TryGetValue(itemId, out var count) ? count : 0;
     }
 
+    
+    // ---------- Gold ----------
+    public void AddGold(int amount)
+    {
+        if (amount <= 0)
+        {
+            return;
+        }
+
+        gold += amount;
+        OnGoldChanged?.Invoke(gold);
+    }
+
+    public bool TrySpendGold(int amount)
+    {
+        if (amount <= 0)
+        {
+            return true;
+        }
+
+        if (gold < amount)
+        {
+            return false;
+        }
+        
+        gold -= amount;
+        OnGoldChanged?.Invoke(gold);
+        
+        return true;
+    }
+
+    // public bool TryPurchase(string targetUniqueId, RuntimeUnitCard card, int goldAmount)
+    // {
+    //     if (string.IsNullOrEmpty(targetUniqueId) || card == null)
+    //     {
+    //         return false;
+    //     }
+    //
+    //     if (!TrySpendGold(goldAmount))
+    //     {
+    //         return false;
+    //     }
+    //
+    //     return true;
+    // }
+
+    public void ResetRunEconomy()
+    {
+        upgradeCount = 0;
+    }
+
+    public void IncrementUpgradeCount()
+    {
+        upgradeCount++;
+    }
+
+    public void ResetUpgradeCount()
+    {
+        upgradeCount = 0;
+    }
     
     // ---------- Inventory ----------
     public void AddItem(string itemId, int amount = 1)
@@ -189,42 +251,6 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
     {
         activeItemIds.Clear();
         activeItemIds.AddRange(_activeItems);
-    }
-    
-    
-    // ---------- HP ----------
-    public void Damage(int amount)
-    {
-        if (amount <= 0)
-        {
-            return;
-        }
-        
-        currentHp = Mathf.Max(0, currentHp - amount);
-        OnHpChanged?.Invoke(currentHp, maxHp);
-    }
-
-    public void Heal(int amount)
-    {
-        if (amount <= 0)
-        {
-            return;
-        }
-        
-        currentHp = Mathf.Min(maxHp, currentHp + amount);
-        OnHpChanged?.Invoke(currentHp, maxHp);
-    }
-
-    // public void ResetHPToFull()
-    // {
-    //     currentHP = maxHP;
-    //     OnHpChanged?.Invoke(currentHP, maxHP);
-    // }
-
-    private void ClampHp()
-    {
-        maxHp = Mathf.Max(1, maxHp);
-        currentHp = Mathf.Clamp(currentHp, 0, maxHp);
     }
     
     
@@ -373,7 +399,7 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
 
         if (cur == null)
         {
-            Debug.LogWarning("[TryoverwriteDeckCardKeppingUniqueId] 업그레이드 대상 유닛을 찾지 못함");
+            Debug.LogWarning("[TryOverwriteDeckCardKeepingUniqueId] 업그레이드 대상 유닛을 찾지 못함");
             return false;
         }
         
@@ -382,19 +408,21 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
         // - uniqueId는 cur의 것을 유지
         string keepUniqueId = cur.uniqueId;
         
-        cur.uniqueId = keepUniqueId;
-        cur.unitName = upgradeOptionRuntime.unitName;
+        cur.uniqueId        = keepUniqueId;
+        cur.unitName        = upgradeOptionRuntime.unitName;
         cur.unitDescription = upgradeOptionRuntime.unitDescription;
-        cur.roleTypes = upgradeOptionRuntime.roleTypes;
-        cur.unitPrefab = upgradeOptionRuntime.unitPrefab;
-        cur.health = upgradeOptionRuntime.health;
-        cur.defense = upgradeOptionRuntime.defense;
-        cur.moveSpeed = upgradeOptionRuntime.moveSpeed;
-        cur.attackType = upgradeOptionRuntime.attackType;
-        cur.attackValue = upgradeOptionRuntime.attackValue;
-        cur.attackSpeed = upgradeOptionRuntime.attackSpeed;
-        cur.attackDistance = upgradeOptionRuntime.attackDistance;
-        cur.level = upgradeOptionRuntime.level;
+        cur.roleType        = upgradeOptionRuntime.roleType;
+        cur.unitPrefab      = upgradeOptionRuntime.unitPrefab;
+        cur.health          = upgradeOptionRuntime.health;
+        cur.defense         = upgradeOptionRuntime.defense;
+        cur.moveSpeed       = upgradeOptionRuntime.moveSpeed;
+        cur.attackType      = upgradeOptionRuntime.attackType;
+        cur.attackValue     = upgradeOptionRuntime.attackValue;
+        cur.attackSpeed     = upgradeOptionRuntime.attackSpeed;
+        cur.attackDistance  = upgradeOptionRuntime.attackDistance;
+        cur.level           = upgradeOptionRuntime.level;
+        cur.cost            = upgradeOptionRuntime.cost;
+        
 
         if (cur.nextUpgradeUnits == null)
         {
@@ -412,34 +440,6 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
         
         OnDeckChanged?.Invoke();
         return true;
-
-        //
-        // int idx = -1;
-        // for (int i = 0; i < deckCards.Count; i++)
-        // {
-        //     var c = deckCards[i];
-        //     if (c == null)
-        //     {
-        //         continue;
-        //     }
-        //
-        //     if (c.uniqueId == uniqueId)
-        //     {
-        //         idx = i;
-        //         break;
-        //     }
-        // }
-        //
-        // if (idx < 0)
-        // {
-        //     return false;
-        // }
-        //
-        // var old = deckCards[idx];
-        // string keepId = old.uniqueId;
-        //
-        // // 새 RuntimeUnitCard 생성
-        // var upgraded = new RuntimeUnitCard(upgradeOptionRuntime);
     }
 }
 

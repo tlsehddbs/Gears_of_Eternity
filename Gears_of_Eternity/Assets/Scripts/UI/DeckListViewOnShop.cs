@@ -15,9 +15,6 @@ public class DeckListViewOnShop : MonoBehaviour
     [Header("Popup")]
     [SerializeField] private UnitUpgradePopupSpawner popupSpawner;
 
-    [Header("Options")] 
-    [SerializeField] private bool rebuildOnEnable;
-
     private readonly List<GameObject> _spawned = new();
 
     private void Awake()
@@ -39,12 +36,10 @@ public class DeckListViewOnShop : MonoBehaviour
         {
             // playerState.OnDeckChanged를 구독해서 Deck 변경 시 자동 갱신하도록
             playerState.OnDeckChanged += ReBuild;
+            playerState.OnGoldChanged += OnGoldChanged;
         }
-
-        if (rebuildOnEnable)
-        {
-            ReBuild();
-        }
+        
+        ReBuild();
     }
 
     private void OnDisable()
@@ -52,8 +47,11 @@ public class DeckListViewOnShop : MonoBehaviour
         if (playerState != null)
         {
             playerState.OnDeckChanged -= ReBuild;
+            playerState.OnGoldChanged -= OnGoldChanged;
         }
     }
+
+    private void OnGoldChanged(int _) => RefreshLocks();    // 골드 상태가 바뀌면 상태 다시 계산 및 적용 
 
     public void ReBuild()
     {
@@ -100,7 +98,55 @@ public class DeckListViewOnShop : MonoBehaviour
             
             // 스포너 주입
             dbc.SetSpawner(popupSpawner);
+
+            ApplyLock(go, card);
         }
+
+        RefreshLocks();
+    }
+
+    private void RefreshLocks()
+    {
+        if (playerState == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < _spawned.Count; i++)
+        {
+            var go = _spawned[i];
+            if (go == null)
+            {
+                continue;
+            }
+
+            RuntimeUnitCard card = null;
+
+            if (go.TryGetComponent<RuntimeUnitCardRef>(out var cardRef))
+            {
+                card = cardRef.Card;
+            }
+
+            if (card == null)
+            {
+                continue;
+            }
+
+            ApplyLock(go, card);
+        }
+    }
+
+    private void ApplyLock(GameObject go, RuntimeUnitCard card)
+    {
+        bool upgradeable = card.level < 3 && card.nextUpgradeUnits != null && card.nextUpgradeUnits.Count > 0;
+        
+        int price = upgradeable
+            ? UnitUpgradePriceCalculator.GetUpgradePrice(card.level, playerState.UpgradeCount,StageTypes.StageNodeTypes.Shop)
+            : int.MaxValue;
+
+        bool locked = !upgradeable || playerState.Gold < price;
+        
+        ShopCardLockUtil.Apply(go, locked);
     }
 
     private void ClearAll()

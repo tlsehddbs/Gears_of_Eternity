@@ -13,7 +13,7 @@ public class RuntimeUnitCard
     public string unitDescription;
     
     public FactionType faction;
-    public RoleTypes roleTypes;
+    public RoleTypes roleType;
     public GameObject unitPrefab;
     
     public float health;
@@ -28,6 +28,8 @@ public class RuntimeUnitCard
     
     public int level;
 
+    public int cost;
+
     public List<UnitCardData> nextUpgradeUnits;
     
     
@@ -41,7 +43,7 @@ public class RuntimeUnitCard
         
         faction = data.faction;
         
-        roleTypes = data.roleType;
+        roleType = data.roleType;
         unitPrefab = data.unitPrefab;
         
         health = data.health;
@@ -55,6 +57,8 @@ public class RuntimeUnitCard
         attackDistance = data.attackDistance;
         
         level = data.level;
+        
+        cost = data.cost;
 
         nextUpgradeUnits = new List<UnitCardData>(data.nextUpgrades);
     }

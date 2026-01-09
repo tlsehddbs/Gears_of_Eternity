@@ -395,8 +395,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: afe5130248fde45a1a8c8a5485e42ce9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHp: 100
-  currentHp: 100
+  gold: 5000
+  upgradeCount: 0
   inventory: []
   activeItemIds: []
   deckCards: []

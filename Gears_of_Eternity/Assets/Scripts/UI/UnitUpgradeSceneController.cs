@@ -1,11 +1,7 @@
 using System;
-using System.Collections.Generic;
-using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
-using Object = System.Object;
 
 public class UnitUpgradeSceneController : MonoBehaviour
 {
@@ -31,7 +27,7 @@ public class UnitUpgradeSceneController : MonoBehaviour
     [SerializeField] private GameObject unitCardPrefab;
     
     private RuntimeUnitCard _current;
-    private SelectUnitUpgradeHandler _selected;
+    private UnitUpgradeSelectHandler _selected;
     
     // shop에서 업그레이드 타깃을 지정
     private RuntimeUnitCard _forcedTarget;
@@ -189,17 +185,17 @@ public class UnitUpgradeSceneController : MonoBehaviour
         //go.GetComponent<RuntimeUnitCardRef>().SetCard(toRuntimeData);
         //go.GetComponent<CardSlotUI>().Apply(toRuntimeData);
 
-        var selectable = go.GetComponent<SelectUnitUpgradeHandler>();
+        var selectable = go.GetComponent<UnitUpgradeSelectHandler>();
         if (selectable == null)
         {
-            selectable = go.AddComponent<SelectUnitUpgradeHandler>();
+            selectable = go.AddComponent<UnitUpgradeSelectHandler>();
         }
         
         selectable.Setup(this, toRuntimeData);
     }
     
     // 단일 클릭 (선택(하이라이트))
-    internal void SelectUnitUpgradeOption(SelectUnitUpgradeHandler select)
+    internal void SelectUnitUpgradeOption(UnitUpgradeSelectHandler select)
     {
         if (select == null || select.Card == null)
         {
@@ -215,21 +211,69 @@ public class UnitUpgradeSceneController : MonoBehaviour
         _selected.SetSelected(true);
     }
 
-    internal void ConfirmSelectedOption(SelectUnitUpgradeHandler select)
+    internal void ConfirmSelectedOption(UnitUpgradeSelectHandler select)
     {
         if (_current == null || select == null || select.Card == null)
         {
             return;
         }
         
+        // 휴식처의 경우 무료로 업그레이드
+        if (StageFlow.Instance.CurrentStageDef.type == StageTypes.StageNodeTypes.Rest)
+        {
+            if (!playerState.TryOverwriteDeckCardKeepingUniqueId(_current.uniqueId, select.Card))
+            {
+                return;
+            }
+            UpgradeApplied?.Invoke();
+            return;
+        }
+        
+
+        int price = UnitUpgradePriceCalculator.GetUpgradePrice(
+            currentLevel: _current.level,
+            upgradeCount: playerState.UpgradeCount,
+            type: StageFlow.Instance.CurrentStageDef.type);
+        
+        Debug.Log($"Current Stage Type = {StageFlow.Instance.CurrentStageDef.type}");
+
+        if (price == int.MaxValue)
+        {
+            return;
+        }
+        
+        if (!playerState.TrySpendGold(price))
+        {
+            // TODO: 골드 부족 UI 등 피드백
+            return;
+        }
+        
+        
         bool check = playerState.TryOverwriteDeckCardKeepingUniqueId(_current.uniqueId, select.Card);
+
         if (!check)
         {
+            // 업그레이드 실패시 환불
+            playerState.AddGold(price);
             Debug.LogWarning("[UnitUpgradeSceneController] Cannot confirm selected option.");
             return;
         }
         
+        //
+        // if (playerState.TryPurchase(_current.uniqueId, select.Card, price))
+        // {
+        //     bool check = playerState.TryOverwriteDeckCardKeepingUniqueId(_current.uniqueId, select.Card);
+        //     if (!check)
+        //     {
+        //         Debug.LogWarning("[UnitUpgradeSceneController] Cannot confirm selected option.");
+        //         return;
+        //     }
+        //     playerState.TrySpendGold(price);
+        // }
+        
         //RequestStageEnd();
+        
+        playerState.IncrementUpgradeCount();
         UpgradeApplied?.Invoke();       // presenter가 애니메이션 실행 후 StageEnd 처리
     }
 
@@ -282,58 +326,3 @@ public class UnitUpgradeSceneController : MonoBehaviour
 
 
 
-
-
-public class SelectUnitUpgradeHandler : MonoBehaviour, IPointerClickHandler
-{
-    [SerializeField] private GameObject selectedFx;
-    
-    private UnitUpgradeSceneController _owner;
-    public RuntimeUnitCard Card { get; private set; }
-
-    public void Setup(UnitUpgradeSceneController owner, RuntimeUnitCard card)
-    {
-        _owner = owner;
-        Card = card;
-
-        // 효과 관련 설정 없으면 무시(추후 확장)
-        if (selectedFx == null)
-        {
-            var t = transform.Find("SelectedFx") ?? transform.Find("selected") ?? transform.Find("Highlight");
-            if (t != null)
-            {
-                selectedFx = t.gameObject;
-            }
-            
-            SetSelected(false);
-        }
-    }
-
-    public void OnPointerClick(PointerEventData eventData)
-    {
-        if (_owner == null || Card == null)
-        {
-            return;
-        }
-
-        if (eventData.clickCount == 1)
-        {
-            _owner.SelectUnitUpgradeOption(this);
-            return;
-        }
-
-        if (eventData.clickCount == 2)
-        {
-            _owner.SelectUnitUpgradeOption(this);
-            _owner.ConfirmSelectedOption(this);
-        }
-    }
-
-    public void SetSelected(bool on)
-    {
-        if (selectedFx != null)
-        {
-            selectedFx.SetActive(on);
-        }
-    }
-}
