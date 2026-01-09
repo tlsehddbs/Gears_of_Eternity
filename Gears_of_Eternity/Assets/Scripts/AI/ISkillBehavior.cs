@@ -275,7 +275,7 @@ public class ThrowSpearAttackSkill : ISkillBehavior
     public void Remove(UnitCombatFSM caster, SkillEffect effect) { }
 }
 
-//급속 파열기
+//포자 분열사
 public class ConeTripleHitSkill : ISkillBehavior
 {
     // private const int hitCount = 3;
@@ -381,7 +381,7 @@ public class BleedBurstSkill : ISkillBehavior
         Debug.Log($"[BloodRend] {caster.name} → 방어력 복구됨: {originalDefense}");
     }
 }
-//기계 난도자 
+//군체 연사핵
 public class DoubleAttackSkill : ISkillBehavior
 {
     public bool ShouldTrigger(UnitCombatFSM caster, SkillEffect effect)
@@ -597,7 +597,7 @@ public class PassiveAreaBuffSkill : ISkillBehavior
     }
 }
 
-//공속 증가 스킬 //자동 발사기 
+//공속 증가 스킬 //자동 발사기 // 분비 연사체
 
 public class AttackSpeedUpSkill : ISkillBehavior
 {
@@ -905,7 +905,7 @@ public class FarthestDoubleAoeSkill : ISkillBehavior
 }
 
 
-// 고정 포탑: 3초마다 근접 적 AoE(280%) + 사망 시 자폭(400%)  //기어 포탑병
+// 고정 포탑: 3초마다 근접 적 AoE(280%) + 사망 시 자폭(400%)  //독성 첨두군주
 public class PassiveTurretBarrageSkill : ISkillBehavior
 {
     private const float FireIntervalSec = 3.0f; // 3초마다 발사

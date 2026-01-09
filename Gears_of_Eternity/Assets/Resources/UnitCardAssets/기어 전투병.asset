@@ -15,7 +15,7 @@ MonoBehaviour:
   id: 
   icon: {fileID: 0}
   cardType: 0
-  faction: 0
+  faction: 1
   rarity: 0
   cost: 2
   price: 0

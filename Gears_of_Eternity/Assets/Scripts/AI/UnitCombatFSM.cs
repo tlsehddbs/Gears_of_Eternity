@@ -75,14 +75,39 @@ public partial class UnitCombatFSM : MonoBehaviour
 
     private const float minstoppingdistance = 1f;
 
+
+    [Header("Animation (FSM Driven)")]
+    [SerializeField] private Animator animator;
+
+    // 공격 클립 기준 길이(초)
+    // 예: Attack 클립이 0.9초면 0.9로 세팅
+    [SerializeField] private float baseAttackClipLength = 1.25f;
+
+    private bool attackAnimInProgress;
+
+    // 공격 요청 후 Hit 프레임까지 보관하는 정보
+    private bool pendingBasicAttack;
+    private UnitCombatFSM pendingAttackTarget;
+
+    private static readonly int HashIsMoving = Animator.StringToHash("IsMoving");
+    private static readonly int HashAttack = Animator.StringToHash("Attack");
+    private static readonly int HashAttackSpeedMul = Animator.StringToHash("AttackSpeedMul");
+
     void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
         blind = GetComponent<BlindSystem>();
         if (blind == null) blind = gameObject.AddComponent<BlindSystem>();
+
+        if (animator == null)
+            animator = GetComponentInChildren<Animator>(true);
+
+        if (animator != null)
+            animator.applyRootMotion = false;
     }
     void Start()
     {
+
         CreateRangeIndicator(); //런타임 사거리
 
         CloneStats(); // 스탯 복사 
@@ -97,11 +122,13 @@ public partial class UnitCombatFSM : MonoBehaviour
         // 패시브 스킬 
         StartCoroutine(ApplyPassiveEffectsDelayed());
 
-    }
+    } 
 
 
     void Update()
     {
+        
+
         skillTimer += Time.deltaTime; // 스킬 쿨타이머 
 
         // 스킬 우선 타겟 전환 체크
@@ -145,6 +172,7 @@ public partial class UnitCombatFSM : MonoBehaviour
             UpdateRangeIndicator();
         }  
     }
+
 
     public void OnDeath()
     {
@@ -1140,7 +1168,155 @@ private void SyncAttackRangeToAgent()
 
 
 
+//애니메이션 부분
+    private void EnsureAnimator()
+    {
+        if (animator == null)
+            animator = GetComponentInChildren<Animator>();
+    }
 
+    public bool IsAttackAnimInProgress()
+    {
+        return attackAnimInProgress;
+    }
+
+    public void SetAttackAnimInProgress(bool value)
+    {
+        attackAnimInProgress = value;
+    }
+
+    // 상태(FSM)에서 호출: Idle/Run 전환을 상태가 직접 책임진다.
+    public void Anim_SetMoving(bool moving)
+    {
+        EnsureAnimator();
+        if (animator == null) return;
+
+        animator.SetBool(HashIsMoving, moving);
+    }
+
+    // 공격 애니 트리거 (공속 보정 포함)
+    private void Anim_PlayAttack(float attackSpeedMul)
+    {
+        EnsureAnimator();
+        if (animator == null) return;
+
+        animator.SetBool(HashIsMoving, false);
+        animator.SetFloat(HashAttackSpeedMul, attackSpeedMul);
+        animator.ResetTrigger(HashAttack);
+        animator.SetTrigger(HashAttack);
+    }
+
+    // AttackState에서 호출: "공격 요청"만 한다. 데미지는 Hit 프레임에서.
+    public void RequestBasicAttack()
+    {
+        if (!IsAlive()) return;
+        if (IsStunned()) return;
+        if (disableBasicAttack) return;
+
+        if (targetEnemy == null || !targetEnemy.IsAlive()) return;
+
+        EnsureAnimator();
+
+        // 개발 중 안전장치: 애니 세팅이 없으면 즉시 공격(원인 분리용)
+        if (animator == null)
+        {
+            Attack();
+            attackTimer = 0f;
+            return;
+        }
+
+        pendingBasicAttack = true;
+        pendingAttackTarget = targetEnemy;
+
+        // 공격 시작 시 이동을 멈추는 편이 안정적
+        if (agent != null)
+        {
+            agent.ResetPath();
+            agent.isStopped = true;
+        }
+
+        // stats.attackSpeed는 "공격 간격(초)"로 쓰고 있음
+        float interval = Mathf.Max(0.05f, stats.attackSpeed);
+        float clipLen = Mathf.Max(0.05f, baseAttackClipLength);
+
+        float mul = clipLen / interval;
+        mul = Mathf.Clamp(mul, 0.5f, 2.5f);
+
+        Anim_PlayAttack(mul);
+
+        // 공격 간격 타이머는 요청 시점에 리셋
+        attackTimer = 0f;
+    }
+
+    // SMB가 호출: 타격 프레임에서 실제 데미지 적용
+    public void OnAnim_AttackHit()
+    {
+        if (!pendingBasicAttack) return;
+
+        pendingBasicAttack = false;
+
+        if (!IsAlive()) return;
+
+        if (pendingAttackTarget == null || !pendingAttackTarget.IsAlive())
+            return;
+
+        FacePositionInstant(pendingAttackTarget.transform.position); // 타격 직전 정면 보정
+
+        // 기존 Attack() 재활용 (중복 최소)
+        targetEnemy = pendingAttackTarget;
+        Attack();
+
+        pendingAttackTarget = null;
+    }
+
+    // 공격 애니 종료 후 정리(이동 재개 포함)
+    public void OnAnim_AttackFinished()
+    {
+        pendingBasicAttack = false;
+        pendingAttackTarget = null;
+
+        if (agent != null)
+            agent.isStopped = false;
+    }
+
+    //전투 회전 유틸
+    [Header("Combat Facing")]
+    [SerializeField] private float turnSpeedDegPerSec = 720f;   // 초당 회전 각도
+    [SerializeField] private float facingToleranceDeg = 10f;    // 이 각도 이내면 '바라본다'로 처리
+
+    // y축만 회전(탑다운/3D 공통)
+    public bool RotateTowardsPosition(Vector3 worldPos, float deltaTime)
+    {
+        Vector3 dir = worldPos - transform.position;
+        dir.y = 0f;
+
+        if (dir.sqrMagnitude < 0.0001f)
+            return true;
+
+        Quaternion desired = Quaternion.LookRotation(dir.normalized, Vector3.up);
+
+        // 부드럽게 회전
+        transform.rotation = Quaternion.RotateTowards(
+            transform.rotation,
+            desired,
+            turnSpeedDegPerSec * deltaTime
+        );
+
+        float angle = Quaternion.Angle(transform.rotation, desired);
+        return angle <= facingToleranceDeg;
+    }
+
+    // 공격 시작/타격 직전 “확실하게” 정면 맞추고 싶을 때(선택)
+    public void FacePositionInstant(Vector3 worldPos)
+    {
+        Vector3 dir = worldPos - transform.position;
+        dir.y = 0f;
+
+        if (dir.sqrMagnitude < 0.0001f)
+            return;
+
+        transform.rotation = Quaternion.LookRotation(dir.normalized, Vector3.up);
+    }
 
 
 
