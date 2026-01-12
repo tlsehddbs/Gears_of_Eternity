@@ -1,0 +1,37 @@
+﻿Faction,currnetUnit,upgradeUnit
+IronGearFederation,기어 전투병,증기 돌격병
+IronGearFederation,기어 전투병,터빈 절삭자
+IronGearFederation,기어 전투병,기동 중장기병
+IronGearFederation,증기 돌격병,증기 돌격장군
+IronGearFederation,터빈 절삭자,절삭 기어혼
+IronGearFederation,기동 중장기병,기동 철벽기병
+IronGearFederation,압축 저격병,정밀 기어저격수
+IronGearFederation,압축 저격병,연산 포격수
+IronGearFederation,압축 저격병,자동 발사기
+IronGearFederation,정밀 기어저격수,초정밀 저격수
+IronGearFederation,연산 포격수,기어 로켓런처
+IronGearFederation,자동 발사기,연속 발사기
+IronGearFederation,정비 분석관,화력 관제사
+IronGearFederation,정비 분석관,방호 조정사
+IronGearFederation,정비 분석관,기계 교란수
+IronGearFederation,화력 관제사,증기 화력 관제사
+IronGearFederation,방호 조정사,기어 방벽 조정사
+IronGearFederation,기계 교란수,EMP 방출자
+BrassChimera,키메라 근접체,재생 전투체
+BrassChimera,키메라 근접체,광증 난도수
+BrassChimera,키메라 근접체,뼈갑 전위체
+BrassChimera,재생 전투체,포식자
+BrassChimera,광증 난도수,광기 절단자
+BrassChimera,뼈갑 전위체,골격 강화체
+BrassChimera,키메라 사격체,맹독 침두체
+BrassChimera,키메라 사격체,포자 분열사
+BrassChimera,키메라 사격체,분비 연사체
+BrassChimera,맹독 침두체,독성 첨두군주
+BrassChimera,포자 분열사,포자 폭연왕
+BrassChimera,분비 연사체,군체 연사핵
+BrassChimera,키메라 보조체,군체 공생체
+BrassChimera,키메라 보조체,재생 촉진체
+BrassChimera,키메라 보조체,신경 교란체
+BrassChimera,군체 공생체,군체 공생핵
+BrassChimera,재생 촉진체,극재생 촉진체
+BrassChimera,신경 교란체,신경 봉쇄자

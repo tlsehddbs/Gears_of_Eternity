@@ -1,16 +1,24 @@
+using System;
+using System.Collections;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Serialization;
 
 public class BattleManager : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public static BattleManager Instance { get; private set; }
+    
+    public bool isBattleRunning = false;
+
+    private void Start()
     {
-        
     }
 
-    // Update is called once per frame
-    void Update()
+    public void StartBattle()
     {
-        
+    }
+
+    public void EndBattle()
+    {
     }
 }
