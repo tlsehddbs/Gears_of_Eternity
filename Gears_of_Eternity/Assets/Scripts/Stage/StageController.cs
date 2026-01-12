@@ -10,9 +10,10 @@ public static class StageContext
 
 public class StageController : MonoBehaviour
 {
-    public async void OnStageEnd()
+    private async void OnStageEnd(bool IsCleared = true)
     {
-        await StageFlow.Instance.OnStageEnd();
+        Debug.Log((IsCleared ? "Cleared Stage" : "Loaded Stage"));
+        await StageFlow.Instance.OnStageEnd(IsCleared);
     }
 
 #if UNITY_EDITOR
@@ -20,12 +21,11 @@ public class StageController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.D))
         {
-            OnStageEnd();
+            OnStageEnd(false);
         }
-
-        if (Input.GetKeyDown(KeyCode.U))
+        if (Input.GetKeyDown(KeyCode.F))
         {
-            PlayerState.Instance.TryGetRandomUpgradeableCard(out var card);
+            OnStageEnd();
         }
     }
 #endif

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -182,6 +183,9 @@ public class StageRunner : MonoBehaviour
         }
         finally
         {
+            GameObject.Find("GoldText").GetComponent<TMP_Text>().text = PlayerState.Instance.Gold.ToString();
+            GameObject.Find("LifeText").GetComponent<TMP_Text>().text = PlayerState.Instance.Life.ToString();
+            
             _isExiting = false;
         }
     }

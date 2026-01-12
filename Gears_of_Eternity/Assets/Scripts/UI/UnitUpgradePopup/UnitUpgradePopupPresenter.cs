@@ -131,6 +131,7 @@ public class UnitUpgradePopupPresenter : MonoBehaviour
             return;
         }
         
+        PlayerState.Instance.AddLife();     // Rest Scene에서는 기본적으로 체력이 1씩 회복되도록 설정
         PlayerState.Instance.ResetUpgradeCount();
         
         popupAnimator.Hide(EndStage);

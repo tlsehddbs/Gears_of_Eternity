@@ -136,13 +136,6 @@ public class StageGraphLayout : MonoBehaviour
                     rt.GetComponent<Image>().sprite = bossNodeImage;
                 }
                 
-                // 확인용 노드 text(추후 이미지로 변경 예정)
-                // var nt = rt.GetComponentInChildren<TextMeshProUGUI>();
-                // nt.text = $"{n.type}";
-                // nt.enableAutoSizing = false;
-                // nt.fontSize = 26;
-                // nt.alignment = TextAlignmentOptions.Center;
-                
                 float y = -(topPadding + (i * (nodeHeight + nodeGap)) - (startY - nodeHeight * 0.5f));
                 rt.anchoredPosition = new Vector2(x, y);
 
@@ -262,7 +255,7 @@ public class StageGraphLayout : MonoBehaviour
             if (_nodesRectTransform.TryGetValue(node.nodeId, out var rt))
             {
                 UpdateNodeInteract(rt, node);
-                UpdateNodeColor(rt, node);
+                UpdateNodeCompleteImg(rt, node);
             }
         } 
     }
@@ -284,8 +277,7 @@ public class StageGraphLayout : MonoBehaviour
     }
 
     // 완료한 스테이지에 대해서 노드 색상 업데이트
-    // TODO: 노드의 이미지를 어떻게 변경할 것인지 논의한 후 결정할 것
-    private void UpdateNodeColor(RectTransform rt, RuntimeStageNode node)
+    private void UpdateNodeCompleteImg(RectTransform rt, RuntimeStageNode node)
     {
         var img = rt.Find("CompleteImage");
         if (img)
@@ -299,18 +291,6 @@ public class StageGraphLayout : MonoBehaviour
                 img.gameObject.SetActive(false);
             }
         }
-        // var img = rt.GetComponentInChildren<Image>(true);
-        // if (img)
-        // {
-        //     if (node.discovered && node.completed)
-        //     {
-        //         img.color = Color.yellow;
-        //     }
-        //     else
-        //     {
-        //         img.color = Color.white;
-        //     }
-        // }
     }
 
     // ======================= SCROLL =======================

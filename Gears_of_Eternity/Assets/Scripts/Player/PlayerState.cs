@@ -11,6 +11,11 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
     public static PlayerState Instance { get; private set; }
     
     // Life
+    [Header("Life")] 
+    [SerializeField] private int life = 3;
+    public int Life => life;
+    
+    public event Action<int> OnLifeChanged;
     
     // Gold
     [Header("Gold")] 
@@ -32,16 +37,6 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
     private readonly Dictionary<string, int> _inventory = new Dictionary<string, int>();
 
     public event Action<string, int> OnItemCountChanged;   // (itemId, isActive)
-    
-    
-    // ========== Active Item ===========
-    [Header("Active Items (Serialized)")]
-    [SerializeField] private List<string> activeItemIds = new List<string>();
-    
-    // 런타임 캐시
-    private readonly HashSet<string> _activeItems = new HashSet<string>();
-
-    public event Action<string, bool> OnActiveItemChanged;    // (itemId, isActive)
     
     
     // ========== Deck ===========
@@ -80,15 +75,6 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
             }
             _inventory[s.itemId] = s.count;
         }
-
-        _activeItems.Clear();
-        foreach (var id in activeItemIds)
-        {
-            if (!string.IsNullOrEmpty(id))
-            {
-                _activeItems.Add(id);
-            }
-        }
     }
     
 
@@ -102,6 +88,31 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
         return _inventory.TryGetValue(itemId, out var count) ? count : 0;
     }
 
+    
+    // ---------- Life ----------
+    public void AddLife()
+    {
+        if (Life >= 3)
+        {
+            return;
+        }
+
+        life++;
+        OnLifeChanged?.Invoke(life);
+    }
+
+    public void SubtractLife()
+    {
+        if (Life < 1)
+        {
+            // TODO: 게임 오버
+            return;
+        }
+
+        life--;
+        OnLifeChanged?.Invoke(life);
+    }
+    
     
     // ---------- Gold ----------
     public void AddGold(int amount)
@@ -133,26 +144,6 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
         return true;
     }
 
-    // public bool TryPurchase(string targetUniqueId, RuntimeUnitCard card, int goldAmount)
-    // {
-    //     if (string.IsNullOrEmpty(targetUniqueId) || card == null)
-    //     {
-    //         return false;
-    //     }
-    //
-    //     if (!TrySpendGold(goldAmount))
-    //     {
-    //         return false;
-    //     }
-    //
-    //     return true;
-    // }
-
-    public void ResetRunEconomy()
-    {
-        upgradeCount = 0;
-    }
-
     public void IncrementUpgradeCount()
     {
         upgradeCount++;
@@ -162,6 +153,7 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
     {
         upgradeCount = 0;
     }
+    
     
     // ---------- Inventory ----------
     public void AddItem(string itemId, int amount = 1)
@@ -213,44 +205,6 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
         {
             inventory.Add(new ItemStack { itemId = kv.Key, count = kv.Value });
         }
-    }
-    
-    
-    // ---------- Active Item ----------
-    public bool IsActiveItem(string itemId) => !string.IsNullOrEmpty(itemId) && _activeItems.Contains(itemId);
-
-    public void ActivateItem(string itemId)
-    {
-        if (string.IsNullOrEmpty(itemId))
-        {
-            return;
-        }
-        
-        if (_activeItems.Add(itemId))
-        {
-            SyncActiveListFromCache();
-            OnActiveItemChanged?.Invoke(itemId, true);
-        }
-    }
-
-    public void DeactivateItem(string itemId)
-    {
-        if (string.IsNullOrEmpty(itemId))
-        {
-            return;
-        }
-        
-        if (_activeItems.Remove(itemId))
-        {
-            SyncActiveListFromCache();
-            OnActiveItemChanged?.Invoke(itemId, false);
-        }
-    }
-
-    private void SyncActiveListFromCache()
-    {
-        activeItemIds.Clear();
-        activeItemIds.AddRange(_activeItems);
     }
     
     

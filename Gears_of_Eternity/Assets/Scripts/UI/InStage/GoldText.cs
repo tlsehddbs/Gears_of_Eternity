@@ -1,23 +1,23 @@
-using System;
 using TMPro;
-using UnityEngine.UI;
 using UnityEngine;
 
-public class ShopGoldTextViewer : MonoBehaviour
+public class GoldText : MonoBehaviour
 {
     [SerializeField] private PlayerState playerState;
 
-    private void Awake()
+    private void Start()
     {
         playerState = PlayerState.Instance;
         
         GetComponent<TMP_Text>().text = playerState.Gold.ToString();
-    }
-
-    private void OnEnable()
-    {
+        
         playerState.OnGoldChanged += HandleGoldText;
     }
+
+    // private void OnEnable()
+    // {
+    //     playerState.OnGoldChanged += HandleGoldText;
+    // }
     
     private void OnDisable()
     {
