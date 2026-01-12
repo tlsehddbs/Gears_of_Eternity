@@ -2317,6 +2317,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 323730141}
     m_Modifications:
+    - target: {fileID: 2845867215470328825, guid: 6816706b2f9097b4ab67e3ed09070f29, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 77d92f367a045144096cb4acd9aff889, type: 2}
     - target: {fileID: 4926223704024144210, guid: 6816706b2f9097b4ab67e3ed09070f29, type: 3}
       propertyPath: healthBarWorldOffset.y
       value: 7
@@ -2443,6 +2447,10 @@ PrefabInstance:
       propertyPath: healthBarWorldOffset.y
       value: 7
       objectReference: {fileID: 0}
+    - target: {fileID: 7062584469651099207, guid: 3dd3686b56a145a448c15fc3915c14a6, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 771fb7db2a9afde45b69285d0161e524, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2461,7 +2469,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 5681863705818257, guid: f9c61b5873a67804fa066e0937de931e, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 30.16544
+      value: 22.87
       objectReference: {fileID: 0}
     - target: {fileID: 5681863705818257, guid: f9c61b5873a67804fa066e0937de931e, type: 3}
       propertyPath: m_LocalPosition.y
@@ -2469,7 +2477,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5681863705818257, guid: f9c61b5873a67804fa066e0937de931e, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.110435486
+      value: 0.52
       objectReference: {fileID: 0}
     - target: {fileID: 5681863705818257, guid: f9c61b5873a67804fa066e0937de931e, type: 3}
       propertyPath: m_LocalRotation.w
@@ -4750,6 +4758,10 @@ PrefabInstance:
       propertyPath: healthBarWorldOffset.y
       value: 7
       objectReference: {fileID: 0}
+    - target: {fileID: 2895027804655661058, guid: 0d334968a156314439aa33f5fcf4c8cb, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 0689fc5d5674cc14f8dd9c7d0bc4cd4c, type: 2}
     - target: {fileID: 3667132482552940094, guid: 0d334968a156314439aa33f5fcf4c8cb, type: 3}
       propertyPath: m_IsActive
       value: 1
@@ -4910,6 +4922,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1248877106}
     m_Modifications:
+    - target: {fileID: 2233413678818949403, guid: 0196e308e85fc5b439211be47814c372, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 97a68676e04bae54aa1aac462ba9b840, type: 2}
     - target: {fileID: 6190764978840718133, guid: 0196e308e85fc5b439211be47814c372, type: 3}
       propertyPath: m_LocalPosition.x
       value: -6
@@ -5486,6 +5502,10 @@ PrefabInstance:
       propertyPath: healthBarWorldOffset.y
       value: 7
       objectReference: {fileID: 0}
+    - target: {fileID: 6577628851244227447, guid: e6663c325636ec44d92d91ac44f47934, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 497acece25b9a6046b41a8ccc323b88f, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
