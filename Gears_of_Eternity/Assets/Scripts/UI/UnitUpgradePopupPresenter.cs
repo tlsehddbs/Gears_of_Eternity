@@ -68,7 +68,6 @@ public class UnitUpgradePopupPresenter : MonoBehaviour
 
     private void ShowIfNeeded()
     {
-        // 이미 표시중이라면 return
         if (_shownOnce)
         {
             return;

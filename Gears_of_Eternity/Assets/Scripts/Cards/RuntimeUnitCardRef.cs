@@ -9,6 +9,8 @@ public class RuntimeUnitCardRef : MonoBehaviour
     public void SetCard(RuntimeUnitCard card)
     {
         Card = card;
+        GetComponent<CardFrameUI>().Apply(card.rarity);
+        
         OnCardChanged?.Invoke(Card);
     }
 }

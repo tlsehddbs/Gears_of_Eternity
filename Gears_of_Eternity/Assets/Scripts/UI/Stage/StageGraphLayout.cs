@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -20,16 +21,11 @@ public class StageGraphLayout : MonoBehaviour
     public float topPadding = 60f;
     public float leftPadding = 60f;
     public float rightPadding = 60f;
+    public float nodeRadius = 30f;
 
-    [Header("Edges")] 
-    [Tooltip("베지어 사용 유무")]
-    public bool useBezier = false;
-    [Range(0f, 0.5f)] public float bezierBend = 0.25f;
-    [Range(8, 64)] public int bezierSegments = 24;
-    
     [Header("Z-Depth")]
     [Tooltip("UI 카메라의 Z=0 평면 기준 라인 Z(음수면 카메라 앞). 캔버스/카메라 세팅에 맞춰 조절")]
-    public float lineZ = 0f;
+    public float lineZ = 1f;
     
     private RuntimeStageGraph _graph;
     private int _maxLayer;
@@ -39,6 +35,13 @@ public class StageGraphLayout : MonoBehaviour
     private Canvas _canvas;
     private Camera _uiCamera;
     private ScrollRect _scroll;
+    
+    [Header("Node Image Refs")]
+    public Sprite combatNodeImage;
+    public Sprite restNodeImage;
+    public Sprite shopNodeImage;
+    public Sprite bossNodeImage;
+    
 
     private void Awake()
     {
@@ -113,12 +116,32 @@ public class StageGraphLayout : MonoBehaviour
                 rt.name = $"{n.type}Node_{n.layerIndex}-{i}({n.nodeId[..6]})";
                 rt.sizeDelta = new Vector2(rt.sizeDelta.x, nodeHeight);
                 
+                if (n.type == StageTypes.StageNodeTypes.Combat)
+                {
+                    rt.GetComponent<Image>().sprite = combatNodeImage;
+                }
+
+                if (n.type == StageTypes.StageNodeTypes.Rest)
+                {
+                    rt.GetComponent<Image>().sprite = restNodeImage;
+                }
+
+                if (n.type == StageTypes.StageNodeTypes.Shop)
+                {
+                    rt.GetComponent<Image>().sprite = shopNodeImage;
+                }
+
+                if (n.type == StageTypes.StageNodeTypes.Boss)
+                {
+                    rt.GetComponent<Image>().sprite = bossNodeImage;
+                }
+                
                 // 확인용 노드 text(추후 이미지로 변경 예정)
-                var nt = rt.GetComponentInChildren<TextMeshProUGUI>();
-                nt.text = $"{n.type}";
-                nt.enableAutoSizing = false;
-                nt.fontSize = 26;
-                nt.alignment = TextAlignmentOptions.Center;
+                // var nt = rt.GetComponentInChildren<TextMeshProUGUI>();
+                // nt.text = $"{n.type}";
+                // nt.enableAutoSizing = false;
+                // nt.fontSize = 26;
+                // nt.alignment = TextAlignmentOptions.Center;
                 
                 float y = -(topPadding + (i * (nodeHeight + nodeGap)) - (startY - nodeHeight * 0.5f));
                 rt.anchoredPosition = new Vector2(x, y);
@@ -208,32 +231,21 @@ public class StageGraphLayout : MonoBehaviour
 
         Vector3 a = from.TransformPoint((Vector3.zero));
         Vector3 b = to.TransformPoint((Vector3.zero));
+        
         a.z = lineZ;
         b.z = lineZ;
+        
+        // 방향 벡터
+        Vector3 dir = (b - a).normalized;
+        
+        // 노드 크기만큼 잘라내기
+        Vector3 start = a + dir * nodeRadius;
+        Vector3 end = b - dir * nodeRadius;
 
-        if (!useBezier)
-        {
-            edge.positionCount = 2;
-            edge.SetPosition(0, a);
-            edge.SetPosition(1, b);
-        }
-        else
-        {
-            Vector3 dir = (b - a);
-            Vector3 right = new Vector3(dir.x, 0f, 0f);
-            Vector3 p0 = a;
-            Vector3 p2 = b;
-            Vector3 p1 = a + right * bezierBend;
-            
-            edge.positionCount = bezierSegments;
-
-            for (int i = 0; i < bezierSegments; i++)
-            {
-                float t = i / (bezierSegments - 1f);
-                Vector3 p = (1 - t) * (1 - t) * p0 + 2 * (1 - t) * t * p1 + t * t * p2; // 어떻게 작동하는지 모름 ;;
-                edge.SetPosition(i, p);
-            }
-        }
+        // 엣지 적용
+        edge.positionCount = 2;
+        edge.SetPosition(0, start);
+        edge.SetPosition(1, end);
     }
 
     // TODO: 보스 레이어에 대해서는 적용하지 않도록 변경
@@ -275,18 +287,30 @@ public class StageGraphLayout : MonoBehaviour
     // TODO: 노드의 이미지를 어떻게 변경할 것인지 논의한 후 결정할 것
     private void UpdateNodeColor(RectTransform rt, RuntimeStageNode node)
     {
-        var img = rt.GetComponentInChildren<Image>(true);
+        var img = rt.Find("CompleteImage");
         if (img)
         {
             if (node.discovered && node.completed)
             {
-                img.color = Color.yellow;
+                img.gameObject.SetActive(true);
             }
             else
             {
-                img.color = Color.white;
+                img.gameObject.SetActive(false);
             }
         }
+        // var img = rt.GetComponentInChildren<Image>(true);
+        // if (img)
+        // {
+        //     if (node.discovered && node.completed)
+        //     {
+        //         img.color = Color.yellow;
+        //     }
+        //     else
+        //     {
+        //         img.color = Color.white;
+        //     }
+        // }
     }
 
     // ======================= SCROLL =======================

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using FactionTypes.Enums;
+using RarityTypes.Enums;
 using UnitRoleTypes.Enums;
 using UnityEngine;
 
@@ -27,6 +28,7 @@ public class RuntimeUnitCard
     public float attackDistance;
     
     public int level;
+    public Rarity rarity;
 
     public int cost;
 
@@ -57,6 +59,7 @@ public class RuntimeUnitCard
         attackDistance = data.attackDistance;
         
         level = data.level;
+        rarity = data.rarity;
         
         cost = data.cost;
 

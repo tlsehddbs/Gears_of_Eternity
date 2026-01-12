@@ -333,8 +333,6 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
             if (card != null)
             {
                 deckCards.Add(runtimeCardCopy);
-                
-                Debug.Log(runtimeCardCopy.uniqueId);
             }
         }
     }
@@ -421,6 +419,7 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
         cur.attackSpeed     = upgradeOptionRuntime.attackSpeed;
         cur.attackDistance  = upgradeOptionRuntime.attackDistance;
         cur.level           = upgradeOptionRuntime.level;
+        cur.rarity          = upgradeOptionRuntime.rarity;
         cur.cost            = upgradeOptionRuntime.cost;
         
 

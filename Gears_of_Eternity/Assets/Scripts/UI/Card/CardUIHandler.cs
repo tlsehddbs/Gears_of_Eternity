@@ -115,11 +115,10 @@ public class CardUIHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     // Drag
     public void OnBeginDrag(PointerEventData eventData)
     {
-        // TODO: 드래그 시 부모를 해제하고 다른 카드 밑으로 들어가지 않게 가장 위에 표시가 되게끔 변경
         GameManager.Instance.isDraggingCard = true;
         
         _currentTween?.Kill();
-        _canvasGroup.blocksRaycasts = false;        // Raycast 차단, 드롭 감지 가능하게
+        _canvasGroup.blocksRaycasts = false;
     }
     
     public void OnDrag(PointerEventData eventData)

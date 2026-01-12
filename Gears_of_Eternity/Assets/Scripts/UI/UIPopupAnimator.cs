@@ -56,7 +56,9 @@ public class UIPopupAnimator : MonoBehaviour
         if (panel != null)
         {
             panel.anchoredPosition = _originPos + new Vector2(0f, showFormYOffset);
+            panel.SetAsLastSibling();
         }
+        
         if (group != null)
         {
             group.alpha = 0f;

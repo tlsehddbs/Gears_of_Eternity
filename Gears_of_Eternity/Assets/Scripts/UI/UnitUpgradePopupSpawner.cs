@@ -24,8 +24,8 @@ public class UnitUpgradePopupSpawner : MonoBehaviour
             SpawnRandom();
         }
     }
-    
-    public void SpawnRandom()
+
+    private void SpawnRandom()
     {
         Check();
         if (_instance == null) return;
@@ -62,7 +62,7 @@ public class UnitUpgradePopupSpawner : MonoBehaviour
         presenter.ShowWithTargetCard(target);
     }
 
-    public void Check()
+    private void Check()
     {
         if (_instance != null)
         {
@@ -78,21 +78,5 @@ public class UnitUpgradePopupSpawner : MonoBehaviour
         _instance = Instantiate(upgradePopupPrefab, popupRoot);
         _instance.transform.SetAsLastSibling(); // 항상 최상단 고정
         //StretchToParent(_instance.transform as RectTransform);
-    }
-
-    private static void StretchToParent(RectTransform rt)
-    {
-        if (rt == null)
-        {
-            return;
-        }
-        
-        rt.anchorMin = Vector2.zero;
-        rt.anchorMax = Vector2.one;
-        rt.offsetMin = Vector2.zero;
-        rt.offsetMax = Vector2.zero;
-        rt.localScale = Vector3.one;
-        rt.localRotation = quaternion.identity;
-        rt.anchoredPosition = Vector2.zero;
     }
 }
