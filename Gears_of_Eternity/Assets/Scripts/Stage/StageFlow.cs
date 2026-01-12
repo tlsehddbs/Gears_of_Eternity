@@ -84,16 +84,11 @@ public class StageFlow : MonoBehaviour
         
         await StageRunner.Instance.EnterStageAsync(def);
         
-        // 다른 combat scene으로의 이동 시 deck의 꼬임 방지를 위함
-        // TODO: 추후 게임에 대해서 최적화 된 방법이 있는지 파악 후 개선할 것 
-        //DeckManager.Instance.BuildDeckFromPlayerState(PlayerState.Instance);
-        
-        Debug.Log($"현재 스테이지 타입 : {CurrentStageDef.type}");
         phase = GamePhase.InStage;
     }
 
     // ReSharper disable Unity.PerformanceAnalysis
-    public async Task OnStageEnd(bool IsCleared = true)
+    public async Task OnStageEnd(bool isCleared = true)
     {
         if (phase != GamePhase.InStage)
         {
@@ -105,12 +100,9 @@ public class StageFlow : MonoBehaviour
             return;
         }
         
-        // 루프 테스트용 임시 아이템을 임의로 추가
-        // TODO: 나중에 별도로 분리, 다른 스테이지 유형에 유연하게 대응하기 위함
-
         var cur = graph.FindNode(graph.currentNodeId);
         
-        if (!IsCleared)
+        if (!isCleared)
         {
             playerState.SubtractLife();
             
@@ -125,12 +117,7 @@ public class StageFlow : MonoBehaviour
 
             cur.completed = true;
         }
-        // TODO: 보상 연출 (코인 등) 반영
-
-        
-        // 임시적으로 completed가 작동하는지 확인
-        // TODO: 추후 스테이지 클리어 판별 로직을 추가할 예정
-        //cur.completed = true;
+        // TODO: 보상 연출 (코인 등) 
         
         await StageRunner.Instance.ExitStageAsync();
         
@@ -142,7 +129,7 @@ public class StageFlow : MonoBehaviour
         var connectedEdges = graph.edges.Where(e => e.fromNodeId == cur.nodeId);
 
         // 클리어한 Stage(노드)에 연결된 다음 Stage만 Discovered가 true로 변경되도록 제한함.
-        if(IsCleared)
+        if(isCleared)
         {
             foreach (var edge in connectedEdges)
             {
