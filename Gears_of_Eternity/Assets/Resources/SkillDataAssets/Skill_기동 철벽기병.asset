@@ -18,4 +18,13 @@ MonoBehaviour:
     \uC900 \uC801\uC5D0\uAC8C \uC790\uC2E0\uC758 \uBC1B\uB294 \uD53C\uD574\uC758
     60%\uB97C \uBC18\uC0AC"
   skillCoolDown: 10
-  effects: []
+  effects:
+  - skillType: 8
+    buffStat: 0
+    skillValue: 0.6
+    skillDuration: 5
+    skillDelayTime: 0
+    skillMaxStack: 0
+    isPercent: 0
+    skillRange: 0
+    skillAngle: 0

@@ -31,12 +31,15 @@ public class SkillExecutor
         { UnitSkillType.HealingAuraDefenseBuff, new HealingAuraDefenseBuffSKill()},
         { UnitSkillType.EmpowerZoneHighestAttackAlly, new EmpowerZoneHighestAttackAllySkill()},
         { UnitSkillType.CleanseAndShieldAoE, new CleanseAndShieldAoESkill()},
-        { UnitSkillType.RectStun_ArmorDown, new RectStunArmorDownSkill()},
+        { UnitSkillType.RectStunArmorDown, new RectStunArmorDownSkill()},
         { UnitSkillType.TripleLayerThinShield, new TripleLayerThinShieldSkill()},
         { UnitSkillType.ThrowSpearPoisonAttack, new ThrowSpearPoisonAttackSkill()},
         { UnitSkillType.HealOverTime, new HealOverTimeSkill()},
         { UnitSkillType.RegenNearbyAllies, new RegenNearbyAlliesSkill()},
         { UnitSkillType.TargetedAoeBlind, new TargetedAoeBlindSkill()},
+        { UnitSkillType.RegenNearbyAlliesUpgrade, new RegenNearbyAlliesUpgradeSkill()},
+        { UnitSkillType.NearestEnemyAoeStunThenBlind, new NearestEnemyAoeStunThenBlindSkill()},
+        { UnitSkillType.DefenseAndDamageReductionSelfBuff, new DefenseAndDamageReductionSelfBuffSkill()},
         // 추가 스킬은 여기에 등록
     };
 
@@ -81,11 +84,16 @@ public class SkillExecutor
                 continue;
             }
 
+            float castTime = effect.skillDelayTime > 0f ? effect.skillDelayTime : 0.25f;
+
             var target = behavior.FindTarget(caster, effect);
             if (target == null) continue;
 
             if (effect.skillRange <= 0f || target == caster)
             {
+                
+                SkillCastVfxManager.Instance?.PlayCast(caster, effect.skillType, castTime);    
+                
                 behavior.Execute(caster, target, effect);
                 caster.skillTimer = 0f;
                 return true;
@@ -110,6 +118,9 @@ public class SkillExecutor
                 return true;
             }
             // 사거리 안이면 즉시 시전
+            //스킬 VFX
+            SkillCastVfxManager.Instance?.PlayCast(caster, effect.skillType, castTime);
+
             behavior.Execute(caster, target, effect);
             caster.skillTimer = 0f;
             return true;

@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f3bc4b0c3161f5b40bbb01ef6d3fef7a, type: 3}
+  m_Name: UpgradeVisualProfile
+  m_EditorClassIdentifier: 
+  defaultVisual:
+    level: 1
+    applyTint: 0
+    tintColor: {r: 0, g: 0, b: 0, a: 0}
+    applyEmission: 0
+    emissionColor: {r: 0, g: 0, b: 0, a: 0}
+    auraPrefab: {fileID: 0}
+    auraLocalOffset: {x: 0, y: 0, z: 0}
+    auraLocalScale: {x: 0, y: 0, z: 0}
+  visualsByLevel:
+  - level: 2
+    applyTint: 1
+    tintColor: {r: 0.9150943, g: 0.6663169, b: 0.55682623, a: 0}
+    applyEmission: 1
+    emissionColor: {r: 0, g: 0, b: 0, a: 0}
+    auraPrefab: {fileID: 6074283410956104087, guid: 021724f671a787c42a7b235e33000b3d, type: 3}
+    auraLocalOffset: {x: 0, y: 0, z: 0}
+    auraLocalScale: {x: 0, y: 0, z: 0}
+  - level: 3
+    applyTint: 1
+    tintColor: {r: 0.9811321, g: 0.8785505, b: 0.48593804, a: 0}
+    applyEmission: 1
+    emissionColor: {r: 0, g: 0, b: 0, a: 0}
+    auraPrefab: {fileID: 4385242228136054925, guid: 5b1db24c143fb1a44960bec7799c30fb, type: 3}
+    auraLocalOffset: {x: 0, y: 0, z: 0}
+    auraLocalScale: {x: 0, y: 0, z: 0}

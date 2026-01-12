@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Gears_of_Eternity/Assets/Prefabs/StageUI/NotifyPanel.prefab.meta
 guid: 38284e86e81fec1478bd242ac62e20da
+========
+guid: 898bae4ad66a081458310fdaaa1174cf
+>>>>>>>> backup_develop_battle_fix:Gears_of_Eternity/Assets/Prefabs/IronGearFederation_Unit_Prefabs/기계 교란수.prefab.meta
 PrefabImporter:
   externalObjects: {}
   userData: 

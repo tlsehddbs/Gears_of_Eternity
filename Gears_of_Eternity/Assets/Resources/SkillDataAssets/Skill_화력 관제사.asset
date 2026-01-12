@@ -21,4 +21,13 @@ MonoBehaviour:
     100% \uACE0\uC815 \uD53C\uD574 \uD3ED\uBC1C \uBC1C\uC0DD \uD3ED\uBC1C \uC2DC
     \uC8FC\uBCC0 1.5\uCE78 \uB0B4 \uC801\uB3C4 50% \uD53C\uD574 \uBC1B\uC74C"
   skillCoolDown: 14
-  effects: []
+  effects:
+  - skillType: 21
+    buffStat: 0
+    skillValue: 0
+    skillDuration: 0
+    skillDelayTime: 0
+    skillMaxStack: 0
+    isPercent: 0
+    skillRange: 25
+    skillAngle: 0
