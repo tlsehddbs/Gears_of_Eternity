@@ -4,6 +4,8 @@ public class SupportState : UnitState
 
     public override void Enter()
     {
+        unit.Anim_SetMoving(false);
+
         if (unit.skillData != null)
         {
             unit.skillExecutor.TryUseSkillIfPossible(unit, unit.skillData);

@@ -4,7 +4,15 @@ public class IdleState : UnitState
 
     public override void Enter()
     {
-        unit.agent.ResetPath();
+        unit.Anim_SetMoving(false);
+
+        if (unit.agent != null)
+        {
+            unit.agent.ResetPath();
+            unit.agent.isStopped = true;
+        }
+        
+        //unit.agent.ResetPath();
     }
 
     public override void Update()

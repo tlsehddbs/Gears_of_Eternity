@@ -8,6 +8,19 @@ public class MoveState : UnitState
         isSupportTarget = isAllyTarget;
     }
 
+    public override void Enter()
+    {
+        unit.Anim_SetMoving(true);
+
+        if (unit.agent != null)
+            unit.agent.isStopped = false;
+    }
+
+    public override void Exit()
+    {
+        unit.Anim_SetMoving(false);
+    }
+
     public override void Update()
     {
         //현재 타켓 결정 (지원/적군) 
@@ -16,7 +29,7 @@ public class MoveState : UnitState
         // 타켓이 없거나 죽었으면 Idle로 
         if (target == null || !target.IsAlive())
         {
-             unit.isProcessingSkill = false;
+            unit.isProcessingSkill = false;
             unit.ChangeState(new IdleState(unit));
             return;
         }

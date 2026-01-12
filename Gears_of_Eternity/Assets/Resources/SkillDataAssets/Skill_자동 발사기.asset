@@ -16,4 +16,13 @@ MonoBehaviour:
   unitName: "\uC790\uB3D9 \uBC1C\uC0AC\uAE30"
   skillDescription: "\uACF5\uACA9\uC18D\uB3C4 +20% \uC99D\uAC00\uBC84\uD504 8\uCD08"
   skillCoolDown: 14
-  effects: []
+  effects:
+  - skillType: 19
+    buffStat: 4
+    skillValue: 0.2
+    skillDuration: 8
+    skillDelayTime: 0
+    skillMaxStack: 0
+    isPercent: 1
+    skillRange: 0
+    skillAngle: 0
