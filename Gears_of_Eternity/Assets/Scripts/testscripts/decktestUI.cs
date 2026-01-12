@@ -6,7 +6,7 @@ public class DeckTestUI : MonoBehaviour
     private int testDrawCount;
     
     [SerializeField]
-    public CardUIHandler cardUIHandler;
+    public CardUIManager cardUIMnager;
 
     // TODO: 추후 test 파일을 정리하면서 여기(decktest)에 있는 로직을 다른 파일로 병합할 예정 -> deckManager 또는 별도 신규 파일 등
     void Update()

@@ -10,15 +10,23 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
 {
     public static PlayerState Instance { get; private set; }
     
-    // ========== HP ===========
-    [Header("HP")] 
-    [SerializeField] private int maxHp = 100;
-    [SerializeField] private int currentHp = 100;
+    // Life
+    [Header("Life")] 
+    [SerializeField] private int life = 3;
+    public int Life => life;
+    
+    public event Action<int> OnLifeChanged;
+    
+    // Gold
+    [Header("Gold")] 
+    [SerializeField] private int gold = 50;
+    public int Gold => gold;
 
-    public int MaxHp => maxHp;
-    public int CurrentHp => currentHp;
+    public event Action<int> OnGoldChanged;
 
-    public event Action<int, int> OnHpChanged; // (Current, Max)
+    [Header("Run Economy")] 
+    [SerializeField] private int upgradeCount = 0;
+    public int UpgradeCount => upgradeCount;
     
     
     // ========== Inventory ===========
@@ -31,22 +39,12 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
     public event Action<string, int> OnItemCountChanged;   // (itemId, isActive)
     
     
-    // ========== Active Item ===========
-    [Header("Active Items (Serialized)")]
-    [SerializeField] private List<string> activeItemIds = new List<string>();
-    
-    // 런타임 캐시
-    private readonly HashSet<string> _activeItems = new HashSet<string>();
-
-    public event Action<string, bool> OnActiveItemChanged;    // (itemId, isActive)
-    
-    
     // ========== Deck ===========
     [Header("Deck (Cards)")]
     [Tooltip("플레이어 덱 구성. 동일한 UnitCardData를 여러 장 넣을 수 있음. 런타임 고유 ID는 RuntimeUnitCard가 생성 시 부여함.")]
     [SerializeField] private List<RuntimeUnitCard> deckCards = new List<RuntimeUnitCard>();
     
-    public IReadOnlyList<RuntimeUnitCard> DeckCards => deckCards;
+    public List<RuntimeUnitCard> DeckCards => deckCards;
     
     public event Action OnDeckChanged;
     
@@ -59,7 +57,6 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
             DontDestroyOnLoad(gameObject);
             
             RefreshCaches();
-            ClampHp();
         }
         else
         {
@@ -78,15 +75,6 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
             }
             _inventory[s.itemId] = s.count;
         }
-
-        _activeItems.Clear();
-        foreach (var id in activeItemIds)
-        {
-            if (!string.IsNullOrEmpty(id))
-            {
-                _activeItems.Add(id);
-            }
-        }
     }
     
 
@@ -100,6 +88,72 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
         return _inventory.TryGetValue(itemId, out var count) ? count : 0;
     }
 
+    
+    // ---------- Life ----------
+    public void AddLife()
+    {
+        if (Life >= 3)
+        {
+            return;
+        }
+
+        life++;
+        OnLifeChanged?.Invoke(life);
+    }
+
+    public void SubtractLife()
+    {
+        if (Life < 1)
+        {
+            // TODO: 게임 오버
+            return;
+        }
+
+        life--;
+        OnLifeChanged?.Invoke(life);
+    }
+    
+    
+    // ---------- Gold ----------
+    public void AddGold(int amount)
+    {
+        if (amount <= 0)
+        {
+            return;
+        }
+
+        gold += amount;
+        OnGoldChanged?.Invoke(gold);
+    }
+
+    public bool TrySpendGold(int amount)
+    {
+        if (amount <= 0)
+        {
+            return true;
+        }
+
+        if (gold < amount)
+        {
+            return false;
+        }
+        
+        gold -= amount;
+        OnGoldChanged?.Invoke(gold);
+        
+        return true;
+    }
+
+    public void IncrementUpgradeCount()
+    {
+        upgradeCount++;
+    }
+
+    public void ResetUpgradeCount()
+    {
+        upgradeCount = 0;
+    }
+    
     
     // ---------- Inventory ----------
     public void AddItem(string itemId, int amount = 1)
@@ -154,80 +208,6 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
     }
     
     
-    // ---------- Active Item ----------
-    public bool IsActiveItem(string itemId) => !string.IsNullOrEmpty(itemId) && _activeItems.Contains(itemId);
-
-    public void ActivateItem(string itemId)
-    {
-        if (string.IsNullOrEmpty(itemId))
-        {
-            return;
-        }
-        
-        if (_activeItems.Add(itemId))
-        {
-            SyncActiveListFromCache();
-            OnActiveItemChanged?.Invoke(itemId, true);
-        }
-    }
-
-    public void DeactivateItem(string itemId)
-    {
-        if (string.IsNullOrEmpty(itemId))
-        {
-            return;
-        }
-        
-        if (_activeItems.Remove(itemId))
-        {
-            SyncActiveListFromCache();
-            OnActiveItemChanged?.Invoke(itemId, false);
-        }
-    }
-
-    private void SyncActiveListFromCache()
-    {
-        activeItemIds.Clear();
-        activeItemIds.AddRange(_activeItems);
-    }
-    
-    
-    // ---------- HP ----------
-    public void Damage(int amount)
-    {
-        if (amount <= 0)
-        {
-            return;
-        }
-        
-        currentHp = Mathf.Max(0, currentHp - amount);
-        OnHpChanged?.Invoke(currentHp, maxHp);
-    }
-
-    public void Heal(int amount)
-    {
-        if (amount <= 0)
-        {
-            return;
-        }
-        
-        currentHp = Mathf.Min(maxHp, currentHp + amount);
-        OnHpChanged?.Invoke(currentHp, maxHp);
-    }
-
-    // public void ResetHPToFull()
-    // {
-    //     currentHP = maxHP;
-    //     OnHpChanged?.Invoke(currentHP, maxHP);
-    // }
-
-    private void ClampHp()
-    {
-        maxHp = Mathf.Max(1, maxHp);
-        currentHp = Mathf.Clamp(currentHp, 0, maxHp);
-    }
-    
-    
     // ---------- Deck ----------
     public void SetDeck(IEnumerable<RuntimeUnitCard> cards)
     {
@@ -268,6 +248,13 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
         AddRandomCards(collection, RoleTypes.Ranged, rangedCount);
         AddRandomCards(collection, RoleTypes.Support, supportCount);
         
+        // Fisher-Yates
+        for (int i = 0; i < deckCards.Count - 1; i++)
+        {
+            int randomIndex = Random.Range(0, deckCards.Count);
+            (deckCards[i], deckCards[randomIndex]) = (deckCards[randomIndex], deckCards[i]);
+        }
+        
         OnDeckChanged?.Invoke();
     }
 
@@ -300,10 +287,112 @@ public class PlayerState : MonoBehaviour, IPlayerProgress
             if (card != null)
             {
                 deckCards.Add(runtimeCardCopy);
-                
-                Debug.Log(runtimeCardCopy.uniqueId);
             }
         }
+    }
+
+    public bool TryGetRandomUpgradeableCard(out RuntimeUnitCard pickedCard)
+    {
+        List<RuntimeUnitCard> candidates = new();
+        
+        foreach (var c in DeckCards)
+        {
+            if (c == null)
+            {
+                continue;
+            }
+            
+            if (c.level >= 3)
+            {
+                continue;
+            }
+
+            var upgrades = c.nextUpgradeUnits;
+            if (upgrades == null || upgrades.Count == 0)
+            {
+                continue;
+            }
+            candidates.Add(c);
+        }
+
+        if (candidates.Count == 0)
+        {
+            pickedCard = null;
+            return false;
+        }
+
+        pickedCard = candidates[Random.Range(0, candidates.Count)];
+        return true;
+    }
+
+    public bool TryOverwriteDeckCardKeepingUniqueId(string uniqueId, RuntimeUnitCard upgradeOptionRuntime)
+    {
+        if (string.IsNullOrEmpty(uniqueId) || upgradeOptionRuntime == null)
+        {
+            return false;
+        }
+        
+        // deckCard 실제 원소를 찾아서 그 객체를 덮어 씀
+        RuntimeUnitCard cur = null;
+        for (int i = 0; i < deckCards.Count; i++)
+        {
+            var c = deckCards[i];
+            if (c == null)
+            {
+                continue;
+            }
+
+            if (c.uniqueId == uniqueId)
+            {
+                cur = c;
+                break;
+            }
+        }
+
+        if (cur == null)
+        {
+            Debug.LogWarning("[TryOverwriteDeckCardKeepingUniqueId] 업그레이드 대상 유닛을 찾지 못함");
+            return false;
+        }
+        
+        // 오염 방지
+        // - upgradeOptionRuntime은 건드리지 않음
+        // - uniqueId는 cur의 것을 유지
+        string keepUniqueId = cur.uniqueId;
+        
+        cur.uniqueId        = keepUniqueId;
+        cur.unitName        = upgradeOptionRuntime.unitName;
+        cur.unitDescription = upgradeOptionRuntime.unitDescription;
+        cur.roleType        = upgradeOptionRuntime.roleType;
+        cur.unitPrefab      = upgradeOptionRuntime.unitPrefab;
+        cur.health          = upgradeOptionRuntime.health;
+        cur.defense         = upgradeOptionRuntime.defense;
+        cur.moveSpeed       = upgradeOptionRuntime.moveSpeed;
+        cur.attackType      = upgradeOptionRuntime.attackType;
+        cur.attackValue     = upgradeOptionRuntime.attackValue;
+        cur.attackSpeed     = upgradeOptionRuntime.attackSpeed;
+        cur.attackDistance  = upgradeOptionRuntime.attackDistance;
+        cur.level           = upgradeOptionRuntime.level;
+        cur.rarity          = upgradeOptionRuntime.rarity;
+        cur.cost            = upgradeOptionRuntime.cost;
+        
+
+        if (cur.nextUpgradeUnits == null)
+        {
+            cur.nextUpgradeUnits = new List<UnitCardData>();
+        }
+        else
+        {
+            cur.nextUpgradeUnits.Clear();
+        }
+        
+        if (upgradeOptionRuntime.nextUpgradeUnits != null)
+        {
+            cur.nextUpgradeUnits.AddRange(upgradeOptionRuntime.nextUpgradeUnits);
+        }
+        
+        OnDeckChanged?.Invoke();
+        return true;
     }
 }
 

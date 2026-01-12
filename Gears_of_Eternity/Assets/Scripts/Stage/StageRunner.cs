@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -91,8 +92,6 @@ public class StageRunner : MonoBehaviour
 
         _hasStage = true;
         Debug.Log($"[StageRunner] Stage '{_stageInstance.Scene.name}' loaded (additive)");
-
-        // TODO: 스테이지 씬 내부의 Controller가 클리어 시, StageFlow.OnStageCleared() 호출하도록 연결
     }
 
     public async Task ExitStageAsync()
@@ -184,6 +183,9 @@ public class StageRunner : MonoBehaviour
         }
         finally
         {
+            GameObject.Find("GoldText").GetComponent<TMP_Text>().text = PlayerState.Instance.Gold.ToString();
+            GameObject.Find("LifeText").GetComponent<TMP_Text>().text = PlayerState.Instance.Life.ToString();
+            
             _isExiting = false;
         }
     }
