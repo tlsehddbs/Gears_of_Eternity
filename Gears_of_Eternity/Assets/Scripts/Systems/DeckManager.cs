@@ -17,8 +17,7 @@ public class DeckManager : MonoBehaviour
     public List<RuntimeUnitCard> hand = new List<RuntimeUnitCard>();
     public List<RuntimeUnitCard> usedCards = new List<RuntimeUnitCard>();
 
-    private const int CostMax = 10;
-    public int cost = 10;
+    public int cost;
     
 
     
@@ -124,7 +123,7 @@ public class DeckManager : MonoBehaviour
     
     public void ResetCost()
     {
-        cost = CostMax;
+        cost = GameManager.Instance.maxCost;
         GameObject.Find("CostText").GetComponent<TMP_Text>().text = DeckManager.Instance.cost.ToString();
     }
 }

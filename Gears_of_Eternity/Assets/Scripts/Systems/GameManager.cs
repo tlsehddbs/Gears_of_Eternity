@@ -9,6 +9,9 @@ public class GameManager : MonoBehaviour
     public bool isDraggingCard;
     [HideInInspector]
     public bool isPointerEventEnabled = true;
+
+    public float combatTime = 360f;
+    public int maxCost = 10;
     
 
     void Awake()

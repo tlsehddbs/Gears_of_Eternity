@@ -149,7 +149,7 @@ public class CardUIHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         if (DeckManager.Instance.cost < _ref.Card.cost)
         {
             Debug.Log($"[CardUiHandler] Cost 부족. (remain cost : {DeckManager.Instance.cost} / require cost : {_ref.Card.cost})");
-            NotifyPanel.Instance.ShowNotifyPanel();
+            NotifyPanel.Instance.ShowNotifyPanel("Cost 부족 !");
             _cardUIManager.UpdateCardLayout();
             return;
         }

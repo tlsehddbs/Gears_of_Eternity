@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using System.Collections;
 using UnityEngine;
@@ -15,11 +16,18 @@ public class StageController : MonoBehaviour
 {
     private Coroutine _co;
     
+    private StageTimer _timer;
+
+    private void Awake()
+    {
+        _timer = GetComponent<StageTimer>();
+    }
+
     private async void OnStageEnd(bool isCleared = true)
     {
         if (_co != null)
         {
-            StartCoroutine(DeckDrawLoop());
+            StopCoroutine(DeckDrawLoop());
         }
         
         Debug.Log((isCleared ? "Cleared Stage" : "Loaded Stage"));
@@ -30,22 +38,24 @@ public class StageController : MonoBehaviour
     private void Start()
     {
         DeckManager.Instance.ResetCost();
-        
         DeckManager.Instance.DrawCards(4);
     }
 
     void OnEnable()
     {
+        _timer.OnExpired += HandleExpired;
         _co = StartCoroutine(DeckDrawLoop());
     }
 
-    // void OnDisable()
-    // {
-    //     if (_co != null)
-    //     {
-    //         StartCoroutine(DeckDrawLoop());
-    //     }
-    // }
+    void OnDisable()
+    {
+        _timer.OnExpired -= HandleExpired;
+    }
+
+    void HandleExpired()
+    {
+        OnStageEnd(false);
+    }
 
 #if UNITY_EDITOR
     void Update()
