@@ -1,8 +1,10 @@
 using DG.Tweening;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class CardUIHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
+public class CardUIHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerEnterHandler,
+    IPointerExitHandler, IPointerDownHandler
 {
     private CanvasGroup _canvasGroup;
     private Canvas _canvas;
@@ -16,35 +18,34 @@ public class CardUIHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     // 배치 실패시 원래의 Position으로의 복귀를 위한 변수
     private Vector3 _originalPosition;
     private Quaternion _originalRotation;
-    
+
     private Vector3 _originalScale;
 
     public float hoverScale = 1.2f;
     public float hoverMoveY = 50f;
 
     private bool _isCardHighlighted;
-    
-    
+
+
     void Awake()
     {
         _canvasGroup = GetComponent<CanvasGroup>();
         _canvas = GameObject.Find("Canvas").GetComponent<Canvas>();
-        
+
         _rectTransform = GetComponent<RectTransform>();
         _cardUIManager = GameObject.Find("CardUIManager").GetComponent<CardUIManager>();
-        
-        _ref = GetComponent<RuntimeUnitCardRef>();
 
+        _ref = GetComponent<RuntimeUnitCardRef>();
     }
 
-    
+
     public void UpdateOriginalTransform(Vector2 position)
     {
         _originalPosition = position;
-        _originalScale = new Vector3(1, 1, 1);  // 고정값
+        _originalScale = new Vector3(1, 1, 1); // 고정값
     }
-    
-    
+
+
     // Hover
     public void OnPointerEnter(PointerEventData eventData)
     {
@@ -57,13 +58,14 @@ public class CardUIHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         {
             return;
         }
-        
+
         _isCardHighlighted = true;
 
         _currentTween?.Kill();
         _currentTween = DOTween.Sequence()
             .Join(transform.DOScale(hoverScale, 0.2f).SetEase(Ease.OutBack))
-            .Join(transform.DOLocalMoveY(_originalPosition.y + (!onlyScaleHighlightEffect ? hoverMoveY : 0), 0.2f).SetEase(Ease.OutCubic))
+            .Join(transform.DOLocalMoveY(_originalPosition.y + (!onlyScaleHighlightEffect ? hoverMoveY : 0), 0.2f)
+                .SetEase(Ease.OutCubic))
             .SetUpdate(false)
             .SetLink(gameObject, LinkBehaviour.KillOnDisable);
     }
@@ -74,14 +76,14 @@ public class CardUIHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         {
             return;
         }
-        
+
         OnPointerExitEffect(false);
     }
 
     public void OnPointerExitEffect(bool instantKillHighlightAnim)
     {
         _isCardHighlighted = false;
-        
+
         _currentTween?.Kill();
 
         if (instantKillHighlightAnim)
@@ -105,22 +107,22 @@ public class CardUIHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         {
             return;
         }
-        
+
         if (!_isCardHighlighted)
         {
             OnPointerEnterEffect(true);
         }
     }
-    
+
     // Drag
     public void OnBeginDrag(PointerEventData eventData)
     {
         GameManager.Instance.isDraggingCard = true;
-        
+
         _currentTween?.Kill();
         _canvasGroup.blocksRaycasts = false;
     }
-    
+
     public void OnDrag(PointerEventData eventData)
     {
         _rectTransform.anchoredPosition += eventData.delta / _canvas.scaleFactor;
@@ -132,29 +134,39 @@ public class CardUIHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         _canvasGroup.blocksRaycasts = true;
 
         // 드롭 위치에 콜라이더가 있는지 확인
-        if (Camera.main != null)
+        if (Camera.main == null)
         {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        
-            if (Physics.Raycast(ray, out RaycastHit hit, 100f))
-            {
-                CardDrop cardDrop = hit.collider.GetComponent<CardDrop>();
-            
-                if (cardDrop != null)
-                {
-                    DeckManager.Instance.UseCard(_ref.Card);
-                    UnitSpawnManager.Instance.SpawnUnit(_ref.Card, hit.point);
-                
-                    _cardUIManager.RemoveCards(DeckManager.Instance.hand);
-                }
-                else
-                {
-#if UNITY_EDITOR
-                    Debug.LogWarning("배치 실패");
-#endif
-                    _cardUIManager.UpdateCardLayout();
-                }
-            }
+            return;
+        }
+
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        if (!Physics.Raycast(ray, out RaycastHit hit, 1000f))
+        {
+            return;
+        }
+
+        // cost check
+        if (DeckManager.Instance.cost < _ref.Card.cost)
+        {
+            Debug.Log($"[CardUiHandler] Cost 부족. (remain cost : {DeckManager.Instance.cost} / require cost : {_ref.Card.cost})");
+            NotifyPanel.Instance.ShowNotifyPanel();
+            _cardUIManager.UpdateCardLayout();
+            return;
+        }
+
+        if (hit.collider.GetComponent<MeshCollider>() != null)
+        {
+            DeckManager.Instance.UseCard(_ref.Card);
+            UnitSpawnManager.Instance.SpawnUnit(_ref.Card, hit.point);
+
+            DeckManager.Instance.cost -= _ref.Card.cost;
+            GameObject.Find("CostText").GetComponent<TMP_Text>().text = DeckManager.Instance.cost.ToString();
+
+            _cardUIManager.RemoveCards(DeckManager.Instance.hand);
+        }
+        else
+        {
+            _cardUIManager.UpdateCardLayout();
         }
     }
 }

@@ -141,7 +141,7 @@ public class DeckListViewOnShop : MonoBehaviour
         bool upgradeable = card.level < 3 && card.nextUpgradeUnits != null && card.nextUpgradeUnits.Count > 0;
         
         int price = upgradeable
-            ? UnitUpgradePriceCalculator.GetUpgradePrice(card.level, playerState.UpgradeCount,StageTypes.StageNodeTypes.Shop)
+            ? UnitUpgradePriceCalculator.GetUpgradePrice(card.level, playerState.UpgradeCount + 1,StageTypes.StageNodeTypes.Shop)
             : int.MaxValue;
 
         bool locked = !upgradeable || playerState.Gold < price;

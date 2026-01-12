@@ -19,7 +19,7 @@ public static class UnitUpgradePriceCalculator
             _ => int.MaxValue // 3이상은 업그레이드 불가
         };
         
-        if(basePrice == int.MaxValue)
+        if (basePrice == int.MaxValue)
         {
             return int.MaxValue;
         }
