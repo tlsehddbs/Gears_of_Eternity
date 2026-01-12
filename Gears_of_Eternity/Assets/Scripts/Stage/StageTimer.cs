@@ -11,6 +11,8 @@ public class StageTimer : MonoBehaviour
 
     public event Action<float> OnTick;
     public event Action OnExpired;
+    
+    public float Duration => limitSeconds;
 
     private void Awake()
     {
