@@ -1193,7 +1193,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   testDrawCount: 1
-  cardUIMnager: {fileID: 1343686172}
+  cardUIMnager: {fileID: 0}
 --- !u!114 &1061150881
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1628,7 +1628,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1343686170}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ca36a06e606da0347a374d0bed259a59, type: 3}
+  m_Script: {fileID: 11500000, guid: ebc92f679f069a642b08a3984d6269f2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   cardPrefab: {fileID: 2119945691252397610, guid: f24529781372fd84396035e44f8bef25, type: 3}
