@@ -1168,7 +1168,7 @@ private void SyncAttackRangeToAgent()
 
 
 
-//애니메이션 부분
+    //애니메이션 부분
     private void EnsureAnimator()
     {
         if (animator == null)
@@ -1262,6 +1262,9 @@ private void SyncAttackRangeToAgent()
 
         FacePositionInstant(pendingAttackTarget.transform.position); // 타격 직전 정면 보정
 
+        // 여기 추가: VFX 타이밍(히트 프레임)
+        PublishBasicAttackHitFrame(pendingAttackTarget);
+        
         // 기존 Attack() 재활용 (중복 최소)
         targetEnemy = pendingAttackTarget;
         Attack();
@@ -1318,7 +1321,15 @@ private void SyncAttackRangeToAgent()
         transform.rotation = Quaternion.LookRotation(dir.normalized, Vector3.up);
     }
 
+    //이펙트 부분
 
+    // 평타 타격 프레임에 호출된다(실제 데미지 적용 직전/직후에 맞춰 사용할 수 있음).
+    public event Action<UnitCombatFSM> OnBasicAttackHitFrame;
+
+    public void PublishBasicAttackHitFrame(UnitCombatFSM target)
+    {
+        OnBasicAttackHitFrame?.Invoke(target);
+    }
 
 
 

@@ -26,5 +26,5 @@ MonoBehaviour:
     skillDelayTime: 0
     skillMaxStack: 3
     isPercent: 0
-    skillRange: 0
+    skillRange: 20
     skillAngle: 0

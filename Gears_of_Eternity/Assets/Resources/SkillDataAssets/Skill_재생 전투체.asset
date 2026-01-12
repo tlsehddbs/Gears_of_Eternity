@@ -21,7 +21,7 @@ MonoBehaviour:
   effects:
   - skillType: 30
     buffStat: 0
-    skillValue: 0.05
+    skillValue: 0.02
     skillDuration: 0
     skillDelayTime: 2
     skillMaxStack: 0.3

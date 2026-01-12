@@ -13,7 +13,7 @@ public sealed class UnitUIBinder : MonoBehaviour
     [SerializeField] private UnitCombatFSM unit;
 
     [Header("Offsets")]
-    [SerializeField] private Vector3 healthBarWorldOffset = new Vector3(0f, 2.0f, 0f);
+    [SerializeField] private Vector3 healthBarWorldOffset = new Vector3(0f, 7.0f, 0f);
 
     [Header("Options")]
     [SerializeField] private bool showPopupOnBarrierOnly = true;   // HP가 안 깎이고 방어막만 깎여도 숫자를 띄울지

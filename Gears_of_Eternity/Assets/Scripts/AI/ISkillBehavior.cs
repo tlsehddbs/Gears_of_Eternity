@@ -192,11 +192,11 @@ public class DashAttackAndGuardSkill : ISkillBehavior
 {
     public bool ShouldTrigger(UnitCombatFSM caster, SkillEffect effect)
     {
-        var target = FindTarget(caster, effect);
-        if (target == null) return false;
+        if (caster == null) return false;
+        if (!caster.CanUseSkill()) return false;
 
-        float dist = Vector3.Distance(caster.transform.position, target.transform.position);
-        return caster.CanUseSkill() && dist <= 30f;
+        // 타겟이 없으면 스킬 시도 자체를 막음 (range 체크는 SkillExecutor 쪽에서도 수행됨):contentReference[oaicite:2]{index=2}
+        return caster.FindNearestEnemy() != null;
     }
 
     public UnitCombatFSM FindTarget(UnitCombatFSM caster, SkillEffect effect)
@@ -206,41 +206,128 @@ public class DashAttackAndGuardSkill : ISkillBehavior
 
     public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
     {
-        caster.StartCoroutine(DashAndAttackRoutine(caster, effect));
+        if (caster == null || target == null) return;
+        caster.StartCoroutine(DashAndAttackRoutine(caster, target, effect));
     }
 
-    private IEnumerator DashAndAttackRoutine(UnitCombatFSM caster, SkillEffect effect)
+    private IEnumerator DashAndAttackRoutine(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
     {
-        float dashDistance = 30f;
-        float dashSpeed = 15f;
-        Vector3 dashDir = caster.transform.forward;
-        Vector3 targetPos = caster.transform.position + dashDir * dashDistance;
+        // -----------------------------
+        // 1) 돌진 파라미터 (기존 하드코딩 유지하되, effect.skillRange 있으면 재사용)
+        // -----------------------------
+        float dashDistance = (effect.skillRange > 0f) ? effect.skillRange : 30f;
+        float dashSpeed = 60f;
 
-        float dashTime = dashDistance / dashSpeed;
+        Vector3 startPos = caster.transform.position;
+
+        // "전방"을 caster.forward로 고정하면, 타겟을 보고 있지 않을 때 옆으로 돌진할 수 있음
+        // 타겟 방향으로 돌진하도록 보정 (XZ 기준)
+        Vector3 dir = target.transform.position - startPos;
+        dir.y = 0f;
+
+        Vector3 dashDir = (dir.sqrMagnitude > 0.0001f) ? dir.normalized : caster.transform.forward;
+
+        Vector3 endPos = startPos + dashDir * dashDistance;
+
+        // -----------------------------
+        // 2) NavMeshAgent 사용 중이면, 돌진 동안 Transform 이동과 충돌할 수 있어서 최소한으로 정지/경로 리셋
+        //    (프로젝트에 caster.agent 사용 패턴이 이미 존재):contentReference[oaicite:3]{index=3}
+        // -----------------------------
+        var agent = caster.agent;
+        bool hadAgent = (agent != null && agent.enabled);
+
+        bool prevUpdatePos = false;
+        bool prevUpdateRot = false;
+        bool prevStopped = false;
+
+        if (hadAgent)
+        {
+            prevUpdatePos = agent.updatePosition;
+            prevUpdateRot = agent.updateRotation;
+            prevStopped = agent.isStopped;
+
+            agent.isStopped = true;
+            agent.ResetPath();
+            agent.updatePosition = false;
+            agent.updateRotation = false;
+        }
+
+        // -----------------------------
+        // 3) 돌진 이동 (Lerp는 startPos 고정으로)
+        // -----------------------------
+        float dashTime = dashDistance / Mathf.Max(0.01f, dashSpeed);
         float t = 0f;
+
+        Quaternion lookRot = Quaternion.LookRotation(dashDir, Vector3.up);
 
         while (t < dashTime)
         {
-            caster.transform.position = Vector3.Lerp(caster.transform.position, targetPos, t / dashTime);
+            float alpha = t / dashTime;
+
+            caster.transform.position = Vector3.Lerp(startPos, endPos, alpha);
+            caster.transform.rotation = lookRot;
+
             t += Time.deltaTime;
             yield return null;
         }
-        caster.transform.position = targetPos;
 
-        float range = 3.0f;
-        Collider[] hits = Physics.OverlapBox(targetPos, new Vector3(range, 1, dashDistance / 2), caster.transform.rotation);
+        caster.transform.position = endPos;
+        caster.transform.rotation = lookRot;
 
-        foreach (var hit in hits)
+        // -----------------------------
+        // 4) 히트 판정: "돌진 경로 전체"를 박스로 커버
+        //    center = (start+end)/2
+        //    halfExtents.z = dashDistance/2
+        // -----------------------------
+        Vector3 center = (startPos + endPos) * 0.5f;
+        // 높이 축은 약간 넉넉하게 잡아서 지형/키 차이로 누락되는 걸 줄임
+        Vector3 halfExtents = new Vector3(3.0f, 2.0f, dashDistance * 0.5f);
+
+        Collider[] hits = Physics.OverlapBox(center, halfExtents, lookRot, ~0);
+
+        // 유닛에 콜라이더가 여러 개 붙어있을 수 있으니 중복 타격 방지
+        HashSet<UnitCombatFSM> hitUnits = new HashSet<UnitCombatFSM>();
+
+        for (int i = 0; i < hits.Length; i++)
         {
-            var enemy = hit.GetComponent<UnitCombatFSM>();
-            if (enemy != null && enemy.unitData.faction != caster.unitData.faction)
-            {
-                float damage = caster.stats.attack * effect.skillValue;
-                enemy.TakeDamage(damage);
-            }
+            var col = hits[i];
+            if (col == null) continue;
+
+            // 핵심 수정 1) 자식 콜라이더 대응
+            var enemy = col.GetComponentInParent<UnitCombatFSM>();
+            if (enemy == null) continue;
+
+            if (enemy == caster) continue;
+            if (!enemy.IsAlive()) continue;
+            if (enemy.unitData == null || caster.unitData == null) continue;
+            if (enemy.unitData.faction == caster.unitData.faction) continue;
+
+            if (!hitUnits.Add(enemy)) continue;
+
+            float damage = caster.stats.attack * effect.skillValue;
+
+            // 핵심 수정 2) 공격자 전달 (스킬/패시브/로그/UI 일관성)
+            enemy.TakeDamage(damage, caster);
         }
 
-        caster.stats.guardCount += (int)effect.skillMaxStack;
+        // -----------------------------
+        // 5) 가드 스택 부여 (기존 로직 유지)
+        // -----------------------------
+        int addGuard = Mathf.Max(0, Mathf.RoundToInt(effect.skillMaxStack));
+        caster.stats.guardCount += addGuard;
+
+        // -----------------------------
+        // 6) NavMeshAgent 복구
+        // -----------------------------
+        if (hadAgent)
+        {
+            // 내부 위치 싱크(스냅/튐 방지)
+            agent.nextPosition = caster.transform.position;
+
+            agent.updatePosition = prevUpdatePos;
+            agent.updateRotation = prevUpdateRot;
+            agent.isStopped = prevStopped;
+        }
     }
 
     public void Remove(UnitCombatFSM caster, SkillEffect effect) { }
