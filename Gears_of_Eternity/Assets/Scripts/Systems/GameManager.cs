@@ -9,6 +9,9 @@ public class GameManager : MonoBehaviour
     public bool isDraggingCard;
     [HideInInspector]
     public bool isPointerEventEnabled = true;
+
+    public float combatTime = 360f;
+    public int maxCost = 10;
     
 
     void Awake()
@@ -17,17 +20,6 @@ public class GameManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-
-            // if (PlayerProgress == null)
-            // {
-            //     PlayerProgress = GetComponent<IPlayerProgress>();
-            // }
-            //
-            // var flow = FindAnyObjectByType<StageFlow>();
-            // if (flow != null)
-            // {
-            //     flow.PlayerProgress = PlayerProgress;
-            // }
         }
         else
         {

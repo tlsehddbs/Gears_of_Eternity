@@ -8,7 +8,7 @@ public class StageTypes : MonoBehaviour
         Combat,
         Shop,
         Rest,
-        Boss,
-        Event
+        Boss
+        //Event
     };
 }
