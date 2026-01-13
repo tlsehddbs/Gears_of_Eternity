@@ -1,15 +1,8 @@
 fileFormatVersion: 2
-<<<<<<<< HEAD:Gears_of_Eternity/Assets/Resources/UnitCardAssets/EMP 방출자.asset.meta
 guid: b22af2a12e38341408a9fc48a2f2a9bb
 NativeFormatImporter:
   externalObjects: {}
   mainObjectFileID: 11400000
-========
-guid: 6d64ac6152e50184fa45478fe4c91d19
-NativeFormatImporter:
-  externalObjects: {}
-  mainObjectFileID: 9100000
->>>>>>>> fc39f2e812770ec94289adce797ae078546f8754:Gears_of_Eternity/Assets/AnimatonController/기어 전투병.controller.meta
   userData: 
   assetBundleName: 
   assetBundleVariant: 

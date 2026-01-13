@@ -16,19 +16,23 @@ MonoBehaviour:
   icon: {fileID: 0}
   cardType: 0
   faction: 1
-  rarity: 2
-  cost: 4
-  price: 0
+  rarity: 1
+  cost: 3
+  level: 2
   unitName: "\uACE8\uACA9 \uAC15\uD654\uCCB4"
-  description: 
-  roleType: 0
+  battleType: 0
   unitPrefab: {fileID: 0}
-  health: 2376
-  defense: 111
-  moveSpeed: 3.7
-  attackType: "\uADFC\uAC70\uB9AC"
-  attackValue: 135
-  attackSpeed: 1.1
+  health: 145
+  defense: 45
+  moveSpeed: 1.5
+  attack: 32
+  attackSpeed: 1.2
+  attackRange: 1
   attackDistance: 1
-  level: 3
-  nextUpgrades: []
+  skillName: 
+  skillCoolDown: 0
+  skillDescription: 
+  nextUpgrades:
+  - {fileID: 11400000, guid: 4f435ca55ca761c40936eaf90c07cd75, type: 2}
+  - {fileID: 11400000, guid: 06553bb2188b42541a3b1fd43df2f8c9, type: 2}
+  - {fileID: 11400000, guid: eabf0e3cc5d9e18498e5967cd2bdccbd, type: 2}

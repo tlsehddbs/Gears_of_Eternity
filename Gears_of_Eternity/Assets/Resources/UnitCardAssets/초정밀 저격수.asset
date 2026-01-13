@@ -18,17 +18,18 @@ MonoBehaviour:
   faction: 0
   rarity: 2
   cost: 4
-  price: 0
-  unitName: "\uCD08\uC815\uBC00 \uC800\uACA9\uC218"
-  description: 
-  roleType: 1
-  unitPrefab: {fileID: 0}
-  health: 1346
-  defense: 56
-  moveSpeed: 3.2
-  attackType: "\uC6D0\uAC70\uB9AC"
-  attackValue: 231
-  attackSpeed: 1.3
-  attackDistance: 4
   level: 3
+  unitName: "\uCD08\uC815\uBC00 \uC800\uACA9\uC218"
+  battleType: 1
+  unitPrefab: {fileID: 0}
+  health: 95
+  defense: 30
+  moveSpeed: 2.8
+  attack: 85
+  attackSpeed: 1.4
+  attackRange: 2
+  attackDistance: 6
+  skillName: 
+  skillCoolDown: 0
+  skillDescription: 
   nextUpgrades: []
