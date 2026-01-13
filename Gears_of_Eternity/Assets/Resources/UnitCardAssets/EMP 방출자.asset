@@ -22,7 +22,7 @@ MonoBehaviour:
   unitName: "EMP \uBC29\uCD9C\uC790"
   description: 
   roleType: 2
-  unitPrefab: {fileID: 0}
+  unitPrefab: {fileID: 2487342554241405493, guid: c6f31a6c3548a21488c72b914084e806, type: 3}
   health: 1782
   defense: 83
   moveSpeed: 3.6

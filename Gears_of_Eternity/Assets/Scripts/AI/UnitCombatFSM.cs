@@ -108,11 +108,11 @@ public partial class UnitCombatFSM : MonoBehaviour
     void Start()
     {
 
-        CreateRangeIndicator(); //런타임 사거리
+        //CreateRangeIndicator(); //런타임 사거리
 
         CloneStats(); // 스탯 복사 
         currentHP = stats.health;
-        agent.speed = stats.moveSpeed;
+        agent.speed = stats.moveSpeed + 1;
         //agent.stoppingDistance = stats.attackDistance * 5;
         SyncAttackRangeToAgent();
 
@@ -167,10 +167,10 @@ public partial class UnitCombatFSM : MonoBehaviour
             ChangeState(new DeadState(this));
         }
 
-        if (rangeIndicator != null)
-        {
-            UpdateRangeIndicator();
-        }  
+        // if (rangeIndicator != null)
+        // {
+        //     UpdateRangeIndicator();
+        // }  
     }
 
 
@@ -1390,39 +1390,39 @@ private void SyncAttackRangeToAgent()
 
     //---------------------------------------------------------------------------------------------------------------------
     //런타임 사거리 
-    private LineRenderer rangeIndicator;
+    // private LineRenderer rangeIndicator;
 
-    void CreateRangeIndicator()
-    {
-        GameObject rangeObj = new GameObject("RangeIndicator");
-        rangeObj.transform.SetParent(null);
+    // void CreateRangeIndicator()
+    // {
+    //     GameObject rangeObj = new GameObject("RangeIndicator");
+    //     rangeObj.transform.SetParent(null);
 
-        rangeIndicator = gameObject.AddComponent<LineRenderer>();
-        rangeIndicator.positionCount = 51;
-        rangeIndicator.loop = true;
-        rangeIndicator.widthMultiplier = 0.05f;
-        rangeIndicator.material = new Material(Shader.Find("Sprites/Default"));
-        rangeIndicator.startColor = Color.red;
-        rangeIndicator.endColor = Color.red;
-        rangeIndicator.useWorldSpace = true;
+    //     rangeIndicator = gameObject.AddComponent<LineRenderer>();
+    //     rangeIndicator.positionCount = 51;
+    //     rangeIndicator.loop = true;
+    //     rangeIndicator.widthMultiplier = 0.05f;
+    //     rangeIndicator.material = new Material(Shader.Find("Sprites/Default"));
+    //     rangeIndicator.startColor = Color.red;
+    //     rangeIndicator.endColor = Color.red;
+    //     rangeIndicator.useWorldSpace = true;
 
-        UpdateRangeIndicator();
-    }
+    //     UpdateRangeIndicator();
+    // }
 
-    void UpdateRangeIndicator()
-    {
-        if (rangeIndicator == null || unitData == null) return;
+    // void UpdateRangeIndicator()
+    // {
+    //     if (rangeIndicator == null || unitData == null) return;
 
-        float radius = agent.stoppingDistance;
-        Vector3 center = transform.position;
+    //     float radius = agent.stoppingDistance;
+    //     Vector3 center = transform.position;
 
-        for (int i = 0; i < 51; i++)
-        {
-            float angle = i * (360f / 50f) * Mathf.Deg2Rad;
-            Vector3 pos = new Vector3(Mathf.Cos(angle) * radius, 0.05f, Mathf.Sin(angle) * radius);
-            rangeIndicator.SetPosition(i, center + pos);
-        }
-    }
+    //     for (int i = 0; i < 51; i++)
+    //     {
+    //         float angle = i * (360f / 50f) * Mathf.Deg2Rad;
+    //         Vector3 pos = new Vector3(Mathf.Cos(angle) * radius, 0.05f, Mathf.Sin(angle) * radius);
+    //         rangeIndicator.SetPosition(i, center + pos);
+    //     }
+    // }
 }
 
 

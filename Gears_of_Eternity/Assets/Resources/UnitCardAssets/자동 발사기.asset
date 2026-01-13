@@ -22,7 +22,7 @@ MonoBehaviour:
   unitName: "\uC790\uB3D9 \uBC1C\uC0AC\uAE30"
   description: 
   roleType: 1
-  unitPrefab: {fileID: 0}
+  unitPrefab: {fileID: 4000882452046818001, guid: 6548fc5c268060d4286b2c984a57ec01, type: 3}
   health: 1069
   defense: 42
   moveSpeed: 3.2
