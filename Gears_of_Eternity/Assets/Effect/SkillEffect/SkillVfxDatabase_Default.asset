@@ -17,58 +17,324 @@ MonoBehaviour:
     cast:
       castPrefab: {fileID: 2468727949457144569, guid: a437b93b22cf48549822114b7ed4872b, type: 3}
       offset: {x: 0, y: 0, z: 0}
-      scale: 2
-      defaultDuration: 0.2
+      scale: 5
+      defaultDuration: 2
+      castEffect: 1
       followCaster: 1
       followRotation: 0
+      rotationOffsetEuler: {x: -90, y: 0, z: 0}
   - group: 2
     cast:
       castPrefab: {fileID: 3800755034649417634, guid: 3100bb13cf7fb084092d7cf7d6fc7781, type: 3}
-      offset: {x: 0, y: 0, z: 0}
-      scale: 2
-      defaultDuration: 5
+      offset: {x: 0, y: -1, z: 0}
+      scale: 5
+      defaultDuration: 2
+      castEffect: 1
       followCaster: 1
-      followRotation: 0
+      followRotation: 1
+      rotationOffsetEuler: {x: -90, y: 0, z: 0}
   - group: 3
     cast:
       castPrefab: {fileID: 1091687041275116622, guid: 10a838298e90b54498386280f0116d59, type: 3}
       offset: {x: 0, y: 0, z: 0}
-      scale: 2
-      defaultDuration: 0.2
+      scale: 5
+      defaultDuration: 2
+      castEffect: 1
       followCaster: 1
       followRotation: 0
+      rotationOffsetEuler: {x: -90, y: 0, z: 0}
   - group: 4
     cast:
       castPrefab: {fileID: 1437103029103609122, guid: 6f26343af18ea8140add55cdb301c051, type: 3}
       offset: {x: 0, y: 0, z: 0}
-      scale: 2
-      defaultDuration: 0.2
+      scale: 5
+      defaultDuration: 2
+      castEffect: 1
       followCaster: 1
       followRotation: 0
+      rotationOffsetEuler: {x: -90, y: 0, z: 0}
   - group: 5
     cast:
       castPrefab: {fileID: 4937350686331223085, guid: b97328e65790d41488722e97024c13a2, type: 3}
       offset: {x: 0, y: 0, z: 0}
-      scale: 2
-      defaultDuration: 0.2
+      scale: 5
+      defaultDuration: 2
+      castEffect: 1
       followCaster: 1
       followRotation: 0
+      rotationOffsetEuler: {x: -90, y: 0, z: 0}
   - group: 6
     cast:
       castPrefab: {fileID: 1348608587566276983, guid: 80a7c318e6a8e824c99f2f2238cf09c1, type: 3}
       offset: {x: 0, y: 0, z: 0}
-      scale: 2
-      defaultDuration: 0.2
+      scale: 5
+      defaultDuration: 2
+      castEffect: 1
       followCaster: 1
       followRotation: 0
+      rotationOffsetEuler: {x: -90, y: 0, z: 0}
   overrides:
-  - skillType: 0
+  - skillType: 2
     disable: 0
     castOverride:
-      castPrefab: {fileID: 0}
+      castPrefab: {fileID: 2705727195494909610, guid: 9e322f5237e172e448f4475200a5074e, type: 3}
       offset: {x: 0, y: 0, z: 0}
-      scale: 0
+      scale: 1
       defaultDuration: 0
+      castEffect: 1
+      followCaster: 1
+      followRotation: 1
+      rotationOffsetEuler: {x: -180, y: 0, z: 0}
+    groupOverride: 0
+  - skillType: 1
+    disable: 0
+    castOverride:
+      castPrefab: {fileID: 8144191937915052084, guid: 8c43b595f15593a439fe4041bed65ba5, type: 3}
+      offset: {x: 0, y: 0, z: 0}
+      scale: 5
+      defaultDuration: 2
+      castEffect: 1
+      followCaster: 1
+      followRotation: 1
+      rotationOffsetEuler: {x: 0, y: 0, z: 0}
+    groupOverride: 0
+  - skillType: 12
+    disable: 0
+    castOverride:
+      castPrefab: {fileID: 1100747957235905073, guid: 215f1f03dc2750048978ec0f129d2235, type: 3}
+      offset: {x: 0, y: 0, z: 0}
+      scale: 5
+      defaultDuration: 2
+      castEffect: 1
+      followCaster: 1
+      followRotation: 1
+      rotationOffsetEuler: {x: 0, y: 0, z: 0}
+    groupOverride: 0
+  - skillType: 8
+    disable: 0
+    castOverride:
+      castPrefab: {fileID: 4937350686331223085, guid: b97328e65790d41488722e97024c13a2, type: 3}
+      offset: {x: 0, y: 0, z: 0}
+      scale: 5
+      defaultDuration: 2
+      castEffect: 1
+      followCaster: 1
+      followRotation: 1
+      rotationOffsetEuler: {x: -90, y: 0, z: 0}
+    groupOverride: 0
+  - skillType: 5
+    disable: 0
+    castOverride:
+      castPrefab: {fileID: 8455727420820848849, guid: 89f61ce6529a63b4685f00163f797271, type: 3}
+      offset: {x: 0, y: 0, z: 0}
+      scale: 5
+      defaultDuration: 2
+      castEffect: 1
+      followCaster: 1
+      followRotation: 1
+      rotationOffsetEuler: {x: 90, y: 0, z: 0}
+    groupOverride: 0
+  - skillType: 23
+    disable: 0
+    castOverride:
+      castPrefab: {fileID: 2432561479738596913, guid: f2820a4d3f038d445aa54d3099125ad8, type: 3}
+      offset: {x: 0, y: 1.5, z: 0}
+      scale: 5
+      defaultDuration: 1.2
+      castEffect: 0
       followCaster: 0
       followRotation: 0
+      rotationOffsetEuler: {x: 0, y: 0, z: 0}
+    groupOverride: 0
+  - skillType: 20
+    disable: 0
+    castOverride:
+      castPrefab: {fileID: 14617538079985943, guid: bc3af53971ff38146bc7a6e75e66268e, type: 3}
+      offset: {x: 0, y: 0, z: 0}
+      scale: 1
+      defaultDuration: 0
+      castEffect: 1
+      followCaster: 1
+      followRotation: 1
+      rotationOffsetEuler: {x: -180, y: 0, z: 0}
+    groupOverride: 0
+  - skillType: 25
+    disable: 0
+    castOverride:
+      castPrefab: {fileID: 484955260420275785, guid: 809a44e802994ed4184cf1547bf7fe9a, type: 3}
+      offset: {x: 0, y: 5, z: 0}
+      scale: 1
+      defaultDuration: 1.2
+      castEffect: 0
+      followCaster: 0
+      followRotation: 0
+      rotationOffsetEuler: {x: 0, y: 0, z: 0}
+    groupOverride: 0
+  - skillType: 21
+    disable: 0
+    castOverride:
+      castPrefab: {fileID: 3138286616924739359, guid: 40e47354886c8ea489a2b910b01d637e, type: 3}
+      offset: {x: 0, y: 0, z: 0}
+      scale: 1
+      defaultDuration: 7
+      castEffect: 0
+      followCaster: 1
+      followRotation: 0
+      rotationOffsetEuler: {x: 0, y: 0, z: 0}
+    groupOverride: 0
+  - skillType: 29
+    disable: 0
+    castOverride:
+      castPrefab: {fileID: 3537637743044906722, guid: 9cf27fe70b1358749b091291e5414458, type: 3}
+      offset: {x: 0, y: 0, z: 0}
+      scale: 1
+      defaultDuration: 1
+      castEffect: 1
+      followCaster: 1
+      followRotation: 1
+      rotationOffsetEuler: {x: 0, y: -90, z: 0}
+    groupOverride: 0
+  - skillType: 26
+    disable: 0
+    castOverride:
+      castPrefab: {fileID: 7650546976461404685, guid: 568d1f44cb1a6494f92e71b044aeaa4c, type: 3}
+      offset: {x: 0, y: 0, z: 0}
+      scale: 5
+      defaultDuration: 2
+      castEffect: 1
+      followCaster: 1
+      followRotation: 1
+      rotationOffsetEuler: {x: -90, y: 0, z: 0}
+    groupOverride: 0
+  - skillType: 27
+    disable: 0
+    castOverride:
+      castPrefab: {fileID: 1503302773788878272, guid: 57596560ca6dd8c4cb52de015a13871b, type: 3}
+      offset: {x: 0, y: 0, z: 0}
+      scale: 5
+      defaultDuration: 7
+      castEffect: 0
+      followCaster: 0
+      followRotation: 0
+      rotationOffsetEuler: {x: -90, y: 0, z: 0}
+    groupOverride: 0
+  - skillType: 28
+    disable: 0
+    castOverride:
+      castPrefab: {fileID: 3733003353735585828, guid: 82e9d70813505734ca9039ac9ecd14cd, type: 3}
+      offset: {x: 0, y: 0, z: 0}
+      scale: 5
+      defaultDuration: 2
+      castEffect: 1
+      followCaster: 1
+      followRotation: 1
+      rotationOffsetEuler: {x: -90, y: 0, z: 0}
+    groupOverride: 0
+  - skillType: 41
+    disable: 0
+    castOverride:
+      castPrefab: {fileID: 1091687041275116622, guid: 10a838298e90b54498386280f0116d59, type: 3}
+      offset: {x: 0, y: 0, z: 0}
+      scale: 5
+      defaultDuration: 2
+      castEffect: 1
+      followCaster: 1
+      followRotation: 1
+      rotationOffsetEuler: {x: -90, y: 0, z: 0}
+    groupOverride: 0
+  - skillType: 34
+    disable: 0
+    castOverride:
+      castPrefab: {fileID: 1100747957235905073, guid: 215f1f03dc2750048978ec0f129d2235, type: 3}
+      offset: {x: 0, y: 0, z: 0}
+      scale: 5
+      defaultDuration: 2
+      castEffect: 1
+      followCaster: 1
+      followRotation: 1
+      rotationOffsetEuler: {x: -90, y: 0, z: 0}
+    groupOverride: 0
+  - skillType: 35
+    disable: 0
+    castOverride:
+      castPrefab: {fileID: 4845879553570647284, guid: a77a6f907deceb4419281c5ec160cd62, type: 3}
+      offset: {x: 0, y: 0, z: 0}
+      scale: 1
+      defaultDuration: 0
+      castEffect: 1
+      followCaster: 1
+      followRotation: 1
+      rotationOffsetEuler: {x: -180, y: 0, z: 0}
+    groupOverride: 0
+  - skillType: 4
+    disable: 0
+    castOverride:
+      castPrefab: {fileID: 3144504712196556999, guid: d4ca5bb84db1b12418142fca41e6b5e0, type: 3}
+      offset: {x: 0, y: 0, z: 0}
+      scale: 1
+      defaultDuration: 1
+      castEffect: 1
+      followCaster: 1
+      followRotation: 1
+      rotationOffsetEuler: {x: 0, y: 0, z: 0}
+    groupOverride: 0
+  - skillType: 37
+    disable: 0
+    castOverride:
+      castPrefab: {fileID: 7650546976461404685, guid: 568d1f44cb1a6494f92e71b044aeaa4c, type: 3}
+      offset: {x: 0, y: 0, z: 0}
+      scale: 5
+      defaultDuration: 2
+      castEffect: 1
+      followCaster: 1
+      followRotation: 1
+      rotationOffsetEuler: {x: -90, y: 0, z: 0}
+    groupOverride: 0
+  - skillType: 38
+    disable: 0
+    castOverride:
+      castPrefab: {fileID: 1030045056246038253, guid: 6de8848ccf406a948a633bb440d4ccdc, type: 3}
+      offset: {x: 0, y: 0, z: 0}
+      scale: 1
+      defaultDuration: 1.2
+      castEffect: 0
+      followCaster: 0
+      followRotation: 0
+      rotationOffsetEuler: {x: 0, y: 0, z: 0}
+    groupOverride: 0
+  - skillType: 39
+    disable: 0
+    castOverride:
+      castPrefab: {fileID: 7650546976461404685, guid: 568d1f44cb1a6494f92e71b044aeaa4c, type: 3}
+      offset: {x: 0, y: 0, z: 0}
+      scale: 5
+      defaultDuration: 2
+      castEffect: 1
+      followCaster: 1
+      followRotation: 1
+      rotationOffsetEuler: {x: 0, y: -90, z: 0}
+    groupOverride: 0
+  - skillType: 40
+    disable: 0
+    castOverride:
+      castPrefab: {fileID: 1030045056246038253, guid: 6de8848ccf406a948a633bb440d4ccdc, type: 3}
+      offset: {x: 0, y: 0, z: 0}
+      scale: 1
+      defaultDuration: 1.2
+      castEffect: 0
+      followCaster: 0
+      followRotation: 0
+      rotationOffsetEuler: {x: 0, y: 0, z: 0}
+    groupOverride: 0
+  - skillType: 24
+    disable: 0
+    castOverride:
+      castPrefab: {fileID: 851537112724520709, guid: f4a4d55e7e632284997dc2143e0bbfda, type: 3}
+      offset: {x: 0, y: 0, z: 0}
+      scale: 5
+      defaultDuration: 1.2
+      castEffect: 0
+      followCaster: 0
+      followRotation: 0
+      rotationOffsetEuler: {x: 0, y: 0, z: 0}
     groupOverride: 0

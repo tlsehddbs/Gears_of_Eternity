@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using System;
 using UnityEngine.AI;
-using System.Security;
+using UnitSkillTypes.Enums;
 
 public interface ISkillBehavior
 {
@@ -140,28 +140,71 @@ public class MultiHitSkill : ISkillBehavior
 
     private static IEnumerator MultiHitRoutine(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
     {
-        // 기존과 동일한 기본값
         int hitCount = 3;
         float damagePercent = (effect != null) ? effect.skillValue : 0.6f;
-        float delay = 0.2f;
+
+        // "데미지 간격" 기준(너 기존 코드의 delay 의미를 유지)
+        float damageInterval = 0.5f;
+
+        // 스킬 중에는 이동/상태 흔들림을 막아야 Run/Idle이 덮어쓰는 문제를 줄일 수 있음
+        // 확실하지 않음: movementLocked가 public인지, 어떤 상태에서 체크하는지에 따라 효과가 달라질 수 있음
+        bool prevMovementLocked = caster.movementLocked;
+        caster.movementLocked = true;
+
+        if (caster.agent != null)
+        {
+            caster.agent.ResetPath();
+            caster.agent.isStopped = true;
+        }
+
+        // 공격 애니 속도: 스킬은 별도 속도로 할지 결정 필요(간단히 1.0 유지)
+        // 만약 3타가 너무 느리면 speedMul을 올리거나, damageInterval을 늘려야 자연스러움
+        float speedMul = 1.4f;
+
+        // 타격 프레임까지의 대기 시간(애니와 데미지 싱크)
+        float hitDelay = caster.GetSkillHitDelaySeconds(speedMul);
 
         for (int i = 0; i < hitCount; i++)
         {
-            if (caster == null || !caster.IsAlive()) yield break;
-            if (target == null || !target.IsAlive()) yield break;
+            if (caster == null || !caster.IsAlive()) break;
+            if (target == null || !target.IsAlive()) break;
 
-            // 스킬 도중 타겟이 멀어지면 중단(평타거리 유지 조건)
             if (!IsWithinBasicAttackRange(caster, target))
-                yield break;
+                break;
+
+            // 뒤돌아 때리는 문제 방지: 히트마다 정면 스냅
+            caster.FacePositionInstant(target.transform.position);
+
+            // 히트마다 공격 애니를 0초부터 재생(연속 타격 연출)
+            caster.PlayAttackAnimForSkill(speedMul);
+
+            // 타격 프레임까지 기다린 뒤 데미지 적용
+            // (damageInterval보다 hitDelay가 더 길면 실제 간격이 늘어남)
+            if (hitDelay > 0f)
+                yield return new WaitForSeconds(hitDelay);
+
+            if (caster == null || !caster.IsAlive()) break;
+            if (target == null || !target.IsAlive()) break;
+            if (!IsWithinBasicAttackRange(caster, target)) break;
 
             float damage = caster.stats.attack * damagePercent;
 
-            // attacker 전달(피흡/처치 트리거/로그 등 호환)
+            // 너 기존 코드 유지(시그니처가 프로젝트에 맞게 이미 존재한다고 가정)
             target.TakeDamage(damage, caster);
 
-            yield return new WaitForSeconds(delay);
+            // 남은 시간만큼 대기해서 "데미지 간격"을 유지
+            float remain = Mathf.Max(0f, damageInterval - hitDelay);
+            if (remain > 0f)
+                yield return new WaitForSeconds(remain);
         }
+
+        // 원복
+        caster.movementLocked = prevMovementLocked;
+
+        if (caster != null && caster.agent != null)
+            caster.agent.isStopped = false;
     }
+    
 
     public void Remove(UnitCombatFSM caster, SkillEffect effect) { }
 }
@@ -365,24 +408,32 @@ public class ThrowSpearAttackSkill : ISkillBehavior
 //포자 분열사
 public class ConeTripleHitSkill : ISkillBehavior
 {
-    // private const int hitCount = 3;
-    // private const float hitDelay = 0.25f;
-    // private const float Angle = 90;
-    // private const float RangeMultiplier = 10f;
-
     public bool ShouldTrigger(UnitCombatFSM caster, SkillEffect effect)
     {
-        var list = caster.FindEnemiesInCone(effect.skillAngle, effect.skillRange);
-        return list.Count > 0;
+        if (caster == null || effect == null) return false;
+        if (!caster.CanUseSkill()) return false;
+
+        // effect.skillRange = "월드 사거리"로 사용 (SkillExecutor의 사거리 체크와 의미를 통일)
+        return TryGetPrimaryTargetInConeWorld(caster, effect.skillAngle, effect.skillRange, out _);
     }
 
     public UnitCombatFSM FindTarget(UnitCombatFSM caster, SkillEffect effect)
-    {
-        return caster.FindNearestEnemy(); // 대표 타겟 하나만 반환
+    { 
+        if (caster == null || effect == null) return null;
+
+        // 콘 안에 들어온 대표 타겟(가장 가까운 적) 반환
+        return TryGetPrimaryTargetInConeWorld(caster, effect.skillAngle, effect.skillRange, out var t) ? t : null;
     }
 
     public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
     {
+        if (caster == null || effect == null) return;
+        if (!caster.IsAlive()) return;
+
+        // ShouldTrigger~Execute 사이에 변동 가능하니 여기서도 한 번 더 확인
+        if (!TryGetPrimaryTargetInConeWorld(caster, effect.skillAngle, effect.skillRange, out _))
+            return;
+
         caster.StartCoroutine(ExecuteTripleHit(caster, effect));
         caster.skillTimer = 0f;
     }
@@ -391,25 +442,136 @@ public class ConeTripleHitSkill : ISkillBehavior
 
     private IEnumerator ExecuteTripleHit(UnitCombatFSM caster, SkillEffect effect)
     {
+        if (caster == null || effect == null) yield break;
 
-        float hitCount = effect.skillMaxStack;
+        int hitCount = Mathf.Max(1, Mathf.RoundToInt(effect.skillMaxStack));
         float hitDelay = 0.25f;
-        float Angle = effect.skillAngle;
-        float RangeMultiplier = effect.skillRange;
-        //Debug.Log("[ConeTripleHit] 코루틴 시작됨");
+
+        float angleDeg = effect.skillAngle;
+        float range = effect.skillRange;
 
         for (int i = 0; i < hitCount; i++)
         {
-            var targets = caster.FindEnemiesInCone(Angle, RangeMultiplier);
-            //Debug.Log($"[ConeTripleHit] {i+1}회차 대상 수: {targets.Count}");
-            foreach (var enemy in targets)
+            var targets = GatherEnemiesInConeWorld(caster, angleDeg, range);
+
+            // 타격 도중 콘 안에 아무도 없으면 남은 타수 중단
+            if (targets.Count == 0)
+                yield break;
+
+            float damage = caster.stats.attack * effect.skillValue;
+
+            for (int t = 0; t < targets.Count; t++)
             {
-                float damage = caster.stats.attack * effect.skillValue;
-                enemy.TakeDamage(damage);
-                Debug.Log($"[ConeTripleHit] {enemy.name} → {damage:F1} 피해 (타격 {i + 1}/3)");
+                var enemy = targets[t];
+                if (enemy == null || !enemy.IsAlive()) continue;
+
+                // 표준 TakeDamage 시그니처에 attacker 전달(피흡/킬로그/이벤트 일관성)
+                enemy.TakeDamage(damage, caster);
+
+                Debug.Log($"[ConeTripleHit] {enemy.name} → {damage:F1} 피해 (타격 {i + 1}/{hitCount})");
             }
+
             yield return new WaitForSeconds(hitDelay);
         }
+    }
+
+    // ----------------------------
+    // 월드 사거리 기준 콘 판정 유틸
+    // ----------------------------
+
+    private static bool TryGetPrimaryTargetInConeWorld(UnitCombatFSM caster, float angleDeg, float range, out UnitCombatFSM primary)
+    {
+        primary = null;
+        if (caster == null) return false;
+
+        float r = Mathf.Max(0f, range);
+        float sqrR = r * r;
+
+        // angleDeg는 "부채꼴 전체 각도"로 들어온다고 가정
+        float halfRad = Mathf.Deg2Rad * (Mathf.Max(0f, angleDeg) * 0.5f);
+        float cosThreshold = Mathf.Cos(halfRad);
+
+        Vector3 cpos = caster.transform.position;
+        Vector3 fwd = caster.transform.forward;
+        fwd.y = 0f;
+        float fwdMag = fwd.magnitude;
+        if (fwdMag < 0.0001f) fwd = Vector3.forward;
+        else fwd /= fwdMag;
+
+        float bestSqr = float.PositiveInfinity;
+
+        var all = GameObject.FindObjectsByType<UnitCombatFSM>(FindObjectsSortMode.None);
+        for (int i = 0; i < all.Length; i++)
+        {
+            var u = all[i];
+            if (u == null || u == caster || !u.IsAlive()) continue;
+            if (u.unitData.faction == caster.unitData.faction) continue;
+
+            Vector3 to = u.transform.position - cpos;
+            to.y = 0f;
+
+            float sqr = to.sqrMagnitude;
+            if (sqr > sqrR) continue;
+
+            float mag = Mathf.Sqrt(sqr);
+            if (mag < 0.0001f) continue;
+
+            Vector3 dir = to / mag;
+            float dot = Vector3.Dot(fwd, dir);
+            if (dot < cosThreshold) continue;
+
+            if (sqr < bestSqr)
+            {
+                bestSqr = sqr;
+                primary = u;
+            }
+        }
+
+        return primary != null;
+    }
+
+    private static List<UnitCombatFSM> GatherEnemiesInConeWorld(UnitCombatFSM caster, float angleDeg, float range)
+    {
+        var targets = new List<UnitCombatFSM>();
+        if (caster == null) return targets;
+
+        float r = Mathf.Max(0f, range);
+        float sqrR = r * r;
+
+        float halfRad = Mathf.Deg2Rad * (Mathf.Max(0f, angleDeg) * 0.5f);
+        float cosThreshold = Mathf.Cos(halfRad);
+
+        Vector3 cpos = caster.transform.position;
+        Vector3 fwd = caster.transform.forward;
+        fwd.y = 0f;
+        float fwdMag = fwd.magnitude;
+        if (fwdMag < 0.0001f) fwd = Vector3.forward;
+        else fwd /= fwdMag;
+
+        var all = GameObject.FindObjectsByType<UnitCombatFSM>(FindObjectsSortMode.None);
+        for (int i = 0; i < all.Length; i++)
+        {
+            var u = all[i];
+            if (u == null || u == caster || !u.IsAlive()) continue;
+            if (u.unitData.faction == caster.unitData.faction) continue;
+
+            Vector3 to = u.transform.position - cpos;
+            to.y = 0f;
+
+            float sqr = to.sqrMagnitude;
+            if (sqr > sqrR) continue;
+
+            float mag = Mathf.Sqrt(sqr);
+            if (mag < 0.0001f) continue;
+
+            Vector3 dir = to / mag;
+            float dot = Vector3.Dot(fwd, dir);
+            if (dot < cosThreshold) continue;
+
+            targets.Add(u);
+        }
+
+        return targets;
     }
 }
 
@@ -469,37 +631,117 @@ public class BleedBurstSkill : ISkillBehavior
     }
 }
 //군체 연사핵
+// public class DoubleAttackSkill : ISkillBehavior
+// {
+//     public bool ShouldTrigger(UnitCombatFSM caster, SkillEffect effect)
+//     {
+//         return true; // 지속형 패시브는 항상 적용됨
+//     }
+
+//     public UnitCombatFSM FindTarget(UnitCombatFSM caster, SkillEffect effect)
+//     {
+//         return null; 
+//     }
+
+//     public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
+//     {
+//         caster.OnPostAttack += () =>
+//         {
+//             if (caster.targetEnemy != null && caster.targetEnemy.IsAlive())
+//             {
+//                 float secondHit = caster.stats.attack * effect.skillValue;
+//                 caster.targetEnemy.TakeDamage(secondHit);
+//                 Debug.Log($"[DoubleAttackSkill] 추가 타격: {secondHit:F1} 피해");
+//             }
+//         };
+//     }
+
+//     public void Remove(UnitCombatFSM caster, SkillEffect effect)
+//     {
+//         // 이후 상태 해제 시 제거할 수 있도록 구조화
+//         caster.OnPostAttack = null;
+//     }
+// }
+
 public class DoubleAttackSkill : ISkillBehavior
 {
+    private const float DefaultDelaySeconds = 0.5f;
+
+    // UnitCombatFSM별로 구독한 핸들러를 저장해서 Remove에서 정확히 해제한다.
+    // applyEffectMap/removeEffectMap이 매번 new DoubleAttackSkill()를 만들기 때문에 static이 필요하다.
+    private static readonly Dictionary<UnitCombatFSM, Action> _handlers = new Dictionary<UnitCombatFSM, Action>();
+
     public bool ShouldTrigger(UnitCombatFSM caster, SkillEffect effect)
     {
-        return true; // 지속형 패시브는 항상 적용됨
+        return true; // 지속형 패시브는 항상 적용
     }
 
     public UnitCombatFSM FindTarget(UnitCombatFSM caster, SkillEffect effect)
     {
-        return null; 
+        return null;
     }
 
     public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
     {
-        caster.OnPostAttack += () =>
+        if (caster == null || effect == null) return;
+
+        // 이미 등록돼 있으면 중복 구독 방지(스탯/값 갱신 목적이면 교체)
+        if (_handlers.TryGetValue(caster, out var old))
         {
-            if (caster.targetEnemy != null && caster.targetEnemy.IsAlive())
-            {
-                float secondHit = caster.stats.attack * effect.skillValue;
-                caster.targetEnemy.TakeDamage(secondHit);
-                Debug.Log($"[DoubleAttackSkill] 추가 타격: {secondHit:F1} 피해");
-            }
+            caster.OnPostAttack -= old;
+            _handlers.Remove(caster);
+        }
+
+        // 지연시간은 고정 0.5초(원하면 effect.skillDelayTime으로 데이터화 가능)
+        float delay = DefaultDelaySeconds;
+        // 데이터로 조절하고 싶으면 아래를 사용
+        // float delay = (effect.skillDelayTime > 0f) ? effect.skillDelayTime : DefaultDelaySeconds;
+
+        float valueMul = effect.skillValue;
+
+        Action handler = () =>
+        {
+            if (caster == null || !caster.IsAlive()) return;
+
+            // "이번 공격의 피해자"를 스냅샷으로 잡아둔다.
+            // 지연 동안 targetEnemy가 바뀌어도, 원래 맞은 대상에게 2타가 들어가게 된다.
+            var victim = caster.targetEnemy;
+            if (victim == null || !victim.IsAlive()) return;
+
+            // 추가타 피해량은 "발동 시점" 기준으로 고정(지연 중 버프/디버프 변동 영향 최소화)
+            float secondHit = caster.stats.attack * valueMul;
+
+            caster.StartCoroutine(DelayedSecondHit(caster, victim, secondHit, delay));
         };
+
+        caster.OnPostAttack += handler;
+        _handlers[caster] = handler;
     }
 
     public void Remove(UnitCombatFSM caster, SkillEffect effect)
     {
-        // 이후 상태 해제 시 제거할 수 있도록 구조화
-        caster.OnPostAttack = null;
+        if (caster == null) return;
+
+        // 중요: OnPostAttack = null로 전체 리스너를 날리면 안 된다.
+        if (_handlers.TryGetValue(caster, out var h))
+        {
+            caster.OnPostAttack -= h;
+            _handlers.Remove(caster);
+        }
     }
 
+    private static IEnumerator DelayedSecondHit(UnitCombatFSM caster, UnitCombatFSM victim, float damage, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        if (caster == null || victim == null) yield break;
+        if (!caster.IsAlive() || !victim.IsAlive()) yield break;
+
+        // attacker를 caster로 넘겨야 OnDealDamage/OnKillEnemy 등 후처리가 정상 작동한다.
+        victim.TakeDamage(damage, caster);
+
+        Debug.Log($"[DoubleAttackSkill] {delay:F2}s 후 추가 타격: {victim.name} → {damage:F1} 피해");
+    }
 }
 
 //강화 전술기어 
@@ -728,10 +970,24 @@ public class CriticalStrikeSkill : ISkillBehavior
         // 추가 피해 
         float bonusDamage = atk * effect.skillValue;
         float totalDamage = critDamage + bonusDamage;
+        bool prevMovementLocked = caster.movementLocked;
+        caster.movementLocked = true;
+
+        if (caster.agent != null)
+        {
+            caster.agent.ResetPath();
+            caster.agent.isStopped = true;
+        }
+
+        caster.FacePositionInstant(target.transform.position);
+
+        caster.PlayAttackAnimForSkill(1f);
 
         target.TakeDamage(totalDamage, caster);
         Debug.Log($"[CriticalStrike] {caster.name} → {target.name}: 치명타({critDamage:F1}) + 추가({bonusDamage:F1}) = {totalDamage:F1} 피해");
 
+        caster.movementLocked = prevMovementLocked;
+        caster.Anim_SetMoving(true);
         // 스킬 사용 후 쿨다운 초기화
         caster.skillTimer = 0f;
     }
@@ -777,6 +1033,8 @@ public class HeatReactiveMarkSkill : ISkillBehavior
 
     private IEnumerator ApplyMarkAndExplode(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
     {
+        //VFX 표식
+        PlayMarkVfx(target, effect);
 
         //표식 적용
         void Amplify(ref float dmg, UnitCombatFSM atk) { dmg *= (1f + DamageAmp); }
@@ -784,7 +1042,6 @@ public class HeatReactiveMarkSkill : ISkillBehavior
             target.OnBeforeTakeDamage += Amplify;
 
         Debug.Log($"[HeatMark] {target.name} 표식 시작 ({MarkDuration}s, 피해 +{DamageAmp * 100f}%)");
-
 
         //표식 해제
         try
@@ -850,6 +1107,54 @@ public class HeatReactiveMarkSkill : ISkillBehavior
     {
         return GameObject.FindObjectsByType<UnitCombatFSM>(FindObjectsSortMode.None).Where(u => u.IsAlive() && u.unitData.faction != refUnit.unitData.faction);
     }
+
+    // =========================================
+    // VFX Helpers (추가된 부분)
+    // =========================================
+
+    private static SkillCastVfxManager GetVfxManager()
+    {
+        // 확실하지 않음: 프로젝트에서 Instance를 제공하는지 여부
+        // 1) Instance가 있다면 이 방식 사용
+        if (SkillCastVfxManager.Instance != null)
+            return SkillCastVfxManager.Instance;
+
+        // 2) Instance가 없다면 아래 방식으로 대체
+        // return Object.FindFirstObjectByType<SkillCastVfxManager>();
+
+        return null;
+    }
+
+    private static void PlayMarkVfx(UnitCombatFSM target, SkillEffect effect)
+    {
+        if (target == null || effect == null) return;
+
+        var vfx = GetVfxManager();
+        if (vfx == null) return;
+
+        // followCaster=true인 세팅을 사용하되, followTransform으로 "타겟"을 넘겨 추적하게 함
+        vfx.PlayAtWorld(
+            effect.skillType,
+            target.transform.position,
+            target.transform.eulerAngles.y,
+            target.transform
+        );
+    }
+
+    // private static void PlayExplosionVfx(UnitCombatFSM target, SkillEffect effect)
+    // {
+    //     if (target == null || effect == null) return;
+
+    //     var vfx = GetVfxManager();
+    //     if (vfx == null) return;
+
+    //     // 폭발은 그 순간 위치에서 월드 고정 재생(추적 없음)
+    //     vfx.PlayAtWorld(
+    //         effect.skillType,
+    //         target.transform.position,
+    //         target.transform.eulerAngles.y
+    //     );
+    // }
 
 }
 
@@ -931,12 +1236,25 @@ public class FarthestDoubleAoeSkill : ISkillBehavior
         {
             //가장 먼 적에게 n회 날림, 최초 타깃 기준 죽었으면 재탐색
             var firstTarget = (target != null && target.IsAlive()) ? target : FindTarget(caster, effect);
-
             if (firstTarget == null) yield break;
 
             // 타격 시점의 타깃 현재 위치를 중심으로 원형AoE
             Vector3 center = firstTarget.transform.position;
             float damage = caster.stats.attack * effect.skillValue;
+
+            // 타격 지점 VFX (DB 참조)
+            if (SkillCastVfxManager.Instance != null)
+            {
+                // 캐스터 -> 타격지점 방향으로 yaw를 맞추고 싶을 때(원형 폭발이면 0이어도 됨)
+                Vector3 dir = center - caster.transform.position;
+                dir.y = 0f;
+
+                float yaw = caster.transform.eulerAngles.y;
+                if (dir.sqrMagnitude > 0.0001f)
+                    yaw = Quaternion.LookRotation(dir, Vector3.up).eulerAngles.y;
+
+                SkillCastVfxManager.Instance.PlayAtWorld(UnitSkillType.FarthestDoubleAoe, center, yaw);
+            }
 
             ApplyAoeDamage(caster, center, AoERadius, damage);
 
@@ -989,6 +1307,7 @@ public class FarthestDoubleAoeSkill : ISkillBehavior
     {
         return u != null && u.IsAlive() && u.unitData.faction != caster.unitData.faction;
     }
+    
 }
 
 
@@ -1009,7 +1328,7 @@ public class PassiveTurretBarrageSkill : ISkillBehavior
 
     public UnitCombatFSM FindTarget(UnitCombatFSM caster, SkillEffect effect) => caster;
 
-    public void Execute(UnitCombatFSM caster, UnitCombatFSM _, SkillEffect effect)
+    public void Execute(UnitCombatFSM caster, UnitCombatFSM target, SkillEffect effect)
     {
         if (caster == null || !caster.IsAlive()) return;
         if (running.ContainsKey(caster)) return; // 중복 방지
@@ -1017,6 +1336,7 @@ public class PassiveTurretBarrageSkill : ISkillBehavior
         caster.disableBasicAttack = true;  //평타 금지 
         if (caster.agent != null) caster.agent.isStopped = true; //이동도 정지
 
+  
         var co = caster.StartCoroutine(FireLoop(caster, effect));
         running[caster] = co;
     }
@@ -1083,6 +1403,7 @@ public class PassiveTurretBarrageSkill : ISkillBehavior
         Vector3 center = target.transform.position;
         float damage = caster.stats.attack * effect.skillValue;
 
+        PlayExplosionVfx(target, effect);
         ApplyAoeDamage(caster, center, radius, damage);
         Debug.Log($"[PassiveTurret] {caster.name} → {target.name} AoE {damage:F1} (r={radius:F1})");
     }
@@ -1138,6 +1459,33 @@ public class PassiveTurretBarrageSkill : ISkillBehavior
     private static bool IsValidEnemy(UnitCombatFSM u, UnitCombatFSM caster)
     {
         return u != null && u.IsAlive() && u.unitData.faction != caster.unitData.faction;
+    }
+
+    // =========================================
+    // VFX Helpers (추가된 부분)
+    // =========================================
+
+    private static SkillCastVfxManager GetVfxManager()
+    {
+        if (SkillCastVfxManager.Instance != null)
+            return SkillCastVfxManager.Instance;
+
+        return null;
+    }
+
+    private static void PlayExplosionVfx(UnitCombatFSM target, SkillEffect effect)
+    {
+        if (target == null || effect == null) return;
+
+        var vfx = GetVfxManager();
+        if (vfx == null) return;
+
+        // 폭발은 그 순간 위치에서 월드 고정 재생(추적 없음)
+        vfx.PlayAtWorld(
+            effect.skillType,
+            target.transform.position,
+            target.transform.eulerAngles.y
+        );
     }
 }
 
@@ -1216,7 +1564,23 @@ public class QuadFlurryBlindSkill : ISkillBehavior
                 yield break;
 
             // 단일 타겟 직격
+            Vector3 targetTransPos = initialTarget.transform.position;
             float damage = caster.stats.attack * effect.skillValue;
+
+            // 타격 지점 VFX (DB 참조)
+            if (SkillCastVfxManager.Instance != null)
+            {
+                // 캐스터 -> 타격지점 방향으로 yaw를 맞추고 싶을 때(원형 폭발이면 0이어도 됨)
+                Vector3 dir = targetTransPos - caster.transform.position;
+                dir.y = 0f;
+
+                float yaw = caster.transform.eulerAngles.y;
+                if (dir.sqrMagnitude > 0.0001f)
+                    yaw = Quaternion.LookRotation(dir, Vector3.up).eulerAngles.y;
+
+                SkillCastVfxManager.Instance.PlayAtWorld(UnitSkillType.QuadFlurryBlind, targetTransPos, yaw);
+            }
+
             target.TakeDamage(damage, caster);
             Debug.Log($"[QuadFlurryBlind] {caster.name} → {target.name} : hit {i+1}/{HitCount}, {damage:F1}");
 
@@ -1413,6 +1777,8 @@ public class EmpowerZoneHighestAttackAllySkill : ISkillBehavior
         var zone = zoneGO.AddComponent<BuffZoneController>();
         zone.Initialize(caster, radius, zoneDuration, atkPct, asPct, msPct);
 
+        PlayZoneVfx(effect.skillType, zoneGO.transform, center, zoneDuration);
+
         // 4) 쿨다운 초기화
         caster.skillTimer = 0f;
 
@@ -1420,6 +1786,38 @@ public class EmpowerZoneHighestAttackAllySkill : ISkillBehavior
     }
 
     public void Remove(UnitCombatFSM caster, SkillEffect effect) { /* 지대는 일시 오브젝트로 자동 정리 */ }
+
+
+        private static SkillCastVfxManager GetVfxManager()
+    {
+        // 확실하지 않음: 프로젝트에서 Instance를 제공하는지 여부
+        if (SkillCastVfxManager.Instance != null)
+            return SkillCastVfxManager.Instance;
+
+        // Instance가 없다면 아래로 대체
+        // return Object.FindFirstObjectByType<SkillCastVfxManager>();
+
+        return null;
+    }
+
+    private static void PlayZoneVfx(UnitSkillType skillType, Transform zoneTransform, Vector3 worldPos, float zoneDuration)
+    {
+        var vfx = GetVfxManager();
+        if (vfx == null) return;
+        if (zoneTransform == null) return;
+
+        // yaw는 고정이어도 무방(지대형 VFX는 보통 회전 의미 없음)
+        float yaw = 0f;
+
+        // 권장: durationOverride를 지원하도록 SkillCastVfxManager를 수정(아래 2번 참고)
+        // followTransform으로 zoneTransform을 넘기면, DB에서 followCaster=true일 때 지대 오브젝트를 따라가게 할 수 있음.
+        vfx.PlayAtWorld(
+            skillType,
+            worldPos,
+            yaw,
+            zoneTransform
+        );
+    }
 }
 
 /// <summary>
@@ -2234,8 +2632,25 @@ public class ThrowSpearPoisonAttackSkill : ISkillBehavior
         float dmgMul = (effect != null && effect.skillValue > 0f) ? effect.skillValue : 1.5f;
         float damage = caster.stats.attack * dmgMul;
 
+        bool prevMovementLocked = caster.movementLocked;
+        caster.movementLocked = true;
+
+        if (caster.agent != null)
+        {
+            caster.agent.ResetPath();
+            caster.agent.isStopped = true;
+        }
+
+        caster.FacePositionInstant(target.transform.position);
+
+        caster.PlayAttackAnimForSkill(1f);
+
+
         // attacker 전달: 이후 피해 후처리/킬 크레딧 같은 확장
         target.TakeDamage(damage, caster);
+
+        caster.movementLocked = prevMovementLocked;
+        caster.Anim_SetMoving(true);
 
         // 2) 중독 적용
         int maxStack = (effect != null && effect.skillMaxStack > 0f) ? Mathf.RoundToInt(effect.skillMaxStack) : 2;
@@ -2396,7 +2811,7 @@ public class ImmobileAuraBuffSkill : ISkillBehavior
 
         // 이 프로젝트는 attackSpeed가 "공격간격(초)"로 쓰임
         // 공속 +10% => 공격간격 10% 감소 => -0.10 저장
-        public float attackSpeedPct = -0.10f;
+        public float attackSpeedPct = 0.10f;
 
         // 보호막 펄스(강화 옵션)
         public bool enableBarrierPulse = false;
@@ -2532,7 +2947,7 @@ public class ImmobileAuraBuffSkill : ISkillBehavior
             case BuffStat.AttackSpeed:
                 // 인스펙터에는 +0.15로 넣고, 실제는 공격간격 감소이므로 음수로 저장
                 if (effect.skillValue != 0f)
-                    rec.attackSpeedPct = -Mathf.Abs(effect.skillValue); // 예: -0.15
+                    rec.attackSpeedPct = Mathf.Abs(effect.skillValue); // 예: -0.15
                 break;
 
             case BuffStat.None:
@@ -3120,6 +3535,8 @@ public class TargetedAoeBlindSkill : ISkillBehavior
             return;
         }
 
+        PlayExplosionVfx(target, effect);
+
         // 즉시 발동은 SkillExecutor가 사거리 보장한다는 전제 하에 바로 적용
         ApplyBlindAoe(caster, target, effect);
     }
@@ -3186,6 +3603,33 @@ public class TargetedAoeBlindSkill : ISkillBehavior
     }
 
     public void Remove(UnitCombatFSM caster, SkillEffect effect){}
+
+    // =========================================
+    // VFX Helpers (추가된 부분)
+    // =========================================
+
+    private static SkillCastVfxManager GetVfxManager()
+    {
+        if (SkillCastVfxManager.Instance != null)
+            return SkillCastVfxManager.Instance;
+
+        return null;
+    }
+
+    private static void PlayExplosionVfx(UnitCombatFSM target, SkillEffect effect)
+    {
+        if (target == null || effect == null) return;
+
+        var vfx = GetVfxManager();
+        if (vfx == null) return;
+
+        // 폭발은 그 순간 위치에서 월드 고정 재생(추적 없음)
+        vfx.PlayAtWorld(
+            effect.skillType,
+            target.transform.position,
+            target.transform.eulerAngles.y
+        );
+    }
 }
 
 
@@ -3386,6 +3830,8 @@ public class NearestEnemyAoeStunThenBlindSkill : ISkillBehavior
         if (victims.Count == 0)
             return;
 
+        PlayExplosionVfx(target, effect);
+
         // 1) 즉시 기절 적용
         for (int i = 0; i < victims.Count; i++)
         {
@@ -3479,6 +3925,33 @@ public class NearestEnemyAoeStunThenBlindSkill : ISkillBehavior
             else
                 _pendingBlind.Remove(victim);
         }
+    }
+
+    // =========================================
+    // VFX Helpers (추가된 부분)
+    // =========================================
+
+    private static SkillCastVfxManager GetVfxManager()
+    {
+        if (SkillCastVfxManager.Instance != null)
+            return SkillCastVfxManager.Instance;
+
+        return null;
+    }
+
+    private static void PlayExplosionVfx(UnitCombatFSM target, SkillEffect effect)
+    {
+        if (target == null || effect == null) return;
+
+        var vfx = GetVfxManager();
+        if (vfx == null) return;
+
+        // 폭발은 그 순간 위치에서 월드 고정 재생(추적 없음)
+        vfx.PlayAtWorld(
+            effect.skillType,
+            target.transform.position,
+            target.transform.eulerAngles.y
+        );
     }
 }
 

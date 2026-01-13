@@ -6,6 +6,7 @@ using UnitSkillTypes.Enums;
 [CreateAssetMenu(menuName = "Combat/VFX/Skill VFX Database")]
 public sealed class SkillVfxDatabase : ScriptableObject
 {
+    
     [Serializable]
     public sealed class CastVfxSet
     {
@@ -15,10 +16,12 @@ public sealed class SkillVfxDatabase : ScriptableObject
 
         // 0 이하이면 호출 측(DelayTime) 또는 파티클 수명 기반으로 처리
         public float defaultDuration = 0f;
+        public bool castEffect = false;
 
         // 시전자 추적(부모로 붙이지 않고 Follow 컴포넌트로 따라가게 함: 풀링 안정)
         public bool followCaster = true;
         public bool followRotation = false;
+        public Vector3 rotationOffsetEuler = new Vector3(-90f, 0f, 0f);
     }
 
     [Serializable]

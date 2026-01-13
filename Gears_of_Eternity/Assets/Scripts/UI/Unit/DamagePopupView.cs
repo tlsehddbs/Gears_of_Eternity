@@ -72,6 +72,8 @@ public sealed class DamagePopupView : MonoBehaviour
     {
         _onFinished = onFinished;
 
+        startPos += new Vector2(0f, 35f);
+
         if (root != null)
         {
             root.anchoredPosition = startPos;

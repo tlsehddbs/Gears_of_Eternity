@@ -84,15 +84,13 @@ public class SkillExecutor
                 continue;
             }
 
-            float castTime = effect.skillDelayTime > 0f ? effect.skillDelayTime : 0.25f;
-
             var target = behavior.FindTarget(caster, effect);
             if (target == null) continue;
 
             if (effect.skillRange <= 0f || target == caster)
             {
-                
-                SkillCastVfxManager.Instance?.PlayCast(caster, effect.skillType, castTime);    
+                //스킬 VFX
+                SkillCastVfxManager.Instance?.PlayCast(caster, effect.skillType);    
                 
                 behavior.Execute(caster, target, effect);
                 caster.skillTimer = 0f;
@@ -119,7 +117,7 @@ public class SkillExecutor
             }
             // 사거리 안이면 즉시 시전
             //스킬 VFX
-            SkillCastVfxManager.Instance?.PlayCast(caster, effect.skillType, castTime);
+            SkillCastVfxManager.Instance?.PlayCast(caster, effect.skillType);
 
             behavior.Execute(caster, target, effect);
             caster.skillTimer = 0f;

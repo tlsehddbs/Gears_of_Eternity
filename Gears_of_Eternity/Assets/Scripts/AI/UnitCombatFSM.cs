@@ -958,13 +958,13 @@ private void ApplyDamageInternal(DamagePayload payload)
         { BuffStat.AttackSpeed, (s, v, isPer, isRemove) => {
             if (isPer)
             {
-                if (isRemove) s.attackSpeed /= (1f + v);
-                else s.attackSpeed *= (1f + v);
+                if (isRemove) s.attackSpeed *= (1f + v);
+                else s.attackSpeed /= (1f + v);
             }
             else
             {
-                if (isRemove) s.attackSpeed -= v;
-                else s.attackSpeed += v;
+                if (isRemove) s.attackSpeed += v;
+                else s.attackSpeed -= v;
             }
         }},
         { BuffStat.Health,      (s, v, isPer, isRemove) => {
@@ -1016,7 +1016,17 @@ private void ApplyDamageInternal(DamagePayload payload)
         if (statModifierMap.TryGetValue(stat, out var apply))
         {
             apply(stats, value, isPercent, isRemove);
+
+            if (stat == BuffStat.DamageReduction)
+            {
+                if (stats.damageReduction < 0f)
+                {
+                    stats.damageReduction = 0f;
+                }
+            }
         }
+
+
         // 부가처리: 이동속도 등
         if (stat == BuffStat.MoveSpeed)
             agent.speed = stats.moveSpeed;
@@ -1320,6 +1330,50 @@ private void SyncAttackRangeToAgent()
 
         transform.rotation = Quaternion.LookRotation(dir.normalized, Vector3.up);
     }
+
+        [Header("Skill Attack Animation")]
+    [SerializeField] private string attackStateName = "Attack";
+
+    // SMB의 hitNormalized와 같은 값으로 맞추는 걸 권장
+    // (둘이 다르면 애니 타격 타이밍과 데미지 타이밍이 어긋남)
+    [SerializeField, Range(0f, 1f)]
+    private float attackHitNormalized = 0.35f;
+
+    public float AttackHitNormalized => attackHitNormalized;
+
+    public float BaseAttackClipLength => baseAttackClipLength;
+
+    // 스킬에서 "공격 애니만" 재생(반드시 FSM 외부는 이 메서드만 호출하도록)
+    public void PlayAttackAnimForSkill(float speedMul)
+    {
+        EnsureAnimator();
+        if (animator == null) return;
+
+        // 이동 애니 꺼두기(Idle/Move 상태가 다시 켜지 않도록 스킬에서 movementLocked를 함께 쓰는 걸 권장)
+        animator.SetBool(HashIsMoving, false);
+
+        // 공격 속도 보정(원하면 스킬 전용 속도로 조정 가능)
+        animator.SetFloat(HashAttackSpeedMul, speedMul);
+
+        // 같은 Attack 상태라도 강제로 0초부터 다시 재생되게 함(연속 3타에서 중요)
+        animator.Play(attackStateName, 0, 0f);
+    }
+
+    // 스킬이 "타격 프레임에 데미지"를 넣고 싶을 때 쓰는 대기 시간(초)
+    public float GetSkillHitDelaySeconds(float speedMul)
+    {
+        float clipLen = Mathf.Max(0.05f, baseAttackClipLength);
+        float mul = Mathf.Max(0.01f, speedMul);
+
+        // normalized 기반이므로 클립 실제 재생시간(clipLen / mul)에 곱해줌
+        return (clipLen / mul) * attackHitNormalized;
+    }
+
+
+
+
+
+
 
     //이펙트 부분
 

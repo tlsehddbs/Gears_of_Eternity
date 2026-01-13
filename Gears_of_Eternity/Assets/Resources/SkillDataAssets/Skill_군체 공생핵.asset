@@ -28,7 +28,7 @@ MonoBehaviour:
     skillDelayTime: 10
     skillMaxStack: 5
     isPercent: 0
-    skillRange: 0
+    skillRange: 25
     skillAngle: 0
   - skillType: 36
     buffStat: 1
@@ -37,7 +37,7 @@ MonoBehaviour:
     skillDelayTime: 0
     skillMaxStack: 0
     isPercent: 0
-    skillRange: 0
+    skillRange: 25
     skillAngle: 0
   - skillType: 36
     buffStat: 2
@@ -46,7 +46,7 @@ MonoBehaviour:
     skillDelayTime: 0
     skillMaxStack: 0
     isPercent: 0
-    skillRange: 0
+    skillRange: 25
     skillAngle: 0
   - skillType: 36
     buffStat: 7
@@ -55,7 +55,7 @@ MonoBehaviour:
     skillDelayTime: 0
     skillMaxStack: 0
     isPercent: 0
-    skillRange: 0
+    skillRange: 25
     skillAngle: 0
   - skillType: 36
     buffStat: 4
@@ -64,5 +64,5 @@ MonoBehaviour:
     skillDelayTime: 0
     skillMaxStack: 0
     isPercent: 0
-    skillRange: 0
+    skillRange: 25
     skillAngle: 0

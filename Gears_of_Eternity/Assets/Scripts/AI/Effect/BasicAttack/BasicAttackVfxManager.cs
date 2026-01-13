@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Combat.Vfx;
 
 public sealed class BasicAttackVfxManager : MonoBehaviour
 {
@@ -215,15 +216,5 @@ public sealed class BasicAttackVfxManager : MonoBehaviour
         {
             ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         }
-    }
-}
-
-public sealed class PooledVfxTag : MonoBehaviour
-{
-    public int SpawnId { get; private set; }
-
-    public void MarkSpawn(int id)
-    {
-        SpawnId = id;
     }
 }
