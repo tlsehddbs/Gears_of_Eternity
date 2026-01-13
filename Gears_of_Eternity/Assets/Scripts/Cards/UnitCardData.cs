@@ -1,16 +1,15 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-using BattleTypes.Enums;
+using UnitRoleTypes.Enums;
 
 [CreateAssetMenu(fileName = "NewUnitCard", menuName = "Card/UnitCard")]
 public class UnitCardData : BaseCardData
 {
-    [Space(10)]
-    [Header("Unit Card Info")]
+    [Header("Unit Card Info")] 
     public string unitName;
-    // public string description;
-    public BattleType battleType;
+    public string description;
+    public RoleTypes roleType;
     public GameObject unitPrefab;
     
     public float health;
@@ -18,16 +17,11 @@ public class UnitCardData : BaseCardData
     
     public float moveSpeed;
     
-    public float attack;
+    public string attackType;
+    public float attackValue;
     public float attackSpeed;
-    public float attackRange;
     public float attackDistance;
 
-    [Space(10)]
-    [Header("Unit Skill Info")]
-    public string skillName;
-    public float skillCoolDown;
-    public string skillDescription;
     
     [Space(10)]
     public int level;

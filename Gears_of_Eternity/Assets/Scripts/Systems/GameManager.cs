@@ -2,15 +2,36 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public static GameManager Instance { get; private set; }
+    
+    //public bool isDrawingCards;
+    [HideInInspector]
+    public bool isDraggingCard;
+    [HideInInspector]
+    public bool isPointerEventEnabled = true;
+
+    public float combatTime = 360f;
+    public int maxCost = 10;
+    
+
+    void Awake()
     {
-        Debug.Log("Hello world!");
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Start()
     {
-        
+        if (PlayerState.Instance.DeckCards.Count == 0)
+        {
+            PlayerState.Instance.GenerateStarterDeck(CardCollection.Instance);
+        }
     }
 }

@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05abb4b0d0062134887d7bc067d992e7, type: 3}
+  m_Name: "Skill_\uC815\uBC00 \uAE30\uC5B4\uC800\uACA9\uC218"
+  m_EditorClassIdentifier: 
+  faction: 0
+  unitName: "\uC815\uBC00 \uAE30\uC5B4\uC800\uACA9\uC218"
+  skillDescription: "\uCE58\uBA85\uD0C0 \uD655\uB960 +15% / \uC0AC\uAC70\uB9AC +50%"
+  skillCoolDown: 0
+  effects:
+  - skillType: 0
+    buffStat: 8
+    skillValue: 0.15
+    skillDuration: 0
+    skillDelayTime: 0
+    skillMaxStack: 0
+    isPercent: 0
+    skillRange: 0
+    skillAngle: 0
+  - skillType: 0
+    buffStat: 6
+    skillValue: 0.5
+    skillDuration: 0
+    skillDelayTime: 0
+    skillMaxStack: 0
+    isPercent: 1
+    skillRange: 0
+    skillAngle: 0

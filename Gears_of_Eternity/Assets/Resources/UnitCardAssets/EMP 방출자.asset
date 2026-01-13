@@ -18,18 +18,17 @@ MonoBehaviour:
   faction: 0
   rarity: 2
   cost: 4
-  level: 3
+  price: 0
   unitName: "EMP \uBC29\uCD9C\uC790"
-  battleType: 1
+  description: 
+  roleType: 2
   unitPrefab: {fileID: 0}
-  health: 90
-  defense: 30
-  moveSpeed: 2.8
-  attack: 58
-  attackSpeed: 1.5
-  attackRange: 2
-  attackDistance: 4
-  skillName: 
-  skillCoolDown: 0
-  skillDescription: 
+  health: 1782
+  defense: 83
+  moveSpeed: 3.6
+  attackType: "\uC9C0\uC6D0"
+  attackValue: 102
+  attackSpeed: 1.4
+  attackDistance: 5
+  level: 3
   nextUpgrades: []
