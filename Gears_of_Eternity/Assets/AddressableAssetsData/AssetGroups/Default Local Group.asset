@@ -15,13 +15,18 @@ MonoBehaviour:
   m_GroupName: Default Local Group
   m_GUID: a3a83a2f866a26c4c9fb86465d3cd78a
   m_SerializeEntries:
+  - m_GUID: 09a91a17ae45bd6409da4e4a8cf1b2c9
+    m_Address: combatScene
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 3923aa46b649e42e6bd393752188c3b9
     m_Address: restScene
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b932643459dfa475c98f3e455ee8319a
-    m_Address: eventScene
+    m_Address: bossScene
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

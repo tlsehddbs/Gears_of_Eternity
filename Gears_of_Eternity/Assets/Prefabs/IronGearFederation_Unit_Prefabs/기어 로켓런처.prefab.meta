@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Gears_of_Eternity/Assets/Prefabs/CardUI/UnitUpgradeContentPanel.prefab.meta
+guid: 0165fe94571d7b74ea882488aff83e27
+========
 guid: 4d2a39d908025034b991cb66f22c2c07
+>>>>>>>> backup_develop_battle_fix:Gears_of_Eternity/Assets/Prefabs/IronGearFederation_Unit_Prefabs/기어 로켓런처.prefab.meta
 PrefabImporter:
   externalObjects: {}
   userData: 

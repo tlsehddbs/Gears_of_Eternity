@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Gears_of_Eternity/Assets/Scripts/UI/InStage.meta
+guid: 6b77002bd1670dd499646122c28231bf
+========
 guid: cc3a4228c38fe114781414b860ca51ad
+>>>>>>>> backup_develop_battle_fix:Gears_of_Eternity/Assets/AnimatonController.meta
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}

@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using FactionTypes.Enums;
+using RarityTypes.Enums;
 using UnitRoleTypes.Enums;
 using UnityEngine;
 
@@ -12,7 +14,7 @@ public class RuntimeUnitCard
     public string unitDescription;
     
     public FactionType faction;
-    public RoleTypes roleTypes;
+    public RoleTypes roleType;
     public GameObject unitPrefab;
     
     public float health;
@@ -26,6 +28,11 @@ public class RuntimeUnitCard
     public float attackDistance;
     
     public int level;
+    public Rarity rarity;
+
+    public int cost;
+
+    public List<UnitCardData> nextUpgradeUnits;
     
     
     public RuntimeUnitCard(UnitCardData data)
@@ -38,7 +45,7 @@ public class RuntimeUnitCard
         
         faction = data.faction;
         
-        roleTypes = data.roleType;
+        roleType = data.roleType;
         unitPrefab = data.unitPrefab;
         
         health = data.health;
@@ -52,7 +59,10 @@ public class RuntimeUnitCard
         attackDistance = data.attackDistance;
         
         level = data.level;
+        rarity = data.rarity;
         
-        // Skill ~~
+        cost = data.cost;
+
+        nextUpgradeUnits = new List<UnitCardData>(data.nextUpgrades);
     }
 }

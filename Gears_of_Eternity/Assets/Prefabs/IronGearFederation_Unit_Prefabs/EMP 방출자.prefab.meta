@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Gears_of_Eternity/Assets/Prefabs/CardUI/Unit Card Disabled Prefavb.prefab.meta
+guid: 46d9f51b0991a6f439b556aab243eb6b
+========
 guid: aa86ad60ba33f774987ee02cc386c432
+>>>>>>>> backup_develop_battle_fix:Gears_of_Eternity/Assets/Prefabs/IronGearFederation_Unit_Prefabs/EMP 방출자.prefab.meta
 PrefabImporter:
   externalObjects: {}
   userData: 

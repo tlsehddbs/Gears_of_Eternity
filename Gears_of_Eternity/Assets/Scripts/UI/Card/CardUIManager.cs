@@ -1,158 +1,91 @@
+using System.Collections.Generic;
+using System.Linq;
 using DG.Tweening;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
-public class CardUIManager : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
+public class CardUIManager : MonoBehaviour
 {
-    private CanvasGroup _canvasGroup;
-    private Canvas _canvas;
-    private RectTransform _rectTransform;
-    //private Transform _originalParent;
+    public GameObject cardPrefab;
+    public Transform handPanel;
 
-    public RuntimeUnitCard cardData;
-    public CardUIHandler cardUIHandler;
-
-    private Tween _currentTween;
-
-    // 배치 실패시 원래의 Position으로의 복귀를 위한 변수
-    private Vector3 _originalPosition;
-    private Quaternion _originalRotation;
-    
-    private Vector3 _originalScale;
-
-    public float hoverScale = 1.2f;
-    public float hoverMoveY = 50f;
-
-    private bool _isCardHighlighted;
+    public List<GameObject> cardInstances = new();
     
     
-    void Awake()
+    // 제거된 카드 파악 및 제거
+    public void RemoveCards(IReadOnlyList<RuntimeUnitCard> hand)
     {
-        _canvasGroup = GetComponent<CanvasGroup>();
-        _canvas = GameObject.Find("Canvas").GetComponent<Canvas>();
-        
-        _rectTransform = GetComponent<RectTransform>();
-        cardUIHandler = GameObject.Find("CardUIHandler").GetComponent<CardUIHandler>();
-    }
-
-    
-    public void UpdateOriginalTransform(Vector2 position)
-    {
-        _originalPosition = position;
-        _originalScale = new Vector3(1, 1, 1);  // 고정값
-    }
-    
-    
-    // Hover
-    public void OnPointerEnter(PointerEventData eventData)
-    {
-        OnPointerEnterEffect(false);
-    }
-
-    private void OnPointerEnterEffect(bool onlyScaleHighlightEffect)
-    {
-        if (!GameManager.Instance.isPointerEventEnabled || GameManager.Instance.isDraggingCard)
+        for (int i = cardInstances.Count - 1; i >= 0; i--)
         {
-            return;
-        }
-        
-        _isCardHighlighted = true;
+            var cardIndex = cardInstances[i];
+            var cardData = cardIndex.GetComponent<RuntimeUnitCardRef>().Card;
 
-        _currentTween?.Kill();
-        _currentTween = DOTween.Sequence()
-            .Join(transform.DOScale(hoverScale, 0.2f).SetEase(Ease.OutBack))
-            .Join(transform.DOLocalMoveY(_originalPosition.y + (!onlyScaleHighlightEffect ? hoverMoveY : 0), 0.2f).SetEase(Ease.OutCubic))
-            .SetUpdate(false)
-            .SetLink(gameObject, LinkBehaviour.KillOnDisable);
-    }
+            bool stillExists = hand.Any(c => c.uniqueId == cardData.uniqueId);
 
-    public void OnPointerExit(PointerEventData eventData)
-    {
-        if (GameManager.Instance.isDraggingCard)
-        {
-            return;
-        }
-        
-        OnPointerExitEffect(false);
-    }
-
-    public void OnPointerExitEffect(bool instantKillHighlightAnim)
-    {
-        _isCardHighlighted = false;
-        
-        _currentTween?.Kill();
-
-        if (instantKillHighlightAnim)
-        {
-            transform.localScale = _originalScale;
-        }
-        else
-        {
-            _currentTween = DOTween.Sequence()
-                .Join(transform.DOScale(new Vector3(1, 1, 1), 0.2f).SetEase(Ease.OutQuad))
-                .Join(transform.DOLocalMove(_originalPosition, 0.2f).SetEase(Ease.OutCubic))
-                .SetUpdate(false)
-                .SetLink(gameObject, LinkBehaviour.KillOnDisable);
-        }
-    }
-
-
-    public void OnPointerDown(PointerEventData eventData)
-    {
-        if (!GameManager.Instance.isPointerEventEnabled)
-        {
-            return;
-        }
-        
-        if (!_isCardHighlighted)
-        {
-            OnPointerEnterEffect(true);
-        }
-    }
-    
-    // Drag
-    public void OnBeginDrag(PointerEventData eventData)
-    {
-        // TODO: 드래그 시 부모를 해제하고 다른 카드 밑으로 들어가지 않게 가장 위에 표시가 되게끔 변경
-        GameManager.Instance.isDraggingCard = true;
-        
-        _currentTween?.Kill();
-        _canvasGroup.blocksRaycasts = false;        // Raycast 차단, 드롭 감지 가능하게
-    }
-    
-    public void OnDrag(PointerEventData eventData)
-    {
-        _rectTransform.anchoredPosition += eventData.delta / _canvas.scaleFactor;
-    }
-
-    public void OnEndDrag(PointerEventData eventData)
-    {
-        GameManager.Instance.isDraggingCard = false;
-        _canvasGroup.blocksRaycasts = true;
-
-        // 드롭 위치에 콜라이더가 있는지 확인
-        if (Camera.main != null)
-        {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        
-            if (Physics.Raycast(ray, out RaycastHit hit, 100f))
+            if (!stillExists)
             {
-                CardDrop cardDrop = hit.collider.GetComponent<CardDrop>();
+                Destroy(cardIndex);
+                cardInstances.RemoveAt(i);
+            }
+        }
+        UpdateCardLayout();
+    }
+
+    // 새로 생긴 카드 파악 및 생성
+    public void AddCards(IReadOnlyList<RuntimeUnitCard> hand)
+    {
+        foreach (var newCard in hand)
+        {
+            bool alreadyExists = cardInstances.Any(go => go.GetComponent<RuntimeUnitCardRef>().Card.uniqueId == newCard.uniqueId);
+
+            if (!alreadyExists)
+            {
+                var go = Instantiate(cardPrefab, handPanel);
+                go.GetComponent<RuntimeUnitCardRef>().SetCard(newCard);
+                go.GetComponent<RectTransform>().localPosition = new Vector3(0, -250f, 0);
+                go.GetComponent<CardSlotUI>().Apply(newCard);
+                cardInstances.Add(go);
+            }
+        }
+        UpdateCardLayout();
+    }
+
+    // TODO: 카드 레이아웃을 계산하는 부분과 UI에 실질 적용하는 두 개의 함수로 분리하여 적용할 것 (배치 실패 시 불필요한 계산을 줄이기 위함)
+    public void UpdateCardLayout()
+    {
+        GameManager.Instance.isPointerEventEnabled = false;
+        int count = cardInstances.Count;
+
+        // 카드 개수에 따라 펼침 각도 조정
+        float spacingAngle = 15f;                           // 카드 사이 각도 간격
+        float angleRange = spacingAngle * (count - 1);      // 전체 부채꼴 각도
+        float startAngle = -angleRange / 2f;
+        float radius = Mathf.Lerp(300f, 500f, Mathf.InverseLerp(1f, 10f, count));   // 반지름이 카드 수에 비례하도록  
+        
+        for (int i = 0; i < count; i++)
+        {
+            float angle = startAngle + spacingAngle * i;
+            float rad = Mathf.Deg2Rad * angle;
+
+            Vector2 pos = new Vector2(Mathf.Sin(rad) * radius, Mathf.Cos(rad) * radius * 0.3f);
             
-                if (cardDrop != null)
-                {
-                    DeckManager.Instance.UseCard(cardData);
-                    UnitSpawnManager.Instance.SpawnUnit(cardData, hit.point);
-                
-                    cardUIHandler.RemoveCards(DeckManager.Instance.hand);
-                }
-                else
-                {
-#if UNITY_EDITOR
-                    Debug.LogWarning("배치 실패");
-#endif
-                    cardUIHandler.UpdateCardLayout();
-                }
+            float delay = i * 0.02f;
+            float angleScale = 0.4f; // 회전 강도 계수 (0.0 ~ 1.0)
+            float limitedAngle = -angle * angleScale;
+            
+            var card = cardInstances[i];
+            var cardHandler = card.GetComponent<CardUIHandler>();
+            
+            cardHandler.UpdateOriginalTransform(pos);
+            cardHandler.OnPointerExitEffect(true);
+            
+            Tween s = DOTween.Sequence()
+                .AppendInterval(delay)
+                .Join(card.transform.DOLocalMove(pos, 0.5f).SetEase(Ease.OutExpo))
+                .Join(card.transform.DOLocalRotate(Vector3.forward * limitedAngle, 0.5f).SetEase(Ease.OutQuad));
+
+            if (i == count - 1)
+            {
+                s.OnComplete(() => GameManager.Instance.isPointerEventEnabled = true);
             }
         }
     }
